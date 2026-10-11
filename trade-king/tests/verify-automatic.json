@@ -1,0 +1,37 @@
+[
+    {
+        "script":  "tests/bots.js",
+        "exit_code":  0,
+        "output":  ""
+    },
+    {
+        "script":  "tests/chains.js",
+        "exit_code":  0,
+        "output":  "tariff 해당 씨앗 166 갈래 3\r\ndefect 해당 씨앗 139 갈래 3\r\ncreditDue 해당 씨앗 193 갈래 3\r\n전체 비교 1494 실패 0 가장 큰 차이 -25\r\n"
+    },
+    {
+        "script":  "tests/content.js",
+        "exit_code":  0,
+        "output":  "┌─────────┬─────────────────────────────────┬────────┬───────┐\r\n│ (index) │ path                            │ before │ after │\r\n├─────────┼─────────────────────────────────┼────────┼───────┤\r\n│ 0       │ \u0027nodes.tariff2.buy.1\u0027           │ 0.85   │ 0     │\r\n│ 1       │ \u0027nodes.tariff2.buy.2\u0027           │ 3      │ 12    │\r\n│ 2       │ \u0027nodes.tradeWar.buy.1\u0027          │ 0.8    │ 0.1   │\r\n│ 3       │ \u0027nodes.tradeWar.buy.2\u0027          │ 2      │ 12    │\r\n│ 4       │ \u0027nodes.recall.buy.1\u0027            │ 0.85   │ 0.1   │\r\n│ 5       │ \u0027nodes.recall.buy.2\u0027            │ 2      │ 12    │\r\n│ 6       │ \u0027nodes.badRumor.buy.1\u0027          │ 0.75   │ 0.1   │\r\n│ 7       │ \u0027nodes.badRumor.buy.2\u0027          │ 3      │ 12    │\r\n│ 8       │ \u0027nodes.badRumor.noContract\u0027     │ 2      │ 12    │\r\n│ 9       │ \u0027nodes.promiseAngry.trust.all\u0027  │ -1     │ -5    │\r\n│ 10      │ \u0027nodes.promiseAngry.noContract\u0027 │ 2      │ 12    │\r\n└─────────┴─────────────────────────────────┴────────┴───────┘\r\n구조·글 유지 검사 통과\r\n"
+    },
+    {
+        "script":  "tests/rules.js",
+        "exit_code":  0,
+        "output":  "규칙 검사 통과: 기존 규칙·노드 효과·계약 거절 기간·신뢰 0/1·계약 종료·리콜 최소 2대·씨앗 54\r\n"
+    },
+    {
+        "script":  "tests/sim.js",
+        "exit_code":  0,
+        "output":  "balanced {\"endings\":{\"rawOnly\":67,\"richAlone\":14,\"king\":120,\"normal\":99},\"gauges\":[4.343333333333325,3.9633333333333236,3.259999999999994],\"money\":304.83666666666653}\r\nisland {\"endings\":{\"island\":300},\"gauges\":[0,0,0],\"money\":134.2666666666666}\r\nraw {\"endings\":{\"rawOnly\":257,\"richAlone\":43},\"gauges\":[4.256666666666656,3.9099999999999904,0],\"money\":193.01333333333346}\r\nunfair {\"endings\":{\"island\":68,\"rawOnly\":47,\"normal\":17,\"war\":166,\"richAlone\":2},\"gauges\":[0.02666666666666667,0.013333333333333334,0.26999999999999996],\"money\":24.060000000000006}\r\nrandom {\"endings\":{\"rawOnly\":129,\"richAlone\":16,\"normal\":127,\"war\":21,\"king\":6,\"island\":1},\"gauges\":[1.7599999999999996,1.3200000000000003,0.6599999999999999],\"money\":95.9333333333333}\r\n봇별 완료 조건 통과\r\n"
+    },
+    {
+        "script":  "tests/verify-endings.js",
+        "exit_code":  0,
+        "output":  "실제 마지막 정산 직전 엔딩 6종: rawOnly, richAlone, king, normal, island, war\r\n"
+    },
+    {
+        "script":  "tests/worlds.js",
+        "exit_code":  0,
+        "output":  "2000개 씨앗: coverage·거리≤3·모든 항로·고정 나라·재현성 통과\r\n┌───────────────┬────────┐\r\n│ (index)       │ Values │\r\n├───────────────┼────────┤\r\n│ strait/0      │ 123    │\r\n│ inland/0      │ 111    │\r\n│ inland/1      │ 152    │\r\n│ continent/1   │ 108    │\r\n│ inland/3      │ 142    │\r\n│ archipelago/0 │ 131    │\r\n│ archipelago/2 │ 117    │\r\n│ archipelago/3 │ 139    │\r\n│ inland/2      │ 133    │\r\n│ strait/1      │ 126    │\r\n│ archipelago/1 │ 124    │\r\n│ strait/2      │ 126    │\r\n│ strait/3      │ 109    │\r\n│ continent/3   │ 117    │\r\n│ continent/2   │ 130    │\r\n│ continent/0   │ 112    │\r\n└───────────────┴────────┘\r\n나라 조합 94\r\n"
+    }
+]

@@ -1,0 +1,22 @@
+{
+  "seeds": 2000,
+  "forms": {
+    "strait/0": 123,
+    "inland/0": 111,
+    "inland/1": 152,
+    "continent/1": 108,
+    "inland/3": 142,
+    "archipelago/0": 131,
+    "archipelago/2": 117,
+    "archipelago/3": 139,
+    "inland/2": 133,
+    "strait/1": 126,
+    "archipelago/1": 124,
+    "strait/2": 126,
+    "strait/3": 109,
+    "continent/3": 117,
+    "continent/2": 130,
+    "continent/0": 112
+  },
+  "combinations": 94
+}

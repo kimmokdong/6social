@@ -1,0 +1,107 @@
+{
+  "normal_console_errors": 0,
+  "fallback": true,
+  "fog_reveal": true,
+  "ship_motion": true,
+  "coordinate_resume": true,
+  "people": 10,
+  "endings": 6,
+  "layouts": [
+    {
+      "form": "strait-0",
+      "seed": 0,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "inland-0",
+      "seed": 1,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "inland-1",
+      "seed": 2,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "continent-1",
+      "seed": 4,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "inland-3",
+      "seed": 5,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "archipelago-0",
+      "seed": 7,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "archipelago-2",
+      "seed": 8,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "archipelago-3",
+      "seed": 9,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "inland-2",
+      "seed": 11,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "strait-1",
+      "seed": 14,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "archipelago-1",
+      "seed": 15,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "strait-2",
+      "seed": 18,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "strait-3",
+      "seed": 24,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "continent-3",
+      "seed": 30,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "continent-2",
+      "seed": 41,
+      "clipped": [],
+      "overlap": []
+    },
+    {
+      "form": "continent-0",
+      "seed": 44,
+      "clipped": [],
+      "overlap": []
+    }
+  ]
+}

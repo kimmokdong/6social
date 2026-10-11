@@ -1,0 +1,2995 @@
+{
+  "generator": "built-in image_gen",
+  "shared_style": "Soft gouache storybook illustration, warm natural palette, visible but gentle brush texture, clean readable shapes, friendly and slightly humorous, consistent character design. No text, no letters, no numbers, no logos, no signatures, no borders.",
+  "status": "in_progress",
+  "assets": {
+    "people/grandma": {
+      "id": "grandma",
+      "file": "people/grandma.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_01_retry.png",
+      "prompt_file": "raw/characters_01_retry.json",
+      "crop": [
+        0,
+        220,
+        384,
+        820
+      ],
+      "bytes": 28900,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/kid": {
+      "id": "kid",
+      "file": "people/kid.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_01_retry.png",
+      "prompt_file": "raw/characters_01_retry.json",
+      "crop": [
+        384,
+        220,
+        768,
+        820
+      ],
+      "bytes": 24386,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/shopkeeper": {
+      "id": "shopkeeper",
+      "file": "people/shopkeeper.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_01_retry.png",
+      "prompt_file": "raw/characters_01_retry.json",
+      "crop": [
+        768,
+        220,
+        1152,
+        820
+      ],
+      "bytes": 27636,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/teacher": {
+      "id": "teacher",
+      "file": "people/teacher.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_01_retry.png",
+      "prompt_file": "raw/characters_01_retry.json",
+      "crop": [
+        1152,
+        220,
+        1536,
+        820
+      ],
+      "bytes": 25218,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/activist": {
+      "id": "activist",
+      "file": "people/activist.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_02_retry2.png",
+      "prompt_file": "raw/characters_02_retry2.json",
+      "crop": [
+        0,
+        140,
+        384,
+        870
+      ],
+      "bytes": 25330,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/reporter": {
+      "id": "reporter",
+      "file": "people/reporter.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_02_retry2.png",
+      "prompt_file": "raw/characters_02_retry2.json",
+      "crop": [
+        384,
+        140,
+        768,
+        870
+      ],
+      "bytes": 21002,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/tycoon": {
+      "id": "tycoon",
+      "file": "people/tycoon.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_02_retry2.png",
+      "prompt_file": "raw/characters_02_retry2.json",
+      "crop": [
+        768,
+        140,
+        1152,
+        870
+      ],
+      "bytes": 19538,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/secretary": {
+      "id": "secretary",
+      "file": "people/secretary.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_02_retry2.png",
+      "prompt_file": "raw/characters_02_retry2.json",
+      "crop": [
+        1152,
+        140,
+        1536,
+        870
+      ],
+      "bytes": 16420,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/minister": {
+      "id": "minister",
+      "file": "people/minister.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_03.png",
+      "prompt_file": "raw/characters_03.json",
+      "crop": [
+        0,
+        160,
+        384,
+        880
+      ],
+      "bytes": 18706,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/police": {
+      "id": "police",
+      "file": "people/police.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_03.png",
+      "prompt_file": "raw/characters_03.json",
+      "crop": [
+        384,
+        160,
+        768,
+        880
+      ],
+      "bytes": 17166,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/president": {
+      "id": "president",
+      "file": "people/president.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_03.png",
+      "prompt_file": "raw/characters_03.json",
+      "crop": [
+        768,
+        160,
+        1152,
+        880
+      ],
+      "bytes": 15712,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/lawmaker": {
+      "id": "lawmaker",
+      "file": "people/lawmaker.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_03.png",
+      "prompt_file": "raw/characters_03.json",
+      "crop": [
+        1152,
+        160,
+        1536,
+        880
+      ],
+      "bytes": 20106,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/aide": {
+      "id": "aide",
+      "file": "people/aide.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_04.png",
+      "prompt_file": "raw/characters_04.json",
+      "crop": [
+        0,
+        150,
+        384,
+        890
+      ],
+      "bytes": 17878,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/judge": {
+      "id": "judge",
+      "file": "people/judge.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_04.png",
+      "prompt_file": "raw/characters_04.json",
+      "crop": [
+        384,
+        150,
+        768,
+        890
+      ],
+      "bytes": 15342,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/chief": {
+      "id": "chief",
+      "file": "people/chief.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_04.png",
+      "prompt_file": "raw/characters_04.json",
+      "crop": [
+        768,
+        150,
+        1152,
+        890
+      ],
+      "bytes": 17976,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/justice": {
+      "id": "justice",
+      "file": "people/justice.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/characters_04.png",
+      "prompt_file": "raw/characters_04.json",
+      "crop": [
+        1152,
+        150,
+        1536,
+        890
+      ],
+      "bytes": 16358,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p0_assembly_happy": {
+      "id": "p0_assembly_happy",
+      "file": "players/p0_assembly_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_0_revised.png",
+      "prompt_file": "raw/players_0_revised.json",
+      "crop": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "bytes": 24696,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p0_assembly_worried": {
+      "id": "p0_assembly_worried",
+      "file": "players/p0_assembly_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_0_revised.png",
+      "prompt_file": "raw/players_0_revised.json",
+      "crop": [
+        0,
+        512,
+        512,
+        1024
+      ],
+      "bytes": 23952,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p0_president_happy": {
+      "id": "p0_president_happy",
+      "file": "players/p0_president_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_0_revised.png",
+      "prompt_file": "raw/players_0_revised.json",
+      "crop": [
+        512,
+        0,
+        1024,
+        512
+      ],
+      "bytes": 24722,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p0_president_worried": {
+      "id": "p0_president_worried",
+      "file": "players/p0_president_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_0_revised.png",
+      "prompt_file": "raw/players_0_revised.json",
+      "crop": [
+        512,
+        512,
+        1024,
+        1024
+      ],
+      "bytes": 23936,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p0_court_happy": {
+      "id": "p0_court_happy",
+      "file": "players/p0_court_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_0_revised.png",
+      "prompt_file": "raw/players_0_revised.json",
+      "crop": [
+        1024,
+        0,
+        1536,
+        512
+      ],
+      "bytes": 26182,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p0_court_worried": {
+      "id": "p0_court_worried",
+      "file": "players/p0_court_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_0_revised.png",
+      "prompt_file": "raw/players_0_revised.json",
+      "crop": [
+        1024,
+        512,
+        1536,
+        1024
+      ],
+      "bytes": 25664,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p1_assembly_happy": {
+      "id": "p1_assembly_happy",
+      "file": "players/p1_assembly_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_1_revised.png",
+      "prompt_file": "raw/players_1_revised.json",
+      "crop": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "bytes": 26340,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p1_assembly_worried": {
+      "id": "p1_assembly_worried",
+      "file": "players/p1_assembly_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_1_revised.png",
+      "prompt_file": "raw/players_1_revised.json",
+      "crop": [
+        0,
+        512,
+        512,
+        1024
+      ],
+      "bytes": 26826,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p1_president_happy": {
+      "id": "p1_president_happy",
+      "file": "players/p1_president_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_1_revised.png",
+      "prompt_file": "raw/players_1_revised.json",
+      "crop": [
+        512,
+        0,
+        1024,
+        512
+      ],
+      "bytes": 27610,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p1_president_worried": {
+      "id": "p1_president_worried",
+      "file": "players/p1_president_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_1_revised.png",
+      "prompt_file": "raw/players_1_revised.json",
+      "crop": [
+        512,
+        512,
+        1024,
+        1024
+      ],
+      "bytes": 27006,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p1_court_happy": {
+      "id": "p1_court_happy",
+      "file": "players/p1_court_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_1_revised.png",
+      "prompt_file": "raw/players_1_revised.json",
+      "crop": [
+        1024,
+        0,
+        1536,
+        512
+      ],
+      "bytes": 27488,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p1_court_worried": {
+      "id": "p1_court_worried",
+      "file": "players/p1_court_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_1_revised.png",
+      "prompt_file": "raw/players_1_revised.json",
+      "crop": [
+        1024,
+        512,
+        1536,
+        1024
+      ],
+      "bytes": 27656,
+      "visual_review": "?? ?? ??: ?? ????? ????? ?? 30? ?? ??; ??? ????????? ??, ?????????? ?? ??, 512x512 WebP"
+    },
+    "players/p2_assembly_happy": {
+      "id": "p2_assembly_happy",
+      "file": "players/p2_assembly_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_2.png",
+      "prompt_file": "raw/players_2.json",
+      "crop": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "bytes": 26696,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p2_assembly_worried": {
+      "id": "p2_assembly_worried",
+      "file": "players/p2_assembly_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_2.png",
+      "prompt_file": "raw/players_2_cropfix.json",
+      "crop": [
+        0,
+        516,
+        512,
+        1024
+      ],
+      "bytes": 26308,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p2_president_happy": {
+      "id": "p2_president_happy",
+      "file": "players/p2_president_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_2.png",
+      "prompt_file": "raw/players_2.json",
+      "crop": [
+        512,
+        0,
+        1024,
+        512
+      ],
+      "bytes": 27126,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p2_president_worried": {
+      "id": "p2_president_worried",
+      "file": "players/p2_president_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_2.png",
+      "prompt_file": "raw/players_2_cropfix.json",
+      "crop": [
+        512,
+        516,
+        1024,
+        1024
+      ],
+      "bytes": 26864,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p2_court_happy": {
+      "id": "p2_court_happy",
+      "file": "players/p2_court_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_2.png",
+      "prompt_file": "raw/players_2.json",
+      "crop": [
+        1024,
+        0,
+        1536,
+        512
+      ],
+      "bytes": 27300,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p2_court_worried": {
+      "id": "p2_court_worried",
+      "file": "players/p2_court_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_2.png",
+      "prompt_file": "raw/players_2_cropfix.json",
+      "crop": [
+        1024,
+        516,
+        1536,
+        1024
+      ],
+      "bytes": 27040,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "players/p3_assembly_happy": {
+      "id": "p3_assembly_happy",
+      "file": "players/p3_assembly_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_3_revised.png",
+      "prompt_file": "raw/players_3_revised.json",
+      "crop": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "bytes": 28458,
+      "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
+    },
+    "players/p3_assembly_worried": {
+      "id": "p3_assembly_worried",
+      "file": "players/p3_assembly_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_3_revised.png",
+      "prompt_file": "raw/players_3_revised.json",
+      "crop": [
+        0,
+        512,
+        512,
+        1024
+      ],
+      "bytes": 28028,
+      "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
+    },
+    "players/p3_president_happy": {
+      "id": "p3_president_happy",
+      "file": "players/p3_president_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_3_revised.png",
+      "prompt_file": "raw/players_3_revised.json",
+      "crop": [
+        512,
+        0,
+        1006,
+        512
+      ],
+      "bytes": 28098,
+      "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
+    },
+    "players/p3_president_worried": {
+      "id": "p3_president_worried",
+      "file": "players/p3_president_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_3_revised.png",
+      "prompt_file": "raw/players_3_revised.json",
+      "crop": [
+        512,
+        512,
+        1006,
+        1024
+      ],
+      "bytes": 28004,
+      "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
+    },
+    "players/p3_court_happy": {
+      "id": "p3_court_happy",
+      "file": "players/p3_court_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_3_revised.png",
+      "prompt_file": "raw/players_3_revised.json",
+      "crop": [
+        1006,
+        0,
+        1536,
+        512
+      ],
+      "bytes": 27432,
+      "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
+    },
+    "players/p3_court_worried": {
+      "id": "p3_court_worried",
+      "file": "players/p3_court_worried.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/players_3_revised.png",
+      "prompt_file": "raw/players_3_revised.json",
+      "crop": [
+        1006,
+        512,
+        1536,
+        1024
+      ],
+      "bytes": 26592,
+      "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
+    },
+    "daon/era0": {
+      "id": "era0",
+      "file": "daon/era0.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era0.png",
+      "prompt_file": "raw/daon_era0.json",
+      "crop": null,
+      "bytes": 241474,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/era1": {
+      "id": "era1",
+      "file": "daon/era1.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era1_retry.png",
+      "prompt_file": "raw/daon_era1_retry.json",
+      "crop": null,
+      "bytes": 203088,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/era2": {
+      "id": "era2",
+      "file": "daon/era2.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era2.png",
+      "prompt_file": "raw/daon_era2.json",
+      "crop": null,
+      "bytes": 206240,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/era3": {
+      "id": "era3",
+      "file": "daon/era3.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era3.png",
+      "prompt_file": "raw/daon_era3.json",
+      "crop": null,
+      "bytes": 223316,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/era4": {
+      "id": "era4",
+      "file": "daon/era4.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era4_retry.png",
+      "prompt_file": "raw/daon_era4_retry.json",
+      "crop": null,
+      "bytes": 246204,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/era5": {
+      "id": "era5",
+      "file": "daon/era5.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era5.png",
+      "prompt_file": "raw/daon_era5.json",
+      "crop": null,
+      "bytes": 179846,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/era6": {
+      "id": "era6",
+      "file": "daon/era6.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_era6.png",
+      "prompt_file": "raw/daon_era6.json",
+      "crop": null,
+      "bytes": 261002,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/end_together": {
+      "id": "end_together",
+      "file": "daon/end_together.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_end_together.png",
+      "prompt_file": "raw/daon_end_together.json",
+      "crop": null,
+      "bytes": 288730,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/end_gray": {
+      "id": "end_gray",
+      "file": "daon/end_gray.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_end_gray.png",
+      "prompt_file": "raw/daon_end_gray.json",
+      "crop": null,
+      "bytes": 163316,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/end_unfair": {
+      "id": "end_unfair",
+      "file": "daon/end_unfair.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_end_unfair.png",
+      "prompt_file": "raw/daon_end_unfair.json",
+      "crop": null,
+      "bytes": 230870,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/end_green": {
+      "id": "end_green",
+      "file": "daon/end_green.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_end_green.png",
+      "prompt_file": "raw/daon_end_green.json",
+      "crop": null,
+      "bytes": 270988,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/end_stuck": {
+      "id": "end_stuck",
+      "file": "daon/end_stuck.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_end_stuck.png",
+      "prompt_file": "raw/daon_end_stuck.json",
+      "crop": null,
+      "bytes": 208706,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "daon/end_grown": {
+      "id": "end_grown",
+      "file": "daon/end_grown.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/daon_end_grown.png",
+      "prompt_file": "raw/daon_end_grown.json",
+      "crop": null,
+      "bytes": 239250,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/bg_assembly": {
+      "id": "bg_assembly",
+      "file": "samgwon/bg_assembly.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_bg_assembly.png",
+      "prompt_file": "raw/samgwon_bg_assembly.json",
+      "crop": null,
+      "bytes": 160226,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/bg_president": {
+      "id": "bg_president",
+      "file": "samgwon/bg_president.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_bg_president.png",
+      "prompt_file": "raw/samgwon_bg_president.json",
+      "crop": null,
+      "bytes": 162090,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/bg_court": {
+      "id": "bg_court",
+      "file": "samgwon/bg_court.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_bg_court.png",
+      "prompt_file": "raw/samgwon_bg_court.json",
+      "crop": null,
+      "bytes": 162790,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_flowers": {
+      "id": "prop_flowers",
+      "file": "samgwon/prop_flowers.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        0,
+        0,
+        384,
+        337
+      ],
+      "bytes": 12108,
+      "detected_bbox_in_cell": [
+        17,
+        12,
+        383,
+        337
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_trophy": {
+      "id": "prop_trophy",
+      "file": "samgwon/prop_trophy.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        384,
+        0,
+        768,
+        337
+      ],
+      "bytes": 8726,
+      "detected_bbox_in_cell": [
+        21,
+        23,
+        330,
+        337
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_emptyChairs": {
+      "id": "prop_emptyChairs",
+      "file": "samgwon/prop_emptyChairs.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        768,
+        0,
+        1152,
+        337
+      ],
+      "bytes": 7096,
+      "detected_bbox_in_cell": [
+        0,
+        77,
+        384,
+        337
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_emptySafe": {
+      "id": "prop_emptySafe",
+      "file": "samgwon/prop_emptySafe.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        1152,
+        0,
+        1536,
+        337
+      ],
+      "bytes": 8104,
+      "detected_bbox_in_cell": [
+        0,
+        38,
+        362,
+        337
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_gavel": {
+      "id": "prop_gavel",
+      "file": "samgwon/prop_gavel.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props_cropfix.json",
+      "crop": [
+        0,
+        370,
+        384,
+        660
+      ],
+      "bytes": 5258,
+      "detected_bbox_in_cell": [
+        9,
+        29,
+        384,
+        290
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_scarecrow": {
+      "id": "prop_scarecrow",
+      "file": "samgwon/prop_scarecrow.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        384,
+        337,
+        768,
+        666
+      ],
+      "bytes": 10804,
+      "detected_bbox_in_cell": [
+        15,
+        0,
+        349,
+        329
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_brokenCrown": {
+      "id": "prop_brokenCrown",
+      "file": "samgwon/prop_brokenCrown.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        768,
+        337,
+        1152,
+        666
+      ],
+      "bytes": 7338,
+      "detected_bbox_in_cell": [
+        0,
+        55,
+        378,
+        321
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_ferrisWheel": {
+      "id": "prop_ferrisWheel",
+      "file": "samgwon/prop_ferrisWheel.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props_cropfix.json",
+      "crop": [
+        1152,
+        346,
+        1536,
+        660
+      ],
+      "bytes": 13076,
+      "detected_bbox_in_cell": [
+        24,
+        0,
+        356,
+        314
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_envelope": {
+      "id": "prop_envelope",
+      "file": "samgwon/prop_envelope.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        0,
+        666,
+        384,
+        1024
+      ],
+      "bytes": 3130,
+      "detected_bbox_in_cell": [
+        14,
+        30,
+        384,
+        304
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_phone": {
+      "id": "prop_phone",
+      "file": "samgwon/prop_phone.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props_cropfix.json",
+      "crop": [
+        384,
+        686,
+        768,
+        1024
+      ],
+      "bytes": 6284,
+      "detected_bbox_in_cell": [
+        27,
+        0,
+        339,
+        313
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_ballot": {
+      "id": "prop_ballot",
+      "file": "samgwon/prop_ballot.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        768,
+        666,
+        1152,
+        1024
+      ],
+      "bytes": 5934,
+      "detected_bbox_in_cell": [
+        0,
+        0,
+        384,
+        327
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "samgwon/prop_brokenScale": {
+      "id": "prop_brokenScale",
+      "file": "samgwon/prop_brokenScale.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/samgwon_props.png",
+      "prompt_file": "raw/samgwon_props.json",
+      "crop": [
+        1152,
+        666,
+        1536,
+        1024
+      ],
+      "bytes": 7402,
+      "detected_bbox_in_cell": [
+        0,
+        10,
+        364,
+        317
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/ad_agent": {
+      "id": "ad_agent",
+      "file": "people/ad_agent.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_characters_retry.png",
+      "prompt_file": "raw/tteok_characters_retry.json",
+      "crop": [
+        0,
+        220,
+        384,
+        820
+      ],
+      "bytes": 24190,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "people/ftc_officer": {
+      "id": "ftc_officer",
+      "file": "people/ftc_officer.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_characters_retry.png",
+      "prompt_file": "raw/tteok_characters_retry.json",
+      "crop": [
+        384,
+        220,
+        768,
+        820
+      ],
+      "bytes": 20748,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/title": {
+      "id": "title",
+      "file": "tteok/title.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_title.png",
+      "prompt_file": "raw/tteok_title.json",
+      "crop": null,
+      "bytes": 199768,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/end_best": {
+      "id": "end_best",
+      "file": "tteok/end_best.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_end_best_retry.png",
+      "prompt_file": "raw/tteok_end_best_retry.json",
+      "crop": null,
+      "bytes": 182462,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/end_kind": {
+      "id": "end_kind",
+      "file": "tteok/end_kind.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_end_kind_retry.png",
+      "prompt_file": "raw/tteok_end_kind_retry.json",
+      "crop": null,
+      "bytes": 183412,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/end_greedy": {
+      "id": "end_greedy",
+      "file": "tteok/end_greedy.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_end_greedy_retry.png",
+      "prompt_file": "raw/tteok_end_greedy_retry.json",
+      "crop": null,
+      "bytes": 158824,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/end_rich": {
+      "id": "end_rich",
+      "file": "tteok/end_rich.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_end_rich_retry.png",
+      "prompt_file": "raw/tteok_end_rich_retry.json",
+      "crop": null,
+      "bytes": 194652,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/end_normal": {
+      "id": "end_normal",
+      "file": "tteok/end_normal.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_end_normal.png",
+      "prompt_file": "raw/tteok_end_normal.json",
+      "crop": null,
+      "bytes": 179422,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/end_closed": {
+      "id": "end_closed",
+      "file": "tteok/end_closed.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_end_closed.png",
+      "prompt_file": "raw/tteok_end_closed.json",
+      "crop": null,
+      "bytes": 200662,
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_bowl": {
+      "id": "st_bowl",
+      "file": "tteok/st_bowl.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        0,
+        0,
+        512,
+        322
+      ],
+      "bytes": 7342,
+      "detected_bbox_in_cell": [
+        82,
+        30,
+        493,
+        322
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_cheese": {
+      "id": "st_cheese",
+      "file": "tteok/st_cheese.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        512,
+        0,
+        1024,
+        322
+      ],
+      "bytes": 3344,
+      "detected_bbox_in_cell": [
+        66,
+        41,
+        452,
+        322
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_sundae": {
+      "id": "st_sundae",
+      "file": "tteok/st_sundae.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        1024,
+        0,
+        1536,
+        322
+      ],
+      "bytes": 7380,
+      "detected_bbox_in_cell": [
+        32,
+        32,
+        454,
+        322
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_chairs": {
+      "id": "st_chairs",
+      "file": "tteok/st_chairs.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        0,
+        345,
+        512,
+        646
+      ],
+      "bytes": 5920,
+      "detected_bbox_in_cell": [
+        64,
+        27,
+        496,
+        295
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_staff": {
+      "id": "st_staff",
+      "file": "tteok/st_staff.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        512,
+        322,
+        1024,
+        674
+      ],
+      "bytes": 8260,
+      "detected_bbox_in_cell": [
+        62,
+        0,
+        470,
+        352
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_clean": {
+      "id": "st_clean",
+      "file": "tteok/st_clean.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        1024,
+        335,
+        1536,
+        674
+      ],
+      "bytes": 4838,
+      "detected_bbox_in_cell": [
+        113,
+        7,
+        397,
+        333
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_flyer": {
+      "id": "st_flyer",
+      "file": "tteok/st_flyer.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        0,
+        646,
+        512,
+        1024
+      ],
+      "bytes": 6508,
+      "detected_bbox_in_cell": [
+        97,
+        0,
+        480,
+        342
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_coin": {
+      "id": "st_coin",
+      "file": "tteok/st_coin.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        512,
+        685,
+        1024,
+        1024
+      ],
+      "bytes": 6884,
+      "detected_bbox_in_cell": [
+        115,
+        0,
+        405,
+        289
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/st_crown": {
+      "id": "st_crown",
+      "file": "tteok/st_crown.webp",
+      "size": [
+        256,
+        256
+      ],
+      "status": "complete",
+      "raw": "raw/tteok_stickers.png",
+      "prompt_file": "raw/tteok_stickers.json",
+      "crop": [
+        1024,
+        685,
+        1536,
+        1024
+      ],
+      "bytes": 5710,
+      "detected_bbox_in_cell": [
+        43,
+        0,
+        457,
+        284
+      ],
+      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
+    },
+    "tteok/street": {
+      "id": "street",
+      "file": "tteok/street.webp",
+      "size": [
+        1600,
+        900
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_street.png",
+      "prompt_file": "raw/tteok_scene_street.json",
+      "bytes": 361554,
+      "transparent": false
+    },
+    "tteok/kid_0": {
+      "id": "kid_0",
+      "file": "tteok/kid_0.webp",
+      "size": [
+        184,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_0_chroma.png",
+      "prompt_file": "raw/tteok_scene_kid_0.json",
+      "bytes": 19042,
+      "transparent": true
+    },
+    "tteok/kid_1": {
+      "id": "kid_1",
+      "file": "tteok/kid_1.webp",
+      "size": [
+        197,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_1_chroma.png",
+      "prompt_file": "raw/tteok_scene_kid_1.json",
+      "bytes": 19512,
+      "transparent": true
+    },
+    "tteok/kid_2": {
+      "id": "kid_2",
+      "file": "tteok/kid_2.webp",
+      "size": [
+        194,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_2.png",
+      "prompt_file": "raw/tteok_scene_kid_2.json",
+      "bytes": 20720,
+      "transparent": true
+    },
+    "tteok/kid_3": {
+      "id": "kid_3",
+      "file": "tteok/kid_3.webp",
+      "size": [
+        189,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_3.png",
+      "prompt_file": "raw/tteok_scene_kid_3.json",
+      "bytes": 19272,
+      "transparent": true
+    },
+    "tteok/kid_4": {
+      "id": "kid_4",
+      "file": "tteok/kid_4.webp",
+      "size": [
+        186,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_4.png",
+      "prompt_file": "raw/tteok_scene_kid_4.json",
+      "bytes": 21144,
+      "transparent": true
+    },
+    "tteok/kid_5": {
+      "id": "kid_5",
+      "file": "tteok/kid_5.webp",
+      "size": [
+        198,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_5.png",
+      "prompt_file": "raw/tteok_scene_kid_5.json",
+      "bytes": 21388,
+      "transparent": true
+    },
+    "tteok/kid_6": {
+      "id": "kid_6",
+      "file": "tteok/kid_6.webp",
+      "size": [
+        199,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_6.png",
+      "prompt_file": "raw/tteok_scene_kid_6.json",
+      "bytes": 20208,
+      "transparent": true
+    },
+    "tteok/kid_7": {
+      "id": "kid_7",
+      "file": "tteok/kid_7.webp",
+      "size": [
+        195,
+        320
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_kid_7.png",
+      "prompt_file": "raw/tteok_scene_kid_7.json",
+      "bytes": 21366,
+      "transparent": true
+    },
+    "tteok/sp_truck": {
+      "id": "sp_truck",
+      "file": "tteok/sp_truck.webp",
+      "size": [
+        535,
+        360
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_sp_truck.png",
+      "prompt_file": "raw/tteok_scene_sp_truck.json",
+      "bytes": 49526,
+      "transparent": true
+    },
+    "tteok/sp_chairs": {
+      "id": "sp_chairs",
+      "file": "tteok/sp_chairs.webp",
+      "size": [
+        533,
+        240
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_sp_chairs.png",
+      "prompt_file": "raw/tteok_scene_sp_chairs.json",
+      "bytes": 34772,
+      "transparent": true
+    },
+    "tteok/sp_staff": {
+      "id": "sp_staff",
+      "file": "tteok/sp_staff.webp",
+      "size": [
+        180,
+        400
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_sp_staff.png",
+      "prompt_file": "raw/tteok_scene_sp_staff.json",
+      "bytes": 21968,
+      "transparent": true
+    },
+    "tteok/sp_cheese": {
+      "id": "sp_cheese",
+      "file": "tteok/sp_cheese.webp",
+      "size": [
+        412,
+        180
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_sp_cheese.png",
+      "prompt_file": "raw/tteok_scene_sp_cheese.json",
+      "bytes": 28630,
+      "transparent": true
+    },
+    "tteok/sp_clean": {
+      "id": "sp_clean",
+      "file": "tteok/sp_clean.webp",
+      "size": [
+        340,
+        240
+      ],
+      "status": "awaiting_visual_review",
+      "raw": "raw/tteok_scene_sp_clean.png",
+      "prompt_file": "raw/tteok_scene_sp_clean.json",
+      "bytes": 13798,
+      "transparent": true
+    },
+    "trade/map_archipelago": {
+      "id": "map_archipelago",
+      "file": "trade/map_archipelago.webp",
+      "size": [
+        2000,
+        1280
+      ],
+      "status": "complete",
+      "raw": "raw/trade_map_archipelago.png",
+      "prompt_file": "raw/trade_map_archipelago.json",
+      "bytes": 715998,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/map_strait": {
+      "id": "map_strait",
+      "file": "trade/map_strait.webp",
+      "size": [
+        2000,
+        1280
+      ],
+      "status": "complete",
+      "raw": "raw/trade_map_strait.png",
+      "prompt_file": "raw/trade_map_strait.json",
+      "bytes": 605040,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/map_inland": {
+      "id": "map_inland",
+      "file": "trade/map_inland.webp",
+      "size": [
+        2000,
+        1280
+      ],
+      "status": "complete",
+      "raw": "raw/trade_map_inland.png",
+      "prompt_file": "raw/trade_map_inland.json",
+      "bytes": 754602,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/map_continent": {
+      "id": "map_continent",
+      "file": "trade/map_continent.webp",
+      "size": [
+        2000,
+        1280
+      ],
+      "status": "complete",
+      "raw": "raw/trade_map_continent.png",
+      "prompt_file": "raw/trade_map_continent.json",
+      "bytes": 689220,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/port_oilKingdom": {
+      "id": "port_oilKingdom",
+      "file": "trade/port_oilKingdom.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_oilKingdom.png",
+      "prompt_file": "raw/trade_port_oilKingdom.json",
+      "bytes": 70762,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/port_plains": {
+      "id": "port_plains",
+      "file": "trade/port_plains.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_plains.png",
+      "prompt_file": "raw/trade_port_plains.json",
+      "bytes": 78482,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/port_factoryIsle": {
+      "id": "port_factoryIsle",
+      "file": "trade/port_factoryIsle.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_factoryIsle.png",
+      "prompt_file": "raw/trade_port_factoryIsle.json",
+      "bytes": 64870,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/port_chipLand": {
+      "id": "port_chipLand",
+      "file": "trade/port_chipLand.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_chipLand.png",
+      "prompt_file": "raw/trade_port_chipLand.json",
+      "bytes": 64564,
+      "visual_review": "기존 그림 직접 열어 확인, 원본 변경 없음"
+    },
+    "trade/port_straitIsle": {
+      "id": "port_straitIsle",
+      "file": "trade/port_straitIsle.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_straitIsle.png",
+      "prompt_file": "raw/trade_port_straitIsle.json",
+      "bytes": 52842,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/port_bigMarket": {
+      "id": "port_bigMarket",
+      "file": "trade/port_bigMarket.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_bigMarket.png",
+      "prompt_file": "raw/trade_port_bigMarket.json",
+      "bytes": 59462,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/port_hubCity": {
+      "id": "port_hubCity",
+      "file": "trade/port_hubCity.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_hubCity.png",
+      "prompt_file": "raw/trade_port_hubCity.json",
+      "bytes": 48916,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/port_forest": {
+      "id": "port_forest",
+      "file": "trade/port_forest.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_forest.png",
+      "prompt_file": "raw/trade_port_forest.json",
+      "bytes": 66116,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/port_lithiumHigh": {
+      "id": "port_lithiumHigh",
+      "file": "trade/port_lithiumHigh.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_lithiumHigh.png",
+      "prompt_file": "raw/trade_port_lithiumHigh.json",
+      "bytes": 63404,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/port_northIce": {
+      "id": "port_northIce",
+      "file": "trade/port_northIce.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_northIce.png",
+      "prompt_file": "raw/trade_port_northIce.json",
+      "bytes": 58846,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/port_home": {
+      "id": "port_home",
+      "file": "trade/port_home.webp",
+      "size": [
+        420,
+        320
+      ],
+      "status": "complete",
+      "raw": "raw/trade_port_home.png",
+      "prompt_file": "raw/trade_port_home.json",
+      "bytes": 53528,
+      "visual_review": "직접 열어 확인: 글자·워터마크 없음, 화풍·가장자리 확인"
+    },
+    "trade/fog_1": {
+      "id": "fog_1",
+      "file": "trade/fog_1.webp",
+      "size": [
+        600,
+        360
+      ],
+      "status": "complete",
+      "raw": "raw/trade_fog_1.png",
+      "prompt_file": "raw/trade_fog_1.json",
+      "bytes": 22948,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크 없음, 투명 배경·여백·구아슈 화풍 적합",
+      "transparent": true
+    },
+    "trade/fog_2": {
+      "id": "fog_2",
+      "file": "trade/fog_2.webp",
+      "size": [
+        600,
+        360
+      ],
+      "status": "complete",
+      "raw": "raw/trade_fog_2.png",
+      "prompt_file": "raw/trade_fog_2.json",
+      "bytes": 23798,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크 없음, 투명 배경·여백·구아슈 화풍 적합",
+      "transparent": true
+    },
+    "trade/fog_3": {
+      "id": "fog_3",
+      "file": "trade/fog_3.webp",
+      "size": [
+        600,
+        360
+      ],
+      "status": "complete",
+      "raw": "raw/trade_fog_3_retry.png",
+      "prompt_file": "raw/trade_fog_3_retry.json",
+      "bytes": 14908,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크 없음, 투명 배경·여백·구아슈 화풍 적합",
+      "transparent": true
+    },
+    "trade/ship": {
+      "id": "ship",
+      "file": "trade/ship.webp",
+      "size": [
+        420,
+        240
+      ],
+      "status": "complete",
+      "raw": "raw/trade_ship.png",
+      "prompt_file": "raw/trade_ship.json",
+      "bytes": 23040,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크 없음, 투명 배경·여백·구아슈 화풍 적합",
+      "transparent": true
+    },
+    "people/oilKingdom": {
+      "id": "oilKingdom",
+      "file": "people/oilKingdom.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_oilKingdom.png",
+      "prompt_file": "raw/trade_people_oilKingdom.json",
+      "bytes": 40554,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/plains": {
+      "id": "plains",
+      "file": "people/plains.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_plains.png",
+      "prompt_file": "raw/trade_people_plains.json",
+      "bytes": 46282,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/factoryIsle": {
+      "id": "factoryIsle",
+      "file": "people/factoryIsle.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_factoryIsle.png",
+      "prompt_file": "raw/trade_people_factoryIsle.json",
+      "bytes": 40396,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/chipLand": {
+      "id": "chipLand",
+      "file": "people/chipLand.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_chipLand.png",
+      "prompt_file": "raw/trade_people_chipLand.json",
+      "bytes": 39336,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/straitIsle": {
+      "id": "straitIsle",
+      "file": "people/straitIsle.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_straitIsle.png",
+      "prompt_file": "raw/trade_people_straitIsle.json",
+      "bytes": 47220,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/bigMarket": {
+      "id": "bigMarket",
+      "file": "people/bigMarket.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_bigMarket.png",
+      "prompt_file": "raw/trade_people_bigMarket.json",
+      "bytes": 51156,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/hubCity": {
+      "id": "hubCity",
+      "file": "people/hubCity.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_hubCity.png",
+      "prompt_file": "raw/trade_people_hubCity.json",
+      "bytes": 42714,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/forest": {
+      "id": "forest",
+      "file": "people/forest.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_forest.png",
+      "prompt_file": "raw/trade_people_forest.json",
+      "bytes": 41262,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/lithiumHigh": {
+      "id": "lithiumHigh",
+      "file": "people/lithiumHigh.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_lithiumHigh.png",
+      "prompt_file": "raw/trade_people_lithiumHigh.json",
+      "bytes": 44174,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "people/northIce": {
+      "id": "northIce",
+      "file": "people/northIce.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/trade_people_northIce.png",
+      "prompt_file": "raw/trade_people_northIce.json",
+      "bytes": 34906,
+      "visual_review": "신·구 비교표 직접 확인: 지정 성별·연령대·인종·머리 특징으로 10명 구분, 구아슈 화풍·나라색·배지 유지, 글자·워터마크 없음. 1366×768·390×844 나라 패널·거래 창 40개 검사 및 캡처: 이미지 contain, 얼굴 잘림 없음, 콘솔 오류 0. 크림 배경 RGB는 생성·WebP 변환으로 #F3E9D7과 미세 편차 있음."
+    },
+    "trade/title": {
+      "id": "title",
+      "file": "trade/title.webp",
+      "size": [
+        1600,
+        900
+      ],
+      "status": "complete",
+      "raw": "raw/trade_title.png",
+      "prompt_file": "raw/trade_title.json",
+      "bytes": 535922,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "trade/end_king": {
+      "id": "end_king",
+      "file": "trade/end_king.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/trade_end_king_retry.png",
+      "prompt_file": "raw/trade_end_king_retry.json",
+      "bytes": 297334,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "trade/end_war": {
+      "id": "end_war",
+      "file": "trade/end_war.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/trade_end_war.png",
+      "prompt_file": "raw/trade_end_war.json",
+      "bytes": 290230,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "trade/end_richAlone": {
+      "id": "end_richAlone",
+      "file": "trade/end_richAlone.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/trade_end_richAlone_retry.png",
+      "prompt_file": "raw/trade_end_richAlone_retry.json",
+      "bytes": 276104,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "trade/end_island": {
+      "id": "end_island",
+      "file": "trade/end_island.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/trade_end_island.png",
+      "prompt_file": "raw/trade_end_island.json",
+      "bytes": 349578,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "trade/end_rawOnly": {
+      "id": "end_rawOnly",
+      "file": "trade/end_rawOnly.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/trade_end_rawOnly.png",
+      "prompt_file": "raw/trade_end_rawOnly.json",
+      "bytes": 329718,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "trade/end_normal": {
+      "id": "end_normal",
+      "file": "trade/end_normal.webp",
+      "size": [
+        1200,
+        800
+      ],
+      "status": "complete",
+      "raw": "raw/trade_end_normal.png",
+      "prompt_file": "raw/trade_end_normal.json",
+      "bytes": 342972,
+      "visual_review": "직접 WebP를 열어 확인: 글자·워터마크·실제 국기 없음, 주요 피사체와 구아슈 화풍 적합"
+    },
+    "players/p0_casual_happy": {
+      "id": "p0_casual_happy",
+      "file": "players/p0_casual_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/p0_casual_happy.png",
+      "prompt_file": "raw/p0_casual_happy.json",
+      "crop": null,
+      "bytes": 27416,
+      "visual_review": "비교 그림을 직접 열어 확인: 기존 얼굴·머리·피부색·나이·웃는 표정 유지, 차분한 평상복, 동일한 크림 배경·구아슈 화풍·구도, 글자·워터마크 없음"
+    },
+    "players/p1_casual_happy": {
+      "id": "p1_casual_happy",
+      "file": "players/p1_casual_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/p1_casual_happy.png",
+      "prompt_file": "raw/p1_casual_happy.json",
+      "crop": null,
+      "bytes": 30768,
+      "visual_review": "비교 그림을 직접 열어 확인: 기존 얼굴·머리·피부색·나이·웃는 표정 유지, 차분한 평상복, 동일한 크림 배경·구아슈 화풍·구도, 글자·워터마크 없음"
+    },
+    "players/p2_casual_happy": {
+      "id": "p2_casual_happy",
+      "file": "players/p2_casual_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/p2_casual_happy.png",
+      "prompt_file": "raw/p2_casual_happy.json",
+      "crop": null,
+      "bytes": 31466,
+      "visual_review": "비교 그림을 직접 열어 확인: 기존 얼굴·머리·피부색·나이·웃는 표정 유지, 차분한 평상복, 동일한 크림 배경·구아슈 화풍·구도, 글자·워터마크 없음"
+    },
+    "players/p3_casual_happy": {
+      "id": "p3_casual_happy",
+      "file": "players/p3_casual_happy.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "raw/p3_casual_happy.png",
+      "prompt_file": "raw/p3_casual_happy.json",
+      "crop": null,
+      "bytes": 29008,
+      "visual_review": "비교 그림을 직접 열어 확인: 기존 얼굴·머리·피부색·나이·웃는 표정 유지, 차분한 평상복, 동일한 크림 배경·구아슈 화풍·구도, 글자·워터마크 없음"
+    }
+  },
+  "generation_history": [
+    {
+      "raw": "raw/characters_01_retry.png",
+      "job": "raw/characters_01_retry.json",
+      "retry_of": "raw/characters_01.png",
+      "note": "첫 시트의 인물 간 어깨 접촉을 수정. 개별 칸의 전체 상반신을 비율 유지해 정사각형으로 최적화."
+    },
+    {
+      "raw": "raw/characters_02.png",
+      "job": "raw/characters_02.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/characters_02_retry.png",
+      "job": "raw/characters_02_retry.json",
+      "retry_of": "raw/characters_02.png",
+      "note": "정면 시선 및 칸별 어깨 여백 개선"
+    },
+    {
+      "raw": "raw/characters_03.png",
+      "job": "raw/characters_03.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/characters_02_retry2.png",
+      "job": "raw/characters_02_retry2.json",
+      "retry_of": "raw/characters_02_retry.png",
+      "note": "옆 인물 조각이 섞이지 않도록 좁은 상반신과 빈 칸 간격으로 재생성"
+    },
+    {
+      "raw": "raw/characters_04.png",
+      "job": "raw/characters_04.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/players_0.png",
+      "job": "raw/players_0.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/players_1.png",
+      "job": "raw/players_1.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/players_2.png",
+      "job": "raw/players_2.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/players_2.png",
+      "job": "raw/players_2_cropfix.json",
+      "retry_of": null,
+      "note": "아래 행 크롭 상단에 남은 윗행 의상 픽셀 제거, 인물 특징 보존"
+    },
+    {
+      "raw": "raw/players_3.png",
+      "job": "raw/players_3.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_era0.png",
+      "job": "raw/daon_era0.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_era1.png",
+      "job": "raw/daon_era1.json",
+      "retry_of": null,
+      "note": "검수 탈락: 트럭 번호판과 전면 표식에 글자 모양"
+    },
+    {
+      "raw": "raw/characters_01.png",
+      "job": "raw/characters_01.json",
+      "retry_of": null,
+      "note": "검수 탈락: 옆 칸에 어깨가 닿아 재생성"
+    },
+    {
+      "raw": "raw/daon_era1_retry.png",
+      "job": "raw/daon_era1_retry.json",
+      "retry_of": "raw/daon_era1.png",
+      "note": "트럭 번호판·전면 글자 모양 제거"
+    },
+    {
+      "raw": "raw/daon_era2.png",
+      "job": "raw/daon_era2.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_era3.png",
+      "job": "raw/daon_era3.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_era4.png",
+      "job": "raw/daon_era4.json",
+      "retry_of": null,
+      "note": "검수 탈락: 산 위 전망탑이 실존 건물을 연상시키고 일부 간판에 글자 모양"
+    },
+    {
+      "raw": "raw/daon_era4_retry.png",
+      "job": "raw/daon_era4_retry.json",
+      "retry_of": "raw/daon_era4.png",
+      "note": "실존 전망탑을 연상시키는 형태·간판 글자·버스 표시 글자 제거"
+    },
+    {
+      "raw": "raw/daon_era5.png",
+      "job": "raw/daon_era5.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_era6.png",
+      "job": "raw/daon_era6.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_end_together.png",
+      "job": "raw/daon_end_together.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_end_gray.png",
+      "job": "raw/daon_end_gray.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_end_unfair.png",
+      "job": "raw/daon_end_unfair.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_end_green.png",
+      "job": "raw/daon_end_green.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_end_stuck.png",
+      "job": "raw/daon_end_stuck.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/daon_end_grown.png",
+      "job": "raw/daon_end_grown.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/samgwon_bg_assembly.png",
+      "job": "raw/samgwon_bg_assembly.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/samgwon_bg_president.png",
+      "job": "raw/samgwon_bg_president.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/samgwon_bg_court.png",
+      "job": "raw/samgwon_bg_court.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/samgwon_props.png",
+      "job": "raw/samgwon_props.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/samgwon_props.png",
+      "job": "raw/samgwon_props_cropfix.json",
+      "retry_of": null,
+      "note": "분리 후 검수에서 발견한 이웃 소품 조각 제거, 소품 전체 경계 보존"
+    },
+    {
+      "raw": "raw/tteok_characters.png",
+      "job": "raw/tteok_characters.json",
+      "retry_of": null,
+      "note": "검수 탈락: 상반신이 시트 아래 끝까지 커지고 클립보드가 옆 칸 경계에 닿음"
+    },
+    {
+      "raw": "raw/tteok_characters_retry.png",
+      "job": "raw/tteok_characters_retry.json",
+      "retry_of": "raw/tteok_characters.png",
+      "note": "전체 상반신·전단·클립보드가 여백 안에 들어오도록 구도 수정. 앞 두 칸 선택."
+    },
+    {
+      "raw": "raw/tteok_title.png",
+      "job": "raw/tteok_title.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/tteok_end_best.png",
+      "job": "raw/tteok_end_best.json",
+      "retry_of": null,
+      "note": "검수 탈락: 왼쪽 끝 배경 아이 얼굴이 부분 잘림"
+    },
+    {
+      "raw": "raw/tteok_end_best_retry.png",
+      "job": "raw/tteok_end_best_retry.json",
+      "retry_of": "raw/tteok_end_best.png",
+      "note": "가장자리에서 잘린 배경 아이 얼굴 제거, 주요 인물 머리 전체 보존"
+    },
+    {
+      "raw": "raw/tteok_end_kind.png",
+      "job": "raw/tteok_end_kind.json",
+      "retry_of": null,
+      "note": "검수 탈락: 앞쪽 아이의 머리카락·포니테일이 화면 끝에서 잘림"
+    },
+    {
+      "raw": "raw/tteok_end_kind_retry.png",
+      "job": "raw/tteok_end_kind_retry.json",
+      "retry_of": "raw/tteok_end_kind.png",
+      "note": "시야 확장으로 앞쪽 아이의 머리카락·포니테일과 가장자리 배경 인물 보존"
+    },
+    {
+      "raw": "raw/tteok_end_greedy.png",
+      "job": "raw/tteok_end_greedy.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/tteok_end_greedy_retry.png",
+      "job": "raw/tteok_end_greedy_retry.json",
+      "retry_of": "raw/tteok_end_greedy.png",
+      "note": "최적화본 검수에서 발견한 창밖 파란·빨간 간판 글자 모양 제거"
+    },
+    {
+      "raw": "raw/tteok_end_rich.png",
+      "job": "raw/tteok_end_rich.json",
+      "retry_of": null,
+      "note": "검수 탈락: 오른쪽 손님의 머리카락·앞쪽 아이 포니테일이 화면 끝에서 잘림"
+    },
+    {
+      "raw": "raw/tteok_end_rich_retry.png",
+      "job": "raw/tteok_end_rich_retry.json",
+      "retry_of": "raw/tteok_end_rich.png",
+      "note": "시야 확장으로 오른쪽 손님 머리카락·앞쪽 아이 포니테일 보존"
+    },
+    {
+      "raw": "raw/tteok_end_normal.png",
+      "job": "raw/tteok_end_normal.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/tteok_end_closed.png",
+      "job": "raw/tteok_end_closed.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/tteok_stickers.png",
+      "job": "raw/tteok_stickers.json",
+      "retry_of": null,
+      "note": ""
+    },
+    {
+      "raw": "raw/players_0_revised.png",
+      "job": "raw/players_0_revised.json",
+      "retry_of": "raw/players_0.png",
+      "note": "짧은 머리·굵은 눈썹·각진 턱·남성 어깨로 30대 초반 남성 얼굴을 명확화"
+    },
+    {
+      "raw": "raw/players_1_revised.png",
+      "job": "raw/players_1_revised.json",
+      "retry_of": "raw/players_1.png",
+      "note": "짧은 머리·굵은 눈썹·각진 턱·남성 어깨로 30대 초반 남성 얼굴을 명확화"
+    },
+    {
+      "raw": "raw/players_3_revised.png",
+      "job": "raw/players_3_revised.json",
+      "retry_of": "raw/players_3.png",
+      "note": "포니테일 여성의 얼굴 특징을 자연스럽게 명확화"
+    },
+    {
+      "raw": "raw/players_3_revised.png",
+      "job": "raw/players_3_revised.json",
+      "retry_of": "raw/players_3.png",
+      "note": "???? ??? ?? ??? ????? ???. ?????? ?? ?? ??? ??? ?? ?? ??? ???? ?? ??? ??."
+    },
+    {
+      "raw": "raw/tteok_scene_street.png",
+      "job": "raw/tteok_scene_street.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_0.png",
+      "job": "raw/tteok_scene_kid_0.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_1.png",
+      "job": "raw/tteok_scene_kid_1.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_2.png",
+      "job": "raw/tteok_scene_kid_2.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_3.png",
+      "job": "raw/tteok_scene_kid_3.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_4.png",
+      "job": "raw/tteok_scene_kid_4.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_0_chroma.png",
+      "job": "raw/tteok_scene_kid_0.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_1_chroma.png",
+      "job": "raw/tteok_scene_kid_1.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_2.png",
+      "job": "raw/tteok_scene_kid_2.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_3.png",
+      "job": "raw/tteok_scene_kid_3.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_4.png",
+      "job": "raw/tteok_scene_kid_4.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_5.png",
+      "job": "raw/tteok_scene_kid_5.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_6.png",
+      "job": "raw/tteok_scene_kid_6.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_kid_7.png",
+      "job": "raw/tteok_scene_kid_7.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_sp_truck.png",
+      "job": "raw/tteok_scene_sp_truck.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_sp_chairs.png",
+      "job": "raw/tteok_scene_sp_chairs.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_sp_staff.png",
+      "job": "raw/tteok_scene_sp_staff.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_sp_cheese.png",
+      "job": "raw/tteok_scene_sp_cheese.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/tteok_scene_sp_clean.png",
+      "job": "raw/tteok_scene_sp_clean.json",
+      "note": "떡볶이 장사 장면 새 그림"
+    },
+    {
+      "raw": "raw/trade_port_straitIsle.png",
+      "job": "raw/trade_port_straitIsle.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_port_bigMarket.png",
+      "job": "raw/trade_port_bigMarket.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_port_hubCity.png",
+      "job": "raw/trade_port_hubCity.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_port_forest.png",
+      "job": "raw/trade_port_forest.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_port_lithiumHigh.png",
+      "job": "raw/trade_port_lithiumHigh.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_port_northIce.png",
+      "job": "raw/trade_port_northIce.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_port_home.png",
+      "job": "raw/trade_port_home.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_oilKingdom.png",
+      "job": "raw/trade_people_oilKingdom.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_plains.png",
+      "job": "raw/trade_people_plains.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_factoryIsle.png",
+      "job": "raw/trade_people_factoryIsle.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_chipLand.png",
+      "job": "raw/trade_people_chipLand.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_straitIsle.png",
+      "job": "raw/trade_people_straitIsle.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_bigMarket.png",
+      "job": "raw/trade_people_bigMarket.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_hubCity.png",
+      "job": "raw/trade_people_hubCity.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_forest.png",
+      "job": "raw/trade_people_forest.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_lithiumHigh.png",
+      "job": "raw/trade_people_lithiumHigh.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_people_northIce.png",
+      "job": "raw/trade_people_northIce.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_fog_1.png",
+      "job": "raw/trade_fog_1.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_fog_2.png",
+      "job": "raw/trade_fog_2.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_fog_3_retry.png",
+      "job": "raw/trade_fog_3_retry.json",
+      "note": "built-in image_gen",
+      "retry_of": "raw/trade_fog_3.png"
+    },
+    {
+      "raw": "raw/trade_ship.png",
+      "job": "raw/trade_ship.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_title.png",
+      "job": "raw/trade_title.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_end_king_retry.png",
+      "job": "raw/trade_end_king_retry.json",
+      "note": "built-in image_gen",
+      "retry_of": "raw/trade_end_king.png"
+    },
+    {
+      "raw": "raw/trade_end_war.png",
+      "job": "raw/trade_end_war.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_end_richAlone_retry.png",
+      "job": "raw/trade_end_richAlone_retry.json",
+      "note": "built-in image_gen",
+      "retry_of": "raw/trade_end_richAlone.png"
+    },
+    {
+      "raw": "raw/trade_end_island.png",
+      "job": "raw/trade_end_island.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_end_rawOnly.png",
+      "job": "raw/trade_end_rawOnly.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_end_normal.png",
+      "job": "raw/trade_end_normal.json",
+      "note": "built-in image_gen"
+    },
+    {
+      "raw": "raw/trade_fog_3.png",
+      "job": "raw/trade_fog_3.json",
+      "status": "rejected",
+      "note": "좌우 안개 끝 잘림으로 재생성"
+    },
+    {
+      "raw": "raw/trade_end_king.png",
+      "job": "raw/trade_end_king.json",
+      "status": "rejected",
+      "note": "사진 느낌을 줄이고 구아슈 화풍으로 재생성"
+    },
+    {
+      "raw": "raw/trade_end_richAlone.png",
+      "job": "raw/trade_end_richAlone.json",
+      "status": "rejected",
+      "note": "동전 통화 기호 제거"
+    },
+    {
+      "raw": "raw/p0_casual_happy.png",
+      "job": "raw/p0_casual_happy.json",
+      "note": "프로필 선택용 평상복. 세 역할 그림을 참고해 옷만 변경. 비교 그림과 데스크톱·모바일 캡처 직접 검수 완료."
+    },
+    {
+      "raw": "raw/p1_casual_happy.png",
+      "job": "raw/p1_casual_happy.json",
+      "note": "프로필 선택용 평상복. 세 역할 그림을 참고해 옷만 변경. 비교 그림과 데스크톱·모바일 캡처 직접 검수 완료."
+    },
+    {
+      "raw": "raw/p2_casual_happy.png",
+      "job": "raw/p2_casual_happy.json",
+      "note": "프로필 선택용 평상복. 세 역할 그림을 참고해 옷만 변경. 비교 그림과 데스크톱·모바일 캡처 직접 검수 완료."
+    },
+    {
+      "raw": "raw/p3_casual_happy.png",
+      "job": "raw/p3_casual_happy.json",
+      "note": "프로필 선택용 평상복. 세 역할 그림을 참고해 옷만 변경. 비교 그림과 데스크톱·모바일 캡처 직접 검수 완료."
+    }
+  ],
+  "summary": {
+    "total": 140,
+    "completed": 126,
+    "remaining": [
+      "tteok/street",
+      "tteok/kid_0",
+      "tteok/kid_1",
+      "tteok/kid_2",
+      "tteok/kid_3",
+      "tteok/kid_4",
+      "tteok/kid_5",
+      "tteok/kid_6",
+      "tteok/kid_7",
+      "tteok/sp_truck",
+      "tteok/sp_chairs",
+      "tteok/sp_staff",
+      "tteok/sp_cheese",
+      "tteok/sp_clean"
+    ],
+    "by_folder": {
+      "people": 28,
+      "players": 28,
+      "daon": 13,
+      "samgwon": 15,
+      "tteok": 16,
+      "trade": 26
+    },
+    "regeneration_count": 17,
+    "validation": "?? ????????WebP ?? ?? ? ???? ?? ?? ??. 2026-10-10: ???? 0?1 ??, 3 ?? ?? ???; 4? ??? ???????? ?? ? ?????? ?? ??, ?????? ?? 0.",
+    "trade_map_note": "지도 원본 보존. 좌표는 해안 위로 조정했지만 strait와 continent의 일부 직선 항로는 기존 지형을 통과함.",
+    "trade_art_report": {
+      "status": "complete",
+      "new_assets": 21,
+      "checked_assets": 36,
+      "country_portraits": {
+        "male": 5,
+        "female": 5
+      },
+      "existing_maps": 4,
+      "existing_ports": 11,
+      "protected_files_unchanged": 16,
+      "slot_markers_checked": 36,
+      "regenerations": 3,
+      "contact_sheet": "check/trade-art-sheet.png",
+      "slot_checks": [
+        "check/trade-slots-archipelago.png",
+        "check/trade-slots-strait.png",
+        "check/trade-slots-inland.png",
+        "check/trade-slots-continent.png"
+      ],
+      "prompts": "raw/trade_people_*.json 및 raw/trade_*.json의 개별 생성 기록",
+      "existing_limitations": "기존 지도 일부 직선 항로가 육지를 통과하고, 일부 기존 항구 그림의 피사체가 가장자리에 닿거나 조금 잘려 있음. 사용자 지시에 따라 지도·항구·slots.json을 수정하지 않음.",
+      "scope": "그림 원본·WebP·검수 모음·manifest만 작업. 게임 코드와 data.js 수정 없음."
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# 도구·캐시
+output/
+**/output/
+**/.python-packages/
+**/node_modules/
+**/__pycache__/
+**/uv-cache/
+**/.npm-cache/
+*.log
+
+# 검증용 캡처(다시 만들 수 있음)
+**/check-verify/
+**/tests/shots/
+shared-art/check/
+fake-traveler/check/
+_imgtest/
+art_compare.png
+
+# 그림 원본(큰 PNG) — 게임은 WebP 만 씀
+shared-art/raw/
+fake-traveler/assets/raw/

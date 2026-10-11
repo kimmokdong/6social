@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4EEE2">
+  <meta name="description" content="1960년대부터 2020년대까지, 우리 도시를 키우며 배우는 우리나라 경제 성장 게임">
+  <title>다온시 70년</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4EEE2'/%3E%3Crect x='5' y='14' width='7' height='13' fill='%232B7A9B'/%3E%3Crect x='13' y='7' width='7' height='20' fill='%23F2994A'/%3E%3Crect x='21' y='11' width='6' height='16' fill='%232E9E6B'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="app"></main>
+  <div id="layer" hidden></div>
+  <noscript>게임을 하려면 자바스크립트를 켜 주세요.</noscript>
+  <script>
+    /* 삼권 스와이프 인물 그림(people-art.js)이 쓰는 최소 정보 */
+    window.SAMGWON = { checks: [], characters: {
+      tycoon: { group: 'business' }, reporter: { group: 'press' }, kid: { group: 'citizen' }, teacher: { group: 'citizen' },
+      activist: { group: 'citizen' }, shopkeeper: { group: 'citizen' }, grandma: { group: 'citizen' } } };
+  </script>
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/people-art.js"></script>
+  <script src="js/city-art.js"></script>
+  <script src="js/sfx.js"></script>
+  <script src="js/paint.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

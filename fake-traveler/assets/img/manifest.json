@@ -1,0 +1,590 @@
+{
+  "rf_jungle": {
+    "file": "assets/img/scenes/rf_jungle.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 253260,
+    "source": "assets/raw/rf_jungle.png"
+  },
+  "rf_rain": {
+    "file": "assets/img/scenes/rf_rain.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 239724,
+    "source": "assets/raw/rf_rain.png"
+  },
+  "rf_house": {
+    "file": "assets/img/scenes/rf_house.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 213468,
+    "source": "assets/raw/rf_house.png"
+  },
+  "rf_parrot": {
+    "file": "assets/img/scenes/rf_parrot.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 197792,
+    "source": "assets/raw/rf_parrot.png"
+  },
+  "rf_fruit": {
+    "file": "assets/img/scenes/rf_fruit.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 196298,
+    "source": "assets/raw/rf_fruit.png"
+  },
+  "sv_giraffe": {
+    "file": "assets/img/scenes/sv_giraffe.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 145056,
+    "source": "assets/raw/sv_giraffe.png"
+  },
+  "sv_waterhole": {
+    "file": "assets/img/scenes/sv_waterhole.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 224430,
+    "source": "assets/raw/sv_waterhole.png"
+  },
+  "sv_wetseason": {
+    "file": "assets/img/scenes/sv_wetseason.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 190154,
+    "source": "assets/raw/sv_wetseason.png"
+  },
+  "sv_huts": {
+    "file": "assets/img/scenes/sv_huts.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 170884,
+    "source": "assets/raw/sv_huts.png"
+  },
+  "sv_lion": {
+    "file": "assets/img/scenes/sv_lion.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 168700,
+    "source": "assets/raw/sv_lion.png"
+  },
+  "ds_dunes": {
+    "file": "assets/img/scenes/ds_dunes.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 47926,
+    "source": "assets/raw/ds_dunes.png"
+  },
+  "ds_oasis": {
+    "file": "assets/img/scenes/ds_oasis.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 173114,
+    "source": "assets/raw/ds_oasis.png"
+  },
+  "ds_house": {
+    "file": "assets/img/scenes/ds_house.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 214150,
+    "source": "assets/raw/ds_house.png"
+  },
+  "ds_night": {
+    "file": "assets/img/scenes/ds_night.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 122116,
+    "source": "assets/raw/ds_night.png"
+  },
+  "st_grass": {
+    "file": "assets/img/scenes/st_grass.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 139208,
+    "source": "assets/raw/st_grass.png"
+  },
+  "st_ger": {
+    "file": "assets/img/scenes/st_ger.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 154552,
+    "source": "assets/raw/st_ger.png"
+  },
+  "st_winter": {
+    "file": "assets/img/scenes/st_winter.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 173104,
+    "source": "assets/raw/st_winter.png"
+  },
+  "st_horse": {
+    "file": "assets/img/scenes/st_horse.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 139718,
+    "source": "assets/raw/st_horse.png"
+  },
+  "md_village": {
+    "file": "assets/img/scenes/md_village.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 166052,
+    "source": "assets/raw/md_village.png"
+  },
+  "md_olive": {
+    "file": "assets/img/scenes/md_olive.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 247962,
+    "source": "assets/raw/md_olive.png"
+  },
+  "md_vineyard": {
+    "file": "assets/img/scenes/md_vineyard.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 204256,
+    "source": "assets/raw/md_vineyard.png"
+  },
+  "md_winterrain": {
+    "file": "assets/img/scenes/md_winterrain.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 246096,
+    "source": "assets/raw/md_winterrain.png"
+  },
+  "wm_pasture": {
+    "file": "assets/img/scenes/wm_pasture.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 198694,
+    "source": "assets/raw/wm_pasture.png"
+  },
+  "wm_street": {
+    "file": "assets/img/scenes/wm_street.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 192022,
+    "source": "assets/raw/wm_street.png"
+  },
+  "wm_cheese": {
+    "file": "assets/img/scenes/wm_cheese.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 171814,
+    "source": "assets/raw/wm_cheese.png"
+  },
+  "tg_forest": {
+    "file": "assets/img/scenes/tg_forest.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 183624,
+    "source": "assets/raw/tg_forest.png"
+  },
+  "tg_cabin": {
+    "file": "assets/img/scenes/tg_cabin.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 216430,
+    "source": "assets/raw/tg_cabin.png"
+  },
+  "tg_snow": {
+    "file": "assets/img/scenes/tg_snow.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 191296,
+    "source": "assets/raw/tg_snow.png"
+  },
+  "tg_summerlake": {
+    "file": "assets/img/scenes/tg_summerlake.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 241412,
+    "source": "assets/raw/tg_summerlake.png"
+  },
+  "tg_moose": {
+    "file": "assets/img/scenes/tg_moose.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 214670,
+    "source": "assets/raw/tg_moose.png"
+  },
+  "td_reindeer": {
+    "file": "assets/img/scenes/td_reindeer.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 198450,
+    "source": "assets/raw/td_reindeer.png"
+  },
+  "td_summer": {
+    "file": "assets/img/scenes/td_summer.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 242410,
+    "source": "assets/raw/td_summer.png"
+  },
+  "td_winter": {
+    "file": "assets/img/scenes/td_winter.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 128076,
+    "source": "assets/raw/td_winter.png"
+  },
+  "td_stilts": {
+    "file": "assets/img/scenes/td_stilts.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 145766,
+    "source": "assets/raw/td_stilts.png"
+  },
+  "al_city": {
+    "file": "assets/img/scenes/al_city.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 264608,
+    "source": "assets/raw/al_city.png"
+  },
+  "al_llama": {
+    "file": "assets/img/scenes/al_llama.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 192242,
+    "source": "assets/raw/al_llama.png"
+  },
+  "al_potato": {
+    "file": "assets/img/scenes/al_potato.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 207620,
+    "source": "assets/raw/al_potato.png"
+  },
+  "al_terrace": {
+    "file": "assets/img/scenes/al_terrace.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 163572,
+    "source": "assets/raw/al_terrace.png"
+  },
+  "t_haneul": {
+    "file": "assets/img/people/t_haneul.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 24742,
+    "source": "assets/raw/travelers_1.png"
+  },
+  "t_junho": {
+    "file": "assets/img/people/t_junho.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 21500,
+    "source": "assets/raw/travelers_1.png"
+  },
+  "t_miso": {
+    "file": "assets/img/people/t_miso.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 22318,
+    "source": "assets/raw/travelers_1.png"
+  },
+  "t_leo": {
+    "file": "assets/img/people/t_leo.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 29736,
+    "source": "assets/raw/travelers_1.png"
+  },
+  "t_ara": {
+    "file": "assets/img/people/t_ara.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 20974,
+    "source": "assets/raw/travelers_2.png"
+  },
+  "t_park": {
+    "file": "assets/img/people/t_park.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 24714,
+    "source": "assets/raw/travelers_2.png"
+  },
+  "t_sophie": {
+    "file": "assets/img/people/t_sophie.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 21466,
+    "source": "assets/raw/travelers_2.png"
+  },
+  "t_taeyang": {
+    "file": "assets/img/people/t_taeyang.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 21924,
+    "source": "assets/raw/travelers_2.png"
+  },
+  "owl_point": {
+    "file": "assets/img/people/owl_point.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 22240,
+    "source": "assets/raw/owls.png"
+  },
+  "owl_happy": {
+    "file": "assets/img/people/owl_happy.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 24598,
+    "source": "assets/raw/owls.png"
+  },
+  "owl_shock": {
+    "file": "assets/img/people/owl_shock.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 23628,
+    "source": "assets/raw/owls.png"
+  },
+  "raincoat": {
+    "file": "assets/img/items/raincoat.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 6486,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "umbrella": {
+    "file": "assets/img/items/umbrella.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 5856,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "puffer": {
+    "file": "assets/img/items/puffer.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 9314,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "beanie": {
+    "file": "assets/img/items/beanie.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11290,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "sunglasses": {
+    "file": "assets/img/items/sunglasses.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 3766,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "sunscreen": {
+    "file": "assets/img/items/sunscreen.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 3422,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "bugspray": {
+    "file": "assets/img/items/bugspray.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 3590,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "canteen": {
+    "file": "assets/img/items/canteen.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 6966,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "binoculars": {
+    "file": "assets/img/items/binoculars.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 6346,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "robe": {
+    "file": "assets/img/items/robe.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 4844,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "boots": {
+    "file": "assets/img/items/boots.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 6804,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "handwarmer": {
+    "file": "assets/img/items/handwarmer.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 6490,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "oxygen": {
+    "file": "assets/img/items/oxygen.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 5436,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "camera": {
+    "file": "assets/img/items/camera.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 7410,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "hikingboots": {
+    "file": "assets/img/items/hikingboots.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10354,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "tshirt": {
+    "file": "assets/img/items/tshirt.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 5808,
+    "source": "assets/raw/items_sheet.png"
+  },
+  "cover": {
+    "file": "assets/img/cover.webp",
+    "width": 1500,
+    "height": 1000,
+    "bytes": 285204,
+    "source": "assets/raw/cover.png"
+  },
+  "ic_icesheet": {
+    "file": "assets/img/scenes/ic_icesheet.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 88248,
+    "source": "assets/raw/ic_icesheet.png"
+  },
+  "ic_station": {
+    "file": "assets/img/scenes/ic_station.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 143672,
+    "source": "assets/raw/ic_station.png"
+  },
+  "ic_penguin": {
+    "file": "assets/img/scenes/ic_penguin.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 121058,
+    "source": "assets/raw/ic_penguin.png"
+  },
+  "ic_blizzard": {
+    "file": "assets/img/scenes/ic_blizzard.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 107782,
+    "source": "assets/raw/ic_blizzard.png"
+  },
+  "rf_puddles": {
+    "file": "assets/img/scenes/rf_puddles.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 278048,
+    "source": "assets/raw/rf_puddles.png"
+  },
+  "sv_greenedge": {
+    "file": "assets/img/scenes/sv_greenedge.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 227662,
+    "source": "assets/raw/sv_greenedge.png"
+  },
+  "rf_mistslope": {
+    "file": "assets/img/scenes/rf_mistslope.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 225900,
+    "source": "assets/raw/rf_mistslope.png"
+  },
+  "al_wetlane": {
+    "file": "assets/img/scenes/al_wetlane.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 266010,
+    "source": "assets/raw/al_wetlane.png"
+  },
+  "sv_dryplain": {
+    "file": "assets/img/scenes/sv_dryplain.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 159568,
+    "source": "assets/raw/sv_dryplain.png"
+  },
+  "st_cattle": {
+    "file": "assets/img/scenes/st_cattle.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 154972,
+    "source": "assets/raw/st_cattle.png"
+  },
+  "ds_gravel": {
+    "file": "assets/img/scenes/ds_gravel.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 175404,
+    "source": "assets/raw/ds_gravel.png"
+  },
+  "st_dustroad": {
+    "file": "assets/img/scenes/st_dustroad.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 141462,
+    "source": "assets/raw/st_dustroad.png"
+  },
+  "md_stonegarden": {
+    "file": "assets/img/scenes/md_stonegarden.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 291584,
+    "source": "assets/raw/md_stonegarden.png"
+  },
+  "wm_harbor": {
+    "file": "assets/img/scenes/wm_harbor.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 267196,
+    "source": "assets/raw/wm_harbor.png"
+  },
+  "td_mossrocks": {
+    "file": "assets/img/scenes/td_mossrocks.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 281712,
+    "source": "assets/raw/td_mossrocks.png"
+  },
+  "td_snowrocks": {
+    "file": "assets/img/scenes/td_snowrocks.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 124696,
+    "source": "assets/raw/td_snowrocks.png"
+  },
+  "ic_frozencoast": {
+    "file": "assets/img/scenes/ic_frozencoast.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 151356,
+    "source": "assets/raw/ic_frozencoast.png"
+  },
+  "tg_treeline": {
+    "file": "assets/img/scenes/tg_treeline.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 100566,
+    "source": "assets/raw/tg_treeline.png"
+  }
+}

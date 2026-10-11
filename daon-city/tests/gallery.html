@@ -1,0 +1,11 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>다온시 그림 모음</title>
+<link rel="stylesheet" href="../css/style.css"><style>body{padding:20px}.g{display:grid;grid-template-columns:repeat(8,1fr);gap:14px}.g figure{margin:0;background:#CFE3A8;border-radius:12px;position:relative;aspect-ratio:1}.g figure>svg{position:absolute;inset:0}.g figure .bld{position:absolute;inset:6%}.g figcaption{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:14px}.g figure.plain{background:none}</style></head>
+<body><div class="g" id="g"></div>
+<script>window.SAMGWON={characters:{},checks:[]};</script><script src="../js/data.js"></script><script src="../js/city-art.js"></script>
+<script>
+const A=window.CityArt,B=window.DAON_CITY.buildings,out=[];
+out.push(`<figure>${A.terrain('F',false,0)}<figcaption>논밭</figcaption></figure>`,`<figure>${A.terrain('F',true,1)}<figcaption>해안</figcaption></figure>`,`<figure>${A.terrain('M')}<figcaption>산</figcaption></figure>`,`<figure>${A.terrain('S',false,2)}<figcaption>바다</figcaption></figure>`);
+[0,2,4].forEach(d=>out.push(`<figure>${A.terrain('F',false,d)}${A.building('house',{d})}<figcaption>집 ${1960+d*10}</figcaption></figure>`));
+Object.keys(B).filter(id=>id!=='house').forEach((id,i)=>out.push(`<figure>${A.terrain('F',['port','ship','chem'].includes(id),i)}${A.building(id,{d:3})}<figcaption>${B[id].name}</figcaption></figure>`));
+document.getElementById('g').innerHTML=out.join('');
+</script></body></html>

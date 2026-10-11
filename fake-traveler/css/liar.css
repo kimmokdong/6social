@@ -1,0 +1,249 @@
+/* 라이어 여행단 — 같은 크라프트 종이·폴라로이드 말투 */
+.persona{display:inline-block;font-style:normal;font-size:15px;font-weight:800;border-radius:99px;padding:1px 9px;background:#efe2c8;color:var(--soft)}
+.persona.p-naive{background:#E4F1DE;color:#2E6B3E}.persona.p-normal{background:#E7EDF7;color:#2F4A7A}.persona.p-sharp{background:#F9E1DB;color:#A0301F}
+
+/* 로비 */
+.ll{max-width:1180px;margin:8px auto 0;display:flex;flex-direction:column;gap:14px}
+.ll-how{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ll-how li{background:var(--cream);border:1px solid #d5c5ac;border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow)}
+.ll-how li .icon{width:34px;height:34px;color:var(--navy)}
+.ll-how b{font-family:var(--heading);font-weight:400;font-size:26px}
+.ll-how span{font-size:18px;color:var(--soft);line-height:1.3}
+.ll-how .ll-twist{background:#FBE3DC;border-color:#e3a594}.ll-how .ll-twist .icon{color:var(--red)}
+.ll-h{font-size:clamp(28px,3vw,36px);margin-top:4px}
+.ll-me{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}
+.ll-face{background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:16px;padding:6px;border:3px solid transparent}
+.ll-face .polaroid{padding:5px 5px 8px;transform:rotate(-2deg)}
+.ll-face:nth-child(even) .polaroid{transform:rotate(2deg)}
+.ll-face img{aspect-ratio:1;object-fit:cover}
+.ll-face b{font-size:20px}
+.ll-face.sel{border-color:var(--navy);background:#E7EDF7}
+.ll-stages{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ll-stage{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:18px 20px;border-radius:20px;background:var(--cream);border:2px solid #b9a58b;box-shadow:0 5px 0 #c9b59655;text-align:left;min-height:150px}
+.ll-stage strong{font-family:var(--heading);font-weight:400;font-size:clamp(32px,3.4vw,44px)}
+.ll-stage.s-town{border-color:#4BA36B}.ll-stage.s-nation{border-color:#3C8C9E}.ll-stage.s-world{border-color:#D9412E}
+.ll-ai{display:flex;gap:6px;flex-wrap:wrap}
+.ll-best{font-size:20px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:6px}
+.ll-stage:disabled{opacity:.5}
+.ll-multi{text-align:center}.ll-multi small{font-size:16px;background:#efe2c8;border-radius:99px;padding:2px 8px}
+
+/* 라운드 소개·역할 */
+.liar-modal{max-width:min(720px,94vw)}
+.lri{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.lri h2{font-size:clamp(34px,4vw,48px)}
+.lri-photo{width:min(420px,80vw);transform:rotate(-1.5deg)}
+.lri-photo img{aspect-ratio:3/2;object-fit:cover}
+.lri-photo.small{width:min(300px,64vw)}
+.lri-name{font-size:clamp(44px,6vw,64px);display:flex;align-items:center;gap:12px}
+.lri .facts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;font-size:20px}
+.lri .facts div{display:flex;align-items:center;gap:6px}
+.lri-confuse{font-size:20px;font-weight:700;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px}
+.role-card{width:100%;border-radius:22px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:10px;animation:role-flip .6s ease-out both}
+@keyframes role-flip{from{transform:rotateY(90deg);opacity:0}to{transform:none;opacity:1}}
+.is-true .role-card{background:#E4F1DE;border:3px solid var(--green)}
+.is-liar .role-card{background:#FBE3DC;border:3px solid var(--red)}
+.role-tag{font-family:var(--heading);font-size:30px;color:#fff;border-radius:12px;padding:4px 18px}
+.is-true .role-tag{background:var(--green)}.is-liar .role-tag{background:var(--red)}
+.role-card p{font-size:24px;line-height:1.4}
+
+/* 테이블 */
+.screen-liar{display:flex;flex-direction:column;gap:10px;padding-top:12px}
+.lt-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lt-round{display:flex;align-items:center;gap:8px;font-size:22px}
+.lt-round span{display:flex;gap:5px}.lt-round i{width:12px;height:12px;border-radius:50%;background:#d6c6aa}.lt-round i.done{background:var(--navy)}.lt-round i.now{background:var(--red);box-shadow:0 0 0 3px #f2c9be}
+.lt-top .claim-chip{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:6px 16px;border-radius:16px;background:var(--cream);border:2px solid var(--red);font-size:22px}
+.lt-top .claim-chip b{font-family:var(--heading);font-weight:400;font-size:28px}
+.lt-role{margin-left:auto;min-height:52px;padding:6px 16px;border-radius:16px;font-size:22px;font-weight:800}
+.lt-role.is-true{background:#E4F1DE;color:#2E6B3E}.lt-role.is-liar{background:#FBE3DC;color:#A0301F}
+.lt{flex:1;display:flex;flex-direction:column;gap:12px}
+.lt-seats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.seat{position:relative;background:var(--cream);border:2px solid #d5c5ac;border-radius:20px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);transition:border-color .2s,box-shadow .2s}
+.seat.turn{border-color:var(--navy);box-shadow:0 0 0 4px #2F4A7A33,var(--shadow)}
+.seat-head{display:flex;gap:10px;align-items:center}
+.seat-head .portrait{width:92px;flex:none;padding:4px 4px 6px;transform:rotate(-2deg)}
+.seat-head .portrait img{aspect-ratio:1;object-fit:cover}
+.seat-id{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.seat-id b{font-size:22px}
+.seat-chips{display:flex;align-items:center;gap:4px;font-weight:800;font-size:20px;color:#9a6f12}.seat-chips .icon{width:22px;height:22px;fill:var(--gold);color:#b88a1c}
+.seat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mini-ev{height:112px;border-radius:10px;background:#fffaf2;border:1px dashed #cdb998;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px}
+.mini-ev.empty{background:#efe4d2}
+.mini-ev.new{animation:card-in .5s ease-out both;border:2px solid var(--navy)}
+@keyframes card-in{from{transform:translateY(-30px) rotate(-6deg) scale(.7);opacity:0}}
+.mini-ev .photo-wrap{height:100%;transform:none;padding:3px}
+.mini-ev .speech{font-size:19px;padding:6px 8px;line-height:1.1}
+.mini-ev .speech:before{font-size:20px}
+.mini-ev .temp-wrap strong{font-size:28px}.mini-ev .thermometer{min-height:40px;height:90px;width:24px}
+.mini-ev .item-wrap strong{font-size:16px}.mini-ev .item-wrap img{max-height:74px}
+.mini-ev .cap{font-size:13px;right:3px;bottom:3px;padding:1px 4px}
+.seat-bubble{position:absolute;right:10px;top:10px;max-width:52%;background:#fff;border:2px solid var(--ink);border-radius:16px 16px 16px 4px;padding:4px 12px;font-family:Gaegu,'Malgun Gothic',sans-serif;font-weight:700;font-size:22px;line-height:1.15;opacity:0;transform:scale(.6);transition:.2s;pointer-events:none;z-index:3}
+.seat-bubble.show{opacity:1;transform:none}
+.seat-bubble.k-lie{border-color:var(--red);color:#A0301F}.seat-bubble.k-proof{border-color:var(--green);color:#2E6B3E}
+.vote-btn{min-height:56px;font-size:22px;padding:8px 16px;width:100%}
+.vote-tag{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:var(--ink);color:#fff;border-radius:10px;padding:2px 10px;font-weight:800;font-size:18px}.vote-tag .icon{width:20px;height:20px}
+.lt-me{display:grid;grid-template-columns:minmax(260px,1fr) 2.6fr;gap:12px;align-items:stretch}
+.lt-me .seat.mine{border-color:#b9a58b;background:#fff8ec}
+.lt-handbox{display:flex;flex-direction:column;gap:10px;background:#efe2c8;border-radius:20px;padding:10px;border:2px solid #cdb998}
+.lt-hand{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.hand-card{height:178px;background:#fffaf2;border:2px solid #cdb998;border-radius:14px;padding:6px;box-shadow:0 4px 0 #c9b59655;transition:transform .15s}
+.hand-card .evidence{width:100%;height:100%}
+.hand-card .photo-wrap{height:auto;width:100%}
+.hand-card .speech{font-size:22px;padding:8px 10px}
+.hand-card .temp-wrap strong{font-size:32px}.hand-card .thermometer{height:100px}
+.hand-card .item-wrap img{max-height:118px}
+.hand-card.sel{transform:translateY(-10px);border-color:var(--navy);box-shadow:0 0 0 4px #2F4A7A44,0 8px 0 #20365433}
+.hand-card:disabled{opacity:.75}
+.lt-prompt{display:flex;align-items:center;justify-content:center;min-height:64px;font-size:24px}
+.lt-call{font-family:var(--heading);font-weight:400;font-size:clamp(26px,2.6vw,32px);color:var(--navy)}
+.lt-wait{font-size:22px;color:var(--soft);animation:wait-blink 1s ease-in-out infinite alternate}
+@keyframes wait-blink{to{opacity:.4}}
+
+/* 결과 */
+.lr{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.lr h2{font-size:clamp(36px,4.5vw,54px)}
+.lr.caught h2{color:var(--green)}.lr.escaped h2{color:var(--red)}
+.lr-liar{display:flex;align-items:center;gap:16px;font-size:24px;text-align:left}
+.lr-liar .polaroid{width:120px;position:relative;transform:rotate(-3deg)}
+.lr-liar img{aspect-ratio:1;object-fit:cover}
+.liar-stamp{position:absolute;right:-14px;bottom:8px;border:3px solid var(--red);color:var(--red);background:#fffaf2cc;font-family:var(--heading);font-size:26px;padding:0 8px;transform:rotate(-12deg);animation:stamp-in .4s ease-out both}
+@keyframes stamp-in{from{transform:rotate(-12deg) scale(2.4);opacity:0}}
+.lr-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.lr-chips span{background:var(--cream);border:1px solid #d5c5ac;border-radius:12px;padding:4px 12px;font-size:20px}
+.lr-chips span.mine{border:2px solid var(--navy)}
+.lr-chips b.up{color:var(--green)}.lr-chips b.down{color:var(--red)}
+.lr-me{font-size:24px;font-weight:800}
+.lr-learn{width:100%;background:#FFF6DC;border:2px dashed #e0c27a;border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.lr-learn h3{font-size:26px;display:flex;align-items:center;gap:8px}
+.lr-card{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}
+.lr-card p{font-size:20px;line-height:1.35}
+.lr-card b{display:inline-block;border-radius:8px;padding:0 8px;margin-right:6px;color:#fff;font-size:17px}
+.k-bad{background:var(--red)}.k-same{background:var(--navy)}.k-diff{background:var(--green)}.k-dodge{background:#8c7d6a}
+
+/* 대회 결과 */
+.le{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.le h2{font-size:clamp(56px,8vw,90px);color:var(--red)}
+.le-stage{font-size:24px;color:var(--soft)}
+.podium{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:end;width:100%}
+.pod{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--cream);border-radius:18px 18px 6px 6px;padding:12px 8px;border:2px solid #d5c5ac}
+.pod .polaroid{width:100px;padding:5px 5px 8px}.pod img{aspect-ratio:1;object-fit:cover}
+.pod b{font-size:22px}.pod em{font-style:normal;font-family:var(--heading);font-size:30px}
+.pod-chips{display:flex;align-items:center;gap:4px;font-weight:800;color:#9a6f12;font-size:20px}.pod-chips .icon{width:22px;height:22px;fill:var(--gold);color:#b88a1c}
+.pod.p1{min-height:260px;background:#FFF3C9;border-color:var(--gold)}.pod.p2{min-height:220px}.pod.p3{min-height:190px}.pod.p4{min-height:170px}
+.pod.mine{box-shadow:0 0 0 4px var(--navy)}
+.le-titles{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.le-title{background:#fff;border:2px solid var(--navy);border-radius:14px;padding:8px 14px;display:flex;flex-direction:column}
+.le-title b{font-family:var(--heading);font-weight:400;font-size:26px;color:var(--navy)}.le-title span{font-size:17px;color:var(--soft)}
+.le-new{font-size:22px;font-weight:800;color:var(--red)}
+.le-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* 세로 화면·폰 */
+@media (orientation:portrait),(max-width:900px){
+  .ll-how{grid-template-columns:repeat(2,1fr)}
+  .ll-me{grid-template-columns:repeat(4,1fr)}
+  .ll-stages{grid-template-columns:1fr}
+  .lt-me{grid-template-columns:1fr}
+  .lt-hand{grid-template-columns:repeat(5,minmax(110px,1fr));overflow-x:auto}
+}
+@media (max-width:700px){
+  .lt-seats{grid-template-columns:1fr}
+  .seat{flex-direction:row;flex-wrap:wrap;align-items:center}
+  .seat-head{width:100%}.seat-head .portrait{width:54px}
+  .seat-cards{width:100%}.mini-ev{height:70px}
+  .seat-bubble{right:8px;top:6px;font-size:18px}
+  .hand-card{height:128px}
+  .lt-role{margin-left:0}
+  .podium{grid-template-columns:repeat(2,1fr)}
+  .ll-how b{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){.role-card,.mini-ev.new,.liar-stamp{animation:none}}
+/* 창이 화면 안에 들어오게 — 사진은 작게, 특징은 한 줄로 */
+.lri .facts{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
+.lri .facts>div{min-height:44px;font-size:20px;padding:6px 12px;gap:8px}
+.lri .facts .icon{width:28px;height:28px}
+.lri-photo{width:min(360px,72vw)}
+.lri-photo img{max-height:min(30vh,240px)}
+.lri-photo.small{width:min(260px,60vw)}
+.role-card{padding:16px;gap:8px}
+.lr{gap:10px}
+.lr-learn{padding:10px}
+.lr-card{grid-template-columns:110px 1fr}
+.lr .mini-ev{height:84px}
+.lr-liar .polaroid{width:104px}
+.lr-learn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lr-learn h3{grid-column:1/-1}
+.lr-card p{font-size:18px}
+.lt-top .claim-chip{white-space:nowrap}
+@media (max-width:900px){.lr-learn{grid-template-columns:1fr}}
+@media (max-width:700px){
+  .lt-top{gap:8px}.lt-round{font-size:18px}.lt-top .claim-chip{font-size:18px;min-height:46px;padding:4px 10px}.lt-top .claim-chip b{font-size:22px}
+  .lt-role{min-height:44px;font-size:18px;padding:4px 12px}
+  .lt-handbox{position:sticky;bottom:0;z-index:5;box-shadow:0 -8px 20px #58432826}
+  .hand-card{height:112px}.lt-hand{grid-template-columns:repeat(5,minmax(96px,1fr))}
+  .lt-prompt{min-height:52px}.lt-call{font-size:22px}
+  .seat-head .portrait{width:56px}
+}
+/* 세로 화면: 자리는 한 줄에 한 명(얼굴 왼쪽, 카드 오른쪽) */
+@media (orientation:portrait){
+  .lt-seats{grid-template-columns:1fr;gap:8px}
+  .seat{display:grid;grid-template-columns:minmax(150px,200px) 1fr;align-items:center;column-gap:10px}
+  .seat-head{flex-direction:column;align-items:flex-start;gap:4px}
+  .seat-head .portrait{width:64px}
+  .seat-cards{grid-column:2;grid-row:1/3}
+  .seat .vote-btn{grid-column:1/-1}
+  .seat-bubble{right:8px;top:4px}
+}
+/* 폰: 내 손패는 화면 아래에 붙여 둠 */
+@media (max-width:700px){
+  .screen-liar{padding-bottom:240px}
+  .lt-handbox{position:fixed;left:0;right:0;bottom:0;border-radius:20px 20px 0 0;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
+  .seat{grid-template-columns:110px 1fr}
+  .seat-head .portrait{width:48px}
+  .mini-ev{height:76px}
+}
+.mini-ev .temp-wrap{flex-wrap:wrap;align-content:center;gap:2px 6px;padding-bottom:0}.mini-ev .temp-wrap .cap{position:static;order:3;width:100%;text-align:center;background:none;padding:0;font-size:13px}.mini-ev .thermometer{height:60px;min-height:0}
+
+/* 긴 한마디도 카드 안에서 끝까지 읽을 수 있도록 높이를 내용에 맞춘다. */
+.mini-ev{height:auto;min-height:112px;min-width:0}
+.mini-ev .photo-wrap{height:auto;width:100%;aspect-ratio:3/2}
+.mini-ev .speech{font-size:18px;line-height:1.25;padding:6px 4px;overflow-wrap:anywhere}
+.mini-ev .item-wrap strong,.mini-ev .cap,.mini-ev .temp-wrap .cap{font-size:18px;white-space:normal}
+.mini-ev .temp-wrap strong{font-size:24px}
+.hand-card{height:auto;min-height:178px}
+.hand-card .evidence{height:auto;min-height:160px}
+.persona,.lr-card b,.le-title span{font-size:18px}
+.lr-card small,.lt-role small,.ll-multi small{font-size:18px}
+.lr .mini-ev{height:auto;min-height:84px}
+@media(max-width:700px){
+  .lt-role,.lt-top .claim-chip{font-size:20px}
+  .lt-hand{grid-template-columns:repeat(5,minmax(144px,1fr))}
+  .hand-card{min-height:160px}
+  .hand-card .evidence{min-height:142px}
+  .hand-card .speech{font-size:20px;line-height:1.25}
+  .lt-handbox{max-height:45dvh}
+  .lt-prompt{flex-shrink:0}
+  .screen-liar{padding-bottom:calc(45dvh + 24px)}
+}
+/* 나를 의심한 이유 한 줄 */
+.lr-why{width:100%;display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;background:#FDE5DF;border:2px solid #e9a898;border-radius:16px;padding:8px 12px;text-align:left}
+.lr-why:not(:has(.mini-ev)){grid-template-columns:1fr}
+.lr-why .mini-ev{height:72px}
+.lr-why p{font-size:20px;line-height:1.35}
+.lr-why p>b:first-child{display:block;font-size:18px;color:#A0301F}
+.lr-why.ok{display:flex;align-items:center;justify-content:center;gap:8px;background:#E4F1DE;border-color:#9fcfa9;font-size:20px;font-weight:800;color:#2E6B3E}
+.lr-why.ok .icon{width:26px;height:26px}
+.lr-framed{display:inline-block;margin-left:6px;background:var(--red);color:#fff;border-radius:8px;padding:0 8px;font-size:18px}
+@media (max-width:700px){.lr-why{grid-template-columns:76px 1fr}.lr-why .mini-ev{height:60px}.lr-why p{font-size:18px}}
+.ll-stage .persona,.lt-role small{font-size:20px}
+/* 인물 사진: 옛 수사판 .portrait 높이 규칙 때문에 납작하게 잘리던 것 → 정사각형 전체 */
+.seat-head .portrait,.lr-liar .polaroid,.pod .polaroid{height:auto;max-height:none;aspect-ratio:auto}
+.seat-head .portrait img,.lr-liar .polaroid img,.pod .polaroid img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;object-position:50% 30%}
+/* 결과창: 누가 누구를 찍었나 + 다시 보기 */
+.lr-votes{width:100%;background:#fffaf2;border:2px solid #d5c5ac;border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lr-vote-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px}
+.lr-vote-row span{display:inline-flex;align-items:center;gap:4px;font-size:19px;background:var(--cream);border-radius:10px;padding:3px 10px}
+.lr-vote-row span.mine{outline:2px solid var(--navy)}
+.lr-vote-row .icon{width:18px;height:18px}
+.lr-vote-row b.hit{color:var(--red)}
+.lr-verdict{margin:0;font-size:21px;font-weight:700}
+.lr-verdict.ok b{color:var(--green)}.lr-verdict.no b{color:#A0301F}
+.lr-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
