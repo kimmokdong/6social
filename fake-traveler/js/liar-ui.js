@@ -118,10 +118,10 @@
     const vote = S.phase === 'vote' && mine.vote === null && !busy;
     const seatHtml = i => {
       const x = v.seats[i], p = P(x.who), turn = cur === i;
-      const votedFor = shownVotes.has(i) && x.vote !== null ? `<span class="vote-tag">${f.icon('glass')} ${nameOf(x.vote)}</span>` : '';
+      const votedFor = shownVotes.has(i) && x.vote !== null ? f.button('liar-reason', `${f.icon('glass')} ${nameOf(x.vote)}`, 'vote-tag', `data-seat="${i}" aria-label="${p.name}의 지목 이유 보기"`) : '';
       return `<article class="seat ${turn ? 'turn' : ''} ${i === me ? 'mine' : ''}" data-seat="${i}">
         <div class="seat-head"><span class="polaroid portrait">${f.image(p.img, 'people', p.name)}</span><div class="seat-id"><b>${p.name}${i === me ? ' (나)' : ''}</b>${x.persona ? `<i class="persona p-${x.persona}">${L.CFG.personas[x.persona].name}</i>` : ''}<span class="seat-chips">${f.icon('star')}${x.chips}</span></div></div>
-        <div class="seat-cards">${[0, 1, 2].map(k => x.played[k] ? `<div class="mini-ev ev-${x.played[k].type} ${highlight === x.played[k].id ? 'new' : ''}">${f.evidence(x.played[k])}</div>` : '<div class="mini-ev empty"></div>').join('')}</div>
+        <div class="seat-cards">${[0, 1, 2].map(k => x.played[k] ? f.button('liar-evidence', f.evidence(x.played[k]), `mini-ev ev-${x.played[k].type} ${highlight?.seat === i && highlight.card === x.played[k].id ? 'new' : ''}`, `data-seat="${i}" data-index="${k}" aria-label="${p.name}의 ${k + 1}번째 증거 크게 보기"`) : '<div class="mini-ev empty"></div>').join('')}</div>
         <div class="seat-bubble"></div>${votedFor}
         ${vote && i !== me ? f.button('liar-vote', `이 사람! ${f.icon('glass')}`, 'vote-btn danger', `data-seat="${i}"`) : ''}
       </article>`;
@@ -161,7 +161,7 @@
       const who = L.current(S), cmd = L.decide(S, who);
       S = L.apply(S, cmd).state; lastFeed = S.feed[0] || null;
       saveContest();
-      F().play('card'); table(cmd.card); if (lastFeed) setTimeout(() => my === epoch && F().play('pop'), 250);
+      F().play('card'); table({ seat: who, card: cmd.card }); if (lastFeed) setTimeout(() => my === epoch && F().play('pop'), 250);
       await wait(lastFeed ? 2600 : 900); if (my !== epoch) return;
     }
     busy = false;
@@ -174,7 +174,7 @@
     S = L.apply(S, { type: 'play', seat: me, card: sel }).state;
     saveContest();
     const card = sel; sel = null; lastFeed = S.feed[0] || null;
-    F().play('card'); busy = true; table(card); await wait(lastFeed ? 1800 : 700);
+    F().play('card'); busy = true; table({ seat: me, card }); await wait(lastFeed ? 1800 : 700);
     if (my !== epoch) return;
     busy = false;
     flow();
@@ -200,24 +200,29 @@
   }
 
   /* ───── 결과 ───── */
-  function reveal(again = false) {
+  function reveal(again = false, tab = 'result', voter = me) {
+    if (!S || !['reveal', 'end'].includes(S.phase)) return;
     const f = F(), r = S.results.at(-1), liar = S.seats[r.liar], lp = P(liar.who), X = r.claim, Lc = r.liarClimate;
-    if (!again) f.play(r.liar === me ? (r.caught ? 'busted' : 'sneak') : r.caught ? 'caught' : 'escaped');
-    const meDelta = r.delta[me];
+    if (!again) { table(); f.play(r.liar === me ? (r.caught ? 'busted' : 'sneak') : r.caught ? 'caught' : 'escaped'); }
+    const meDelta = r.delta[me], Sc = L.CFG.score;
     const line = c => c.kind === 'caught' ? `<b class="k-bad">들킨 카드</b> ${f.esc(c.why)}` : c.kind === 'same' ? `<b class="k-same">같은 점</b> ${f.esc(c.why)}` : `<b class="k-dodge">얼버무린 말</b>`;
+    let content;
+    if (tab === 'reason') {
+      content = `<div class="lr-people">${S.seats.map((x, i) => f.button('liar-reason', nameOf(i) + (i === me ? '(나)' : ''), i === voter ? 'selected' : '', `data-seat="${i}" aria-pressed="${i === voter}"`)).join('')}</div>${whyLine(r, voter)}`;
+    } else if (tab === 'learn') {
+      content = `<div class="lr-learn">${r.lesson.liarCards.map(c => `<div class="lr-card"><div class="mini-ev ev-${c.card.type}">${f.evidence(c.card)}</div><p>${line(c)}</p></div>`).join('')}
+        ${r.lesson.proofCard ? `<div class="lr-card proof"><div class="mini-ev ev-${r.lesson.proofCard.card.type}">${f.evidence(r.lesson.proofCard.card)}</div><p><b class="k-diff">다른 점</b> ${f.esc(r.lesson.proofCard.why)}</p></div>` : ''}</div>`;
+    } else {
+      content = `${voteBoard(r)}<div class="lr-chips">${S.seats.map((x, i) => `<span class="${i === me ? 'mine' : ''}">${nameOf(i)} <b class="${r.delta[i] > 0 ? 'up' : r.delta[i] < 0 ? 'down' : ''}">${r.delta[i] > 0 ? '+' : ''}${r.delta[i]}점</b></span>`).join('')}</div>
+        <p class="lr-me">${meDelta > 0 ? `내 점수 +${meDelta}!` : meDelta < 0 ? `내 점수 ${meDelta}` : '내 점수 그대로'} · 현재 ${S.seats[me].chips}점</p>
+        <p class="lr-score-rule">진짜: 맞히면 +${Sc.catch} · 틀리면 ${Sc.miss}<br>억울한 최종 지목: 추가 ${Sc.accused}<br>라이어: 탈출 +${Sc.escape} · 들킴 0<br>동점은 탈출 · 최저 0점</p>`;
+    }
     f.showModal(`<div class="lr ${r.caught ? 'caught' : 'escaped'}">
-      <h2>${r.liar === me ? (r.caught ? '들켰다!' : '안 들켰다!') : r.caught ? '라이어를 잡았다!' : '라이어가 빠져나갔다!'}</h2>
-      <div class="lr-liar"><span class="polaroid">${f.image(lp.img, 'people', lp.name)}<span class="liar-stamp">라이어</span></span>
-        <p><b>${lp.name}${r.liar === me ? '(나)' : ''}</b>는 사실<br>${climateChip(Lc)}에 다녀왔어요</p></div>
-      ${voteBoard(r)}
-      <div class="lr-chips">${S.seats.map((x, i) => `<span class="${i === me ? 'mine' : ''}">${P(x.who).name} <b class="${r.delta[i] > 0 ? 'up' : r.delta[i] < 0 ? 'down' : ''}">${r.delta[i] > 0 ? '+' : ''}${r.delta[i]}</b></span>`).join('')}</div>
-      <p class="lr-me">${meDelta > 0 ? `내 칩 +${meDelta}!` : meDelta < 0 ? `내 칩 ${meDelta}` : '내 칩 그대로'}${r.accused === me && r.liar !== me ? ' · 억울하게 지목됐어요' : ''}</p>
-      ${whyLine(r)}
-      <div class="lr-learn"><h3>${f.icon('book')} 배움 카드</h3>
-        ${r.lesson.liarCards.map(c => `<div class="lr-card"><div class="mini-ev ev-${c.card.type}">${f.evidence(c.card)}</div><p>${line(c)}</p></div>`).join('')}
-        ${r.lesson.proofCard ? `<div class="lr-card proof"><div class="mini-ev ev-${r.lesson.proofCard.card.type}">${f.evidence(r.lesson.proofCard.card)}</div><p><b class="k-diff">다른 점</b> ${f.esc(r.lesson.proofCard.why)} <small>${r.lesson.proofCard.seat === null ? `(진짜 ${C(X).name} 여행자라면 낼 수 있던 카드)` : `(${P(S.seats[r.lesson.proofCard.seat].who).name}의 카드)`}</small></p></div>` : ''}
-      </div>
-      <div class="lr-actions">${f.button('liar-peek', `${f.icon('eye')} 카드 다시 보기`, 'secondary')}${f.button(S.phase === 'end' ? 'liar-finish' : 'liar-next', S.phase === 'end' ? `대회 결과 ${f.icon('arrow')}` : `다음 라운드 ${f.icon('arrow')}`, 'primary')}</div></div>`, 'liar-modal liar-lock');
+      <header class="lr-header"><h2>${r.liar === me ? (r.caught ? '들켰다!' : '안 들켰다!') : r.caught ? '라이어를 잡았다!' : '라이어가 빠져나갔다!'}</h2>${f.button('liar-peek', f.icon('close'), 'icon-button', 'aria-label="닫기"')}</header>
+      <div class="lr-liar"><span class="polaroid">${f.image(lp.img, 'people', lp.name)}</span><p><b>${lp.name}${r.liar === me ? '(나)' : ''}</b>가 라이어!<br>실제 여행지: ${climateChip(Lc)}</p></div>
+      <nav class="lr-tabs" aria-label="라운드 결과 보기">${[['result', '결과'], ['reason', '의심 이유'], ['learn', '배움 카드']].map(([id, label]) => f.button('liar-result-tab', label, tab === id ? 'selected' : '', `data-tab="${id}" aria-pressed="${tab === id}"`)).join('')}</nav>
+      <section class="lr-panel" aria-label="${tab === 'reason' ? '지목한 이유' : tab === 'learn' ? '배움 카드' : '투표와 점수'}">${content}</section>
+      <div class="lr-actions">${f.button('liar-peek', `${f.icon('eye')} 카드 다시 보기`, 'secondary')}${f.button(S.phase === 'end' ? 'liar-finish' : 'liar-next', S.phase === 'end' ? `대회 결과 ${f.icon('arrow')}` : `다음 라운드 ${f.icon('arrow')}`, 'primary')}</div></div>`, 'liar-modal liar-result');
     if (!again) learn(X, Lc);
   }
   /* 누가 누구를 찍었는지 + 최종 지목 (동점이면 아무도 지목되지 않아 라이어가 빠져나감) */
@@ -226,18 +231,18 @@
     const tied = r.votes.map((v, i) => v === top ? i : -1).filter(i => i >= 0);
     const verdict = r.accused !== null
       ? `<b>${nameOf(r.accused)}${r.accused === me ? '(나)' : ''}</b> ${top}표로 지목! ${r.accused === r.liar ? '→ 라이어 맞음!' : '→ 라이어가 아니었어요'}`
-      : `<b>${tied.map(i => nameOf(i) + (i === me ? '(나)' : '')).join('·')}</b> ${top}표씩 동점! → 아무도 지목 못 해서 라이어가 빠져나갔어요`;
-    return `<div class="lr-votes"><div class="lr-vote-row">${voted.map((t, i) => `<span class="${i === me ? 'mine' : ''}"><b>${nameOf(i)}${i === me ? '(나)' : ''}</b> ${f.icon('arrow')} <b class="${t === r.liar ? 'hit' : ''}">${t === null ? '?' : nameOf(t)}</b></span>`).join('')}</div>
+      : `<b>${tied.map(i => nameOf(i) + (i === me ? '(나)' : '')).join('·')}</b> ${top}표 동점 → 라이어 탈출!`;
+    return `<div class="lr-votes"><div class="lr-vote-row">${voted.map((t, i) => f.button('liar-reason', `<b>${nameOf(i)}${i === me ? '(나)' : ''}</b> ${f.icon('arrow')} <b class="${t === r.liar ? 'hit' : ''}">${t === null ? '?' : nameOf(t)}</b>`, i === me ? 'mine' : '', `data-seat="${i}"`)).join('')}</div>
       <p class="lr-verdict ${r.caught ? 'ok' : 'no'}">${verdict}</p></div>`;
   }
-  /* 나를 왜 의심했는지 한 줄 — 나를 지목한 AI 중 가장 크게 의심한 사람과 그 카드 */
-  function whyLine(r) {
-    const f = F(), X = r.claim, mine = (r.reasons || []).filter(x => x.target === me);
-    if (!mine.length) return `<p class="lr-why ok">${f.icon('check')} 아무도 나를 의심하지 않았어요</p>`;
-    const top = [...mine].sort((a, b) => b.d - a.d)[0], who = nameOf(top.voter);
-    const card = top.card ? S.seats[me].played.find(c => c.id === top.card) : null;
+  /* 실제 투표 때 저장한 근거를 사용한다. 사람의 생각은 임의로 추측하지 않는다. */
+  function whyLine(r, voter) {
+    const f = F(), X = r.claim, target = (r.voted || S.seats.map(x => x.vote))[voter], who = nameOf(voter);
+    const top = (r.reasons || []).find(x => x.voter === voter);
+    const card = top?.card ? S.seats[target].played.find(c => c.id === top.card) : null;
     let why;
-    if (!card) why = '확실한 카드 없이 느낌으로 골랐대요';
+    if (voter === me) why = '내가 직접 선택한 여행자예요. 제출된 증거를 다시 보며 내 판단을 확인해요.';
+    else if (!card) why = '확실한 카드 없이 느낌으로 골랐대요';
     else {
       const v = L.verdict(card, X);
       if (v.v === 'lie') why = v.why;
@@ -248,8 +253,8 @@
         why = also.length ? `${also.join('·')}에도 있는 거라 증거가 약했대요` : '증거가 약해 보였대요';
       }
     }
-    const framed = top.voter === r.liar ? ` <b class="lr-framed">그런데 ${who}이(가) 바로 라이어!</b>` : '';
-    return `<div class="lr-why">${card ? `<div class="mini-ev ev-${card.type}">${f.evidence(card)}</div>` : ''}<p><b>${who}이(가) 나를 의심한 이유</b> ${f.esc(why)}${framed}</p></div>`;
+    const framed = voter === r.liar ? ` <b class="lr-framed">그런데 ${who}이(가) 바로 라이어!</b>` : '';
+    return `<div class="lr-why">${card ? `<div class="mini-ev ev-${card.type}">${f.evidence(card)}</div>` : ''}<p><b>${who} → ${nameOf(target)}${target === r.liar ? ' · 라이어 맞힘!' : ' · 다른 사람을 지목했어요'}</b> ${f.esc(why)}${framed}</p></div>`;
   }
   /* 도감: 라이어 판에서 본 기후도 열어 줌 */
   function learn(X, Lc) {
@@ -304,10 +309,17 @@
       case 'liar-next': f.closeModal(false); next(); return true;
       case 'liar-peek': f.closeModal(false); table(); return true;
       case 'liar-unpeek': reveal(true); return true;
+      case 'liar-result-tab': reveal(true, b.dataset.tab); return true;
+      case 'liar-reason': if (['reveal', 'end'].includes(S?.phase) && !busy) reveal(true, 'reason', Number(b.dataset.seat)); return true;
+      case 'liar-evidence': {
+        const seat = S?.seats[Number(b.dataset.seat)], card = seat?.played[Number(b.dataset.index)];
+        if (card) f.showModal(`<header class="zoom-header"><h2>${P(seat.who).name}의 증거</h2>${f.modalClose()}</header><div class="zoom-evidence ev-${card.type}">${f.evidence(card)}</div>`, 'liar-modal liar-evidence-modal');
+        return true;
+      }
       case 'liar-finish': f.closeModal(false); finish(); return true;
       case 'liar-topic': f.showModal(`<div class="lri"><h2>${C(S.claim).name}</h2><figure class="polaroid lri-photo">${f.image(C(S.claim).img, 'scenes', C(S.claim).name)}</figure>${facts(S.claim)}<p class="lri-confuse">라이어는 이 중 한 곳에서: ${C(S.claim).confuse.map(climateChip).join(' ')}</p>${f.modalClose()}</div>`, 'liar-modal'); return true;
       case 'liar-myrole': { const x = S.seats[me]; f.showModal(`<div class="lri"><h2>${x.role === 'liar' ? `나는 라이어 — 사실은 ${C(x.climate).name}` : `나는 진짜 ${C(x.climate).name} 여행자`}</h2>${facts(x.climate)}${f.modalClose()}</div>`, 'liar-modal'); return true; }
-      case 'liar-quit': f.showModal(`<div class="lri"><h2>대회를 그만할까요?</h2><p>지금까지의 칩은 사라져요.</p><div class="modal-actions">${f.button('liar', '그만하기', 'danger')}${f.button('close', '계속하기', 'secondary')}</div></div>`, 'liar-modal'); return true;
+      case 'liar-quit': f.showModal(`<div class="lri"><h2>대회를 그만할까요?</h2><p>지금까지의 점수은 사라져요.</p><div class="modal-actions">${f.button('liar', '그만하기', 'danger')}${f.button('close', '계속하기', 'secondary')}</div></div>`, 'liar-modal'); return true;
     }
     return false;
   }
