@@ -325,3 +325,4 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 .end-photo .paint-fallback>.ico{width:64px;height:64px}
 @media(orientation:portrait){.final-body:has(.paint){grid-template-columns:1fr}}
 @media (max-width:700px){.new-stamp{top:-14px;right:-8px;font-size:18px}}
+.title-guide{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink);background:#FFFDF8;border:2px solid currentColor;border-radius:14px;text-decoration:none;touch-action:manipulation}.title-guide:hover{filter:brightness(.96)}.title-guide:focus-visible{outline:3px solid currentColor;outline-offset:4px}

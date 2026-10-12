@@ -47,19 +47,59 @@
     const r = rng(s.seed + s.day * 7919);
     return shuffle(Object.keys(UP).filter(id => !(UP[id].once && s.owned[id])), r).slice(0, 3);
   }
-  const capacity = s => T.capacity + Object.keys(s.owned).reduce((a, id) => a + (UP[id].cap || 0), 0);
-  const wages = s => Object.keys(s.owned).reduce((a, id) => a + (UP[id].wage || 0), 0);
+  const capacity = (s, plan) => T.capacity + Object.keys(plan ? plannedState(s, plan).owned : s.owned).reduce((a, id) => a + (UP[id].cap || 0), 0);
+  const wages = (s, plan) => Object.keys(plan ? plannedState(s, plan).owned : s.owned).reduce((a, id) => a + (UP[id].wage || 0), 0);
+  /* 원래 상태는 그대로 두고 선택한 투자의 효과만 미리 계산한다. */
+  function plannedState(s, plan) {
+    const next = { ...s, owned: { ...s.owned } };
+    const id = plan?.upgrade;
+    if (id && canBuy(s, id)) {
+      const u = UP[id]; next.money -= u.cost;
+      if (u.once) next.owned[id] = true;
+      else next.visitorsToday += u.visitors || 0;
+      next.taste = Math.round((next.taste + (u.taste || 0)) * 10) / 10;
+      next.rep = clampRep(next.rep + (u.rep || 0));
+    }
+    updateIngredient(next);
+    return next;
+  }
   function visitorMult(s, plan) {
+    if (plan) s = plannedState(s, plan);
     let m = 1 + Object.keys(s.owned).reduce((a, id) => a + (UP[id].visitors || 0), 0) + s.visitorsToday + s.mods.reduce((a, x) => a + (x.visitors || 0), 0);
-    if (plan && plan.upgrade === 'flyer') m += UP.flyer.visitors;
     return Math.max(0.2, m);
   }
   const expectedVisitors = (s, plan) => Math.round(T.baseVisitors * day(s).mood * visitorMult(s, plan));
   /* 재료비 = 기본값 + 시장 변화(쌀값 등) + 사슬 효과 — 서로 덮어쓰지 않고 더해진다 */
   function addIngredient(s, price, days, tag) { s.mods.push({ ingredient: price - T.ingredient, left: days, tag }); updateIngredient(s); }
-  function updateIngredient(s) { s.ingredient = Math.max(200, T.ingredient + s.mods.reduce((a, x) => a + (x.ingredient || 0), 0)); }
-  /* 왕떡볶이 가격 = 기본값 − 가격 전쟁 − 할인 행사 (담합 중엔 약속한 값) */
-  function updateRival(s) { s.rivalPrice = s.lockedPrice || Math.max(1000, s.rivalBase - s.rivalCut - (s.rivalSaleLeft > 0 ? s.rivalSale : 0)); }
+  function updateIngredient(s) { s.ingredient = Math.max(200, T.ingredient + s.mods.reduce((a, x) => a + (x.ingredient || 0), 0)) + Object.keys(s.owned).reduce((a, id) => a + (UP[id].ingredient || 0), 0); }
+  /* 가격 전쟁과 경쟁 대응 중 큰 할인 하나에 행사 할인을 더한다. 담합이 최우선이다. */
+  function updateRival(s) { s.rivalPrice = s.lockedPrice || Math.max(T.rivalResponse.floor, s.rivalBase - Math.max(s.rivalCut, s.responseCut || 0) - (s.rivalSaleLeft > 0 ? s.rivalSale : 0)); }
+  const rivalTaste = s => Math.min(T.rivalResponse.tasteMax, rivalOf(s).taste + (s.responseTaste || 0));
+  function respondRival(s) {
+    s.rivalNews = '';
+    if (s.lockedPrice || s.rivalCut || s.rivalSaleLeft > 0) { s.leadDays = 0; return; }
+    const h = s.history[s.history.length - 1], R = T.rivalResponse;
+    if (!h || h.mineShare === undefined) return;
+    const lead = h.mineShare - h.rivalShare;
+    // R.from 일째 장사부터 손님 비율을 센다(처음 며칠은 대응하지 않음)
+    if (s.day + 1 < (R.from || 1)) { s.leadDays = 0; return; }
+    s.leadDays = lead > R.lead ? (s.leadDays || 0) + 1 : 0;
+    if (s.leadDays >= R.days) {
+      const priceFirst = s.rivalId === 'discount' || (s.rivalId === 'normal' && !(s.responseTurns % 2));
+      const cut = Math.min(R.cutMax, s.rivalBase - R.floor, (s.responseCut || 0) + R.cutStep);
+      const taste = Math.min(R.tasteMax - rivalOf(s).taste, (s.responseTaste || 0) + R.tasteStep);
+      if (priceFirst && cut > (s.responseCut || 0)) {
+        s.rivalNews = `왕떡볶이가 값을 ${cut - (s.responseCut || 0)}원 내렸어요!`; s.responseCut = cut;
+      } else if (!priceFirst && taste > (s.responseTaste || 0)) {
+        s.responseTaste = taste; s.rivalNews = '왕떡볶이에 신메뉴가 나왔어요!';
+      }
+      s.responseTurns = (s.responseTurns || 0) + 1; s.leadDays = 0;
+    } else if (lead < -R.lead && ((s.responseCut || 0) || (s.responseTaste || 0))) {
+      s.responseCut = Math.max(0, (s.responseCut || 0) - R.cutStep);
+      s.responseTaste = Math.max(0, (s.responseTaste || 0) - R.tasteStep);
+      s.rivalNews = '왕떡볶이가 원래 값과 메뉴로 조금 돌아갔어요.';
+    }
+  }
   function applyFx(s, fx) {
     if (!fx) return;
     if (fx.money) s.money += fx.money;
@@ -134,38 +174,56 @@
   function simulate(s, plan) {
     const r = rng(s.seed * 31 + s.day * 104729 + 17);
     const price = s.lockedPrice || plan.price, C = T.customer, rv = rivalOf(s), d = day(s);
-    let upCost = 0;
-    if (plan.upgrade && canBuy(s, plan.upgrade)) {
-      const u = UP[plan.upgrade]; upCost = u.cost; s.money -= u.cost;
-      if (u.once) s.owned[plan.upgrade] = true;
-      if (u.taste) s.taste += u.taste;
-      if (u.rep) s.rep = clampRep(s.rep + u.rep);
-    } else plan = { ...plan, upgrade: null };
-    const V = expectedVisitors(s, plan), cap = capacity(s);
-    const others = [{ key: 'rival', price: s.rivalPrice, taste: rv.taste, rep: rv.rep }];
+    if (!canBuy(s, plan.upgrade)) plan = { ...plan, upgrade: null };
+    const upCost = plan.upgrade ? UP[plan.upgrade].cost : 0;
+    Object.assign(s, plannedState(s, plan));
+    const V = expectedVisitors(s), cap = capacity(s);
+    const others = [{ key: 'rival', price: s.rivalPrice, taste: rivalTaste(s), rep: rv.rep }];
     if (s.truck) others.push({ key: 'truck', ...T.truck });
-    const kids = []; let want = 0;
+    const kids = [], decisions = []; let want = 0;
     const counts = { mine: 0, rival: 0, truck: 0, none: 0, soldout: 0, budget: 0 };
     const cartel = !!s.lockedPrice, outside = cartel ? C.cartelOutside : C.outside;
     const pickBudget = () => { let x = r(); for (const [b, p] of C.budgets) { if ((x -= p) < 0) return b; } return C.budgets[C.budgets.length - 1][0]; };
     const gauss = () => (r() + r() + r() - 1.5) * C.noise * 1.4;
     for (let i = 0; i < V; i++) {
-      const budget = pickBudget(), pw = C.priceW[0] + r() * (C.priceW[1] - C.priceW[0]);
-      let uMine = price <= budget ? s.taste * C.tasteW + s.rep * C.repW - pw * price / 1000 + gauss() : -Infinity;
-      const us = others.map(o => o.price <= budget ? o.taste * C.tasteW + o.rep * C.repW - pw * o.price / 1000 + gauss() : -Infinity);
+      let roll = r();
+      const profile = C.profiles.find(p => (roll -= p.share) < 0) || C.profiles[C.profiles.length - 1];
+      const budget = pickBudget(), pw = (C.priceW[0] + r() * (C.priceW[1] - C.priceW[0])) * profile.price, tw = C.tasteW * profile.taste;
+      // 가격·용돈·푸드트럭 유무가 달라도 같은 아이의 취향은 그대로다.
+      const noise = [gauss(), gauss(), gauss()], cartelPick = r();
+      const mine = { key: 'mine', price, taste: s.taste, rep: s.rep };
+      let uMine = price <= budget ? s.taste * tw + s.rep * C.repW - pw * price / 1000 + noise[0] : -Infinity;
+      const us = others.map((o, j) => o.price <= budget ? o.taste * tw + o.rep * C.repW - pw * o.price / 1000 + (o.key === 'rival' ? profile.loyalty : 0) + noise[j + 1] : -Infinity);
       let bi = us.indexOf(Math.max(...us)), uBest = us[bi];
       /* 담합 중: 값이 같으니 두 가게가 손님을 반씩 나눈다 (푸드트럭은 따로 경쟁) */
       if (cartel) {
         const u = Math.max(uMine, us[0]), truckU = us.length > 1 ? us[1] : -Infinity;
-        if (r() < .5) { uMine = u; uBest = truckU; bi = 1; } else { uMine = -Infinity; uBest = Math.max(u, truckU); bi = truckU > u ? 1 : 0; }
+        if (cartelPick < .5) { uMine = u; uBest = truckU; bi = 1; } else { uMine = -Infinity; uBest = Math.max(u, truckU); bi = truckU > u ? 1 : 0; }
       }
       const best = others[bi] || others[0];
       let choice;
       if (Math.max(uMine, uBest) < outside) choice = (price > budget && others.every(o => o.price > budget)) ? 'budget' : 'none';
       else choice = uMine >= uBest ? 'mine' : best.key;
+      let reason = choice === 'budget' ? 'budget' : choice === 'none' ? 'expensive' : 'preference';
+      let saving = 0;
+      if (!['budget', 'none'].includes(choice)) {
+        const chosen = choice === 'mine' ? mine : best;
+        const alternative = choice === 'mine' ? best : mine;
+        const factors = [
+          ['taste', (chosen.taste - alternative.taste) * tw],
+          ['price', (alternative.price - chosen.price) * pw / 1000],
+          ['reputation', (chosen.rep - alternative.rep) * C.repW],
+          ['loyalty', chosen.key === 'rival' ? profile.loyalty : 0],
+          ['preference', choice === 'mine' ? noise[0] - noise[bi + 1] : noise[bi + 1] - noise[0]]
+        ].sort((a, b) => b[1] - a[1]);
+        reason = cartel && choice !== 'truck' ? 'cartel' : alternative.price > budget && chosen.price < alternative.price ? 'price' : factors[0][1] > 0 ? factors[0][0] : 'preference';
+        if (reason === 'price') saving = alternative.price - chosen.price;
+      }
       if (choice === 'mine') { want++; if (want > Math.min(plan.portions, cap)) choice = 'soldout'; }
+      if (choice === 'soldout') reason = 'soldout';
       counts[choice]++;
       kids.push(choice);
+      decisions.push({ choice, reason, profile: profile.id, budget, saving });
     }
     const served = counts.mine, turned = counts.soldout;
     const revenue = served * price, ingredientCost = plan.portions * s.ingredient, wage = wages(s);
@@ -186,14 +244,33 @@
     if (profit - upCost < 0) s.stats.lossDays++;
     if (price <= 2000 && served > 40) s.stats.bulk = true;
     const res = { day: s.day, price, portions: plan.portions, upgrade: plan.upgrade, upCost, visitors: V, cap, counts, served, turned,
-      leftover, revenue, ingredientCost, rent: T.rent, wage, profit, money: s.money, rep: s.rep, kids, rivalPrice: s.rivalPrice, truck: s.truck, cartel, youtuber };
-    s.history.push({ day: s.day, price, served, profit, rep: s.rep, visitors: V, rivalPrice: s.rivalPrice, turned, leftover, portions: plan.portions });
+      leftover, revenue, ingredientCost, ingredient: s.ingredient, rent: T.rent, wage, profit, money: s.money, rep: s.rep, kids, decisions, rivalPrice: s.rivalPrice, truck: s.truck, cartel, youtuber };
+    s.history.push({ day: s.day, price, served, profit, rep: s.rep, visitors: V, rivalPrice: s.rivalPrice, turned, leftover, portions: plan.portions, mineShare: want / V, rivalShare: counts.rival / V });
     s.lastPlan = { price: plan.price, portions: plan.portions, upgrade: null };
     return res;
   }
 
   /* 하루 끝: 다음 날로 */
+  function choiceSummary(res) {
+    const groups = {};
+    for (const d of res.decisions || []) {
+      const key = `${d.choice}:${d.reason}:${d.saving}`;
+      if (!groups[key]) groups[key] = { ...d, count: 0 };
+      groups[key].count++;
+    }
+    const lines = [];
+    for (const choices of [['mine'], ['rival', 'truck'], ['none', 'budget', 'soldout']]) {
+      const d = Object.values(groups).filter(g => choices.includes(g.choice)).sort((a, b) => b.count - a.count)[0];
+      if (!d) continue;
+      const shop = { mine: '우리 가게', rival: '왕떡볶이', truck: '푸드트럭' }[d.choice];
+      const why = { taste: '맛이 더 좋아서', reputation: '평판이 더 좋아서', loyalty: '왕떡볶이 단골이라서', price: `${d.saving.toLocaleString('ko-KR')}원 더 싸서`, preference: '친구 따라', cartel: '두 가게가 같은 값이라서' };
+      const text = d.reason === 'budget' ? '용돈이 모자라 안 사 먹었어요' : d.reason === 'expensive' ? '값에 비해 만족이 낮아 안 사 먹었어요' : d.reason === 'soldout' ? '다 팔려서 못 샀어요' : `${why[d.reason]} ${shop}로 갔어요`;
+      lines.push({ ...d, text: `${text} (${d.count}명)` });
+    }
+    return lines;
+  }
   function endDay(s) {
+    respondRival(s);
     s.visitorsToday = 0;
     if (s.rivalSaleLeft > 0) s.rivalSaleLeft--;
     s.mods = s.mods.filter(m => --m.left > 0);
@@ -242,5 +319,5 @@
   const morningChoice = s => (day(s).choice && day(s).choice.at === 'morning' && s.choiceDone !== s.day) ? day(s).choice : null;
 
   root.TteokEngine = { rng, newGame, makeSchedule, day, rivalOf, morningEvents, morningChoice, eveningChoice, choose, chooseNode, applyFx, canBuy, simulate, endDay,
-    endingId, badgesFor, branchCount, capacity, wages, expectedVisitors, visitorMult };
+    endingId, badgesFor, branchCount, capacity, wages, expectedVisitors, visitorMult, plannedState, rivalTaste, choiceSummary };
 })(typeof window !== 'undefined' ? window : globalThis);

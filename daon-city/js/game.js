@@ -165,7 +165,7 @@
   function title() {
     sel = null; pop = null;
     const saved = savedGame();
-    setScreen('title', `<header class="tbar"><a class="icon-btn" href="../index.html" aria-label="게임 목록">${icon('home2')}</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
+    setScreen('title', `<header class="tbar"><a class="title-guide" href="../guides/daon.html">게임 설명서</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
       <section class="title-main"><div class="skyline" aria-hidden="true">${A.skyline()}</div><h1 class="logo">다온시 <span>70년</span></h1>
       <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
   }

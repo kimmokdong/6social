@@ -12,7 +12,7 @@
   const PEOPLE = { tycoon: '왕부자 회장', reporter: '나팩트 기자', ad_agent: '광고 회사', ftc_officer: '공정거래위원회', kid: '도윤', teacher: '다정 선생님', police: '박든든 경찰관', grandma: '봉순 할머니', trucker: '푸드트럭 사장님' };
   const BADGE_ICON = { best: 'star', honest: 'scale', allProfit: 'coin', noWaste: 'check', bulk: 'bowl', fullHouse: 'kid', rivals: 'crown', allEndings: 'bulb' };
   const UP_ICON = { cheese: 'cheese', sundae: 'sundae', chairs: 'chairs', staff: 'staff', clean: 'clean', flyer: 'flyer' };
-  const UP_FX = { cheese: '맛 +1', sundae: '맛·손님 +', chairs: '자리 +15', staff: '자리 +25 · 하루 15,000원', clean: '평판 +', flyer: '오늘 손님 +30%' };
+  const UP_FX = { cheese: '맛 +1 · 재료비 +300원/그릇', sundae: '맛 +0.5 · 지나가는 아이 +10% · 재료비 +100원/그릇', chairs: '판매 한도 +15그릇', staff: '판매 한도 +25그릇 · 하루 15,000원', clean: '평판 +0.5', flyer: '오늘 지나가는 아이 +30%' };
   const HINTS = { closed: '돈이 바닥나면…', best: '맛·돈·믿음 모두', greedy: '돈만 쫓으면…', kind: '이웃을 생각하면…', rich: '장사를 잘하면…', normal: '평범하게 10일' };
 
   if (location.protocol !== 'file:' && navigator.onLine) {
@@ -81,7 +81,7 @@
   /* ───── 타이틀 ───── */
   function title() {
     const saved = savedGame();
-    setScreen('title', `<header class="tbar"><a class="icon-btn" href="../index.html" aria-label="게임 목록">${icon('home2')}</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
+    setScreen('title', `<header class="tbar"><a class="title-guide" href="../guides/tteok.html">게임 설명서</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
       <section class="title-main"><div class="title-scene">${Paint.scene('tteok/title', A.scene({ chairs: true }), '학교 앞 떡볶이 가게', 'eager')}</div><h1 class="logo">떡볶이 <span>타이쿤</span></h1>
       <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${T.endings.length}</b>`, 'secondary')}</div></section>`);
   }
@@ -118,21 +118,24 @@
 
   /* ───── 아침 준비 ───── */
   function morning() {
-    const d = E.day(G), vis = E.expectedVisitors(G, plan), cap = E.capacity(G);
+    const d = E.day(G), preview = E.plannedState(G, plan), vis = E.expectedVisitors(G, plan), cap = E.capacity(G, plan);
     const locked = !!G.lockedPrice, later = d.choice && d.choice.at === 'evening'; // 저녁 사건은 미리 알려 주지 않음
     const up = plan.upgrade ? UP[plan.upgrade] : null;
-    const spend = plan.portions * G.ingredient + T.rent + E.wages(G) + (up ? up.cost : 0);
+    const spend = plan.portions * preview.ingredient + T.rent + E.wages(G, plan) + (up && E.canBuy(G, plan.upgrade) ? up.cost : 0);
     setScreen('morning', `<section class="morning">${topbar()}
       <div class="m-main">
         <aside class="news"><div class="news-icon">${newsIcon(d) === 'kid' ? `<div class="crowd">${A.kid(1)}${A.kid(4)}${A.kid(2)}</div>` : icon(newsIcon(d))}</div><h2>${later ? '오늘도 장사!' : d.title}</h2>${d.news && !later ? `<p>${esc(d.news)}</p>` : ''}
-          <div class="chips"><span class="chip">${A.kid(3)}<b>약 ${vis}명</b></span><span class="chip rival${G.rivalPrice < G.rivalBase ? ' sale' : ''}" aria-label="왕떡볶이 가격">${icon('crown')}<b>${won(G.rivalPrice)}</b></span>${G.truck ? `<span class="chip truck" aria-label="푸드트럭 가격">${icon('truck')}<b>${won(T.truck.price)}</b></span>` : ''}${G.ingredient !== T.ingredient ? `<span class="chip warn">${icon('bowl')}<b>재료 ${won(G.ingredient)}</b></span>` : ''}</div></aside>
+          ${G.rivalNews && !G.lockedPrice ? `<p class="rival-news">${esc(G.rivalNews)}</p>` : ''}
+          <div class="chips"><span class="chip">${A.kid(3)}<b>지나가는 아이 ${vis}명</b></span><span class="chip rival${G.rivalPrice < G.rivalBase ? ' sale' : ''}" aria-label="왕떡볶이 가격">${icon('crown')}<b>${won(G.rivalPrice)} · 맛 ${E.rivalTaste(G).toFixed(1)}</b></span>${G.truck ? `<span class="chip truck" aria-label="푸드트럭 가격">${icon('truck')}<b>${won(T.truck.price)}</b></span>` : ''}<span class="chip warn">${icon('bowl')}<b>1그릇 재료비 ${won(preview.ingredient)}</b></span></div></aside>
         <div class="plan">
+          <div class="plan-stats" aria-live="polite"><span>맛 ${G.taste.toFixed(1)}${preview.taste !== G.taste ? ` → ${preview.taste.toFixed(1)}` : ''}</span><span>평판 ★${G.rep.toFixed(1)}${preview.rep !== G.rep ? ` → ★${preview.rep.toFixed(1)}` : ''}</span></div>
           <div class="row${locked ? ' locked' : ''}"><span class="row-label">${icon('coin')}가격</span>
             ${btn('price-down', icon('minus'), 'step', `aria-label="가격 내리기" ${locked || plan.price <= T.prices[0] ? 'disabled' : ''}`)}<b class="val">${won(locked ? G.lockedPrice : plan.price)}</b>${btn('price-up', icon('plus'), 'step', `aria-label="가격 올리기" ${locked || plan.price >= T.prices[T.prices.length - 1] ? 'disabled' : ''}`)}
             ${locked ? `<span class="lock-note">${icon('lock')}약속한 가격</span>` : ''}</div>
           <div class="row"><span class="row-label">${icon('bowl')}재료</span>
             ${btn('por-down', icon('minus'), 'step', `aria-label="재료 줄이기" ${plan.portions <= T.portions[0] ? 'disabled' : ''}`)}<b class="val">${plan.portions}그릇</b>${btn('por-up', icon('plus'), 'step', `aria-label="재료 늘리기" ${plan.portions >= T.portions[T.portions.length - 1] ? 'disabled' : ''}`)}
             <span class="cap-note${plan.portions > cap ? ' over' : ''}">최대 ${cap}그릇 판매</span></div>
+          ${plan.portions > cap ? `<p class="waste" role="status">${plan.portions - cap}그릇은 만들어도 못 팔아요 (버려요)</p>` : ''}
           <div class="ups" role="group" aria-label="오늘의 투자">${G.offers.map(id => {
             const u = UP[id], can = E.canBuy(G, id);
             return `<button type="button" class="up${plan.upgrade === id ? ' sel' : ''}" data-up="${id}" aria-pressed="${plan.upgrade === id}" ${can ? '' : 'disabled'}><div class="up-ico">${Paint.scene(`tteok/st_${id}`, icon(UP_ICON[id]))}</div><b>${u.name}</b><span class="up-cost">${u.cost ? won(u.cost) : '무료'}</span><span class="up-fx">${UP_FX[id]}</span></button>`;
@@ -165,11 +168,12 @@
     setScreen('business', `<section class="business"><div class="biz-top"><strong>${res.day + 1}일째 장사 중</strong>
       <div class="counts"><span class="cnt mine">${icon('bowl')}<b data-c="mine">0</b></span><span class="cnt rival">${icon('crown')}<b data-c="rival">0</b></span>${res.truck ? `<span class="cnt truck">${icon('truck')}<b data-c="truck">0</b></span>` : ''}<span class="cnt none">${A.kid(5)}<b data-c="none">0</b></span><span class="cnt soldout">${icon('cross')}<b data-c="soldout">0</b></span></div>
       ${btn('skip', '빨리 보기', 'secondary small')}</div>
-      <div class="stage"><div class="scene-wrap">${A.scene({ rain: d.mood < 1, chairs: !!G.owned.chairs, staff: !!G.owned.staff, clean: !!G.owned.clean, cheese: !!G.owned.cheese, truck: res.truck }, true)}<div class="kids"></div></div></div></section>`);
+      <div class="stage"><div class="scene-wrap">${A.scene({ rain: d.mood < 1, chairs: !!G.owned.chairs, staff: !!G.owned.staff, clean: !!G.owned.clean, cheese: !!G.owned.cheese, truck: res.truck }, true)}<div class="kids"></div><div class="shop-bubbles" aria-hidden="true">${['mine', 'rival', 'truck', 'road'].map(k => `<div class="bubble-stack ${k}" data-bubbles="${k}"></div>`).join('')}</div></div></div></section>`);
     const wrap = app.querySelector('.kids'), counters = {};
     await Promise.all([...app.querySelectorAll('.street-art img')].map(img => img.decode().catch(() => {})));
     const painted = !!app.querySelector('.street-art.loaded:not(.failed)');
     wrap.classList.toggle('painted-kids', painted);
+    app.querySelector('.shop-bubbles').classList.toggle('painted-bubbles', painted);
     app.querySelectorAll('[data-c]').forEach(el => counters[el.dataset.c] = el);
     const shown = { mine: 0, rival: 0, none: 0, soldout: 0, ...(res.truck ? { truck: 0 } : {}) }, total = { ...res.counts, none: res.counts.none + res.counts.budget };
     const kids = res.kids.map(k => k === 'budget' ? 'none' : k);
@@ -186,9 +190,13 @@
       el.style.left = `${50 + (n % 3 - 1) * 4}%`; el.style.top = painted ? '82%' : '78%';
       if (painted) el.style.setProperty('--s', depth.start);
       if (Math.random() < .4) {
-        wrap.querySelector('.bubble-s')?.remove();
-        const pool = res.cartel && (k === 'mine' || k === 'rival') ? T.thoughts.cartel : T.thoughts[k];
-        el.insertAdjacentHTML('beforeend', `<span class="bubble-s">${pool[Math.floor(Math.random() * pool.length)]}</span>`);
+        const decision = res.decisions[Math.floor(n * step)];
+        const stack = app.querySelector(`[data-bubbles="${k === 'none' ? 'road' : k === 'soldout' ? 'mine' : k}"]`);
+        const limit = matchMedia('(max-width: 600px)').matches ? 2 : 3;
+        while (stack.children.length >= limit) stack.firstElementChild.remove();
+        const bubble = document.createElement('span'); bubble.className = 'bubble-s';
+        bubble.textContent = T.reasonThoughts[decision.reason]; stack.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 3400);
       }
       wrap.appendChild(el);
       el.style.zIndex = String(Math.round(ty));
@@ -203,7 +211,7 @@
       await wait(n < 6 ? 260 : 150);
     }
     for (const key of Object.keys(shown)) counters[key].textContent = total[key];
-    await wait(skip ? 50 : 700);
+    await wait(skip ? 50 : 3400);
     busy = false;
     evening(res, before);
   }
@@ -218,7 +226,7 @@
         <div class="profit ${totalProfit >= 0 ? 'plus' : 'minus'}">${totalProfit >= 0 ? '+' : ''}${won(totalProfit)}</div>
         <ul class="lines">
           <li>${icon('bowl')}<span>${res.served}그릇 × ${won(res.price)}</span><b class="plus">+${won(res.revenue)}</b></li>
-          <li>${icon('cheese')}<span>재료 ${res.portions}그릇</span><b class="minus">−${won(res.ingredientCost)}</b></li>
+          <li>${icon('cheese')}<span>재료 ${res.portions}그릇 × ${won(res.ingredient || res.ingredientCost / res.portions)}</span><b class="minus">−${won(res.ingredientCost)}</b></li>
           <li>${icon('home2')}<span>가게 임대료</span><b class="minus">−${won(res.rent)}</b></li>
           ${res.wage ? `<li>${icon('staff')}<span>알바비</span><b class="minus">−${won(res.wage)}</b></li>` : ''}
           ${res.upCost ? `<li>${icon(UP_ICON[res.upgrade])}<span>${UP[res.upgrade].name}</span><b class="minus">−${won(res.upCost)}</b></li>` : ''}
@@ -228,10 +236,11 @@
         ${res.youtuber ? `<p class="waste yt ${res.youtuber}">${icon('camera')}${res.youtuber === 'good' ? '유튜버: “진짜 맛있어요!”' : '유튜버: “음… 그냥 그래요”'}</p>` : ''}
         <div class="bank">${icon('coin')}<span>통장</span><b>${won(G.money)}</b></div></article>
       <div class="e-side">
-        <div class="panel"><h3>손님 마음</h3><div class="mind">${['mine', 'rival', 'truck', 'none', 'soldout'].map(k => `<span class="mseg ${k}" style="flex:${seg(k)}"></span>`).join('')}</div>
-          <div class="mind-legend"><span class="mine">${icon('bowl')}${res.counts.mine}</span><span class="rival">${icon('crown')}${res.counts.rival}</span>${res.truck ? `<span class="truck">${icon('truck')}${res.counts.truck}</span>` : ''}<span class="none">${A.kid(5)}${res.counts.none + res.counts.budget}</span><span class="soldout">${icon('cross')}${res.counts.soldout}</span></div></div>
+        <div class="panel"><h3>지나간 아이 ${res.visitors}명은 어디로?</h3><div class="mind">${['mine', 'rival', 'truck', 'none', 'soldout'].map(k => `<span class="mseg ${k}" style="flex:${seg(k)}"></span>`).join('')}</div>
+          <div class="mind-legend"><span class="mine">${icon('bowl')}우리 가게 ${res.counts.mine}</span><span class="rival">${icon('crown')}왕떡볶이 ${res.counts.rival}</span>${res.truck ? `<span class="truck">${icon('truck')}푸드트럭 ${res.counts.truck}</span>` : ''}<span class="none">${A.kid(5)}안 사 먹음 ${res.counts.none + res.counts.budget}</span><span class="soldout">${icon('cross')}다 팔려서 못 삼 ${res.counts.soldout}</span></div>
+          <div class="choice-summary">${E.choiceSummary(res).map(d => `<p>${esc(d.text)}</p>`).join('')}</div></div>
         <div class="panel"><h3>평판</h3><div class="rep-row">${A.stars(G.rep)}<b class="${dRep >= 0 ? 'plus' : 'minus'}">${dRep >= 0 ? '+' : ''}${dRep}</b></div></div>
-        <div class="panel"><h3>가격과 손님</h3><div class="chart">${G.history.map(h => `<div class="bar-col"><span class="b" style="height:${Math.min(100, h.served / 80 * 100)}%"><i>${h.served}</i></span><em>${h.price / 1000}천</em></div>`).join('')}</div></div>
+        <div class="panel"><h3>가격과 손님</h3><p class="chart-note">왼쪽부터 날짜별 판 그릇 수, 아래는 그날 가격이에요.</p><div class="chart">${G.history.map(h => `<div class="bar-col"><span class="b" style="height:${Math.min(100, h.served / 80 * 100)}%"><i>${h.served}</i></span><em>${h.price / 1000}천</em></div>`).join('')}</div></div>
       </div></div>
       <div class="e-foot">${btn('next', G.day >= T.dayCount - 1 ? `결과 보기 ${icon('play')}` : `다음 날 ${icon('play')}`, 'primary go', ec ? 'disabled' : '')}</div></section>`);
     S.play(res.profit >= 0 ? 'up' : 'down');
@@ -275,7 +284,7 @@
     return new Promise(resolve => {
       S.play('event');
       openLayer(`<div class="event rival-intro"><div class="bubble">${esc(rv.line)}</div><div class="ev-card"><div class="ev-portrait">${Paint.person('tycoon', P.portrait('tycoon'))}</div><b class="ev-name">${PEOPLE.tycoon}</b></div>
-        <h2 class="rv-name">${icon('crown')}${esc(rv.name)}</h2><div class="fx-row"><span class="fx rv">${icon('coin')}<b>${won(rv.price)}</b></span><span class="fx rv">맛 ${A.stars(rv.taste)}</span></div>
+        <h2 class="rv-name">${icon('crown')}${esc(rv.name)}</h2><div class="fx-row"><span class="fx rv">${icon('coin')}<b>${won(rv.price)}</b></span><span class="fx rv">맛 ${A.stars(rv.taste, '맛')}<b>${rv.taste.toFixed(1)}</b></span></div>
         ${btn('ok', '이겨 볼게요!', 'primary big')}</div>`, 'event-layer');
       layer.querySelector('[data-action="ok"]').addEventListener('click', () => { closeLayer(); resolve(); }, { once: true });
     });
@@ -329,7 +338,7 @@
       ${done ? `<div class="learn">${icon('bulb')}<p><b>어느 길로 가도 손해였어요.</b> ${esc(ch.lesson)}</p></div>` : ''}</article>`;
   }
   const medal = (id, isNew = false, locked = false) => { const b = T.badges.find(x => x.id === id);
-    return `<div class="medal${locked ? ' locked' : ''}${isNew ? ' new' : ''}"><div class="m-ico">${locked ? '<span class="q">?</span>' : icon(BADGE_ICON[id])}</div><b>${b.name}</b>${locked ? `<span class="goal">${b.goal}</span>` : ''}${isNew ? '<i class="m-new">NEW</i>' : ''}</div>`; };
+    return `<div class="medal${locked ? ' locked' : ''}${isNew ? ' new' : ''}"><div class="m-ico">${locked ? '<span class="q">?</span>' : icon(BADGE_ICON[id])}</div><b>${b.name}</b><span class="goal">${b.goal}</span>${isNew ? '<i class="m-new">NEW</i>' : ''}</div>`; };
   function endings() {
     setScreen('endings', `<header class="tbar">${iconBtn('home2', '처음으로', 'title')}<h1>엔딩 도감</h1><b class="count">${progress.endings.length}/${T.endings.length}</b></header>
       <section class="ending-grid">${T.endings.map(e => { const got = progress.endings.includes(e.id);
@@ -410,7 +419,7 @@
       case 'por-up': plan.portions = T.portions[Math.min(T.portions.length - 1, T.portions.indexOf(plan.portions) + 1)]; S.play('tick'); morning(); break;
       case 'por-down': plan.portions = T.portions[Math.max(0, T.portions.indexOf(plan.portions) - 1)]; S.play('tick'); morning(); break;
       case 'open': business(); break;
-      case 'skip': skip = true; break;
+      case 'skip': skip = true; app.querySelectorAll('.bubble-s').forEach(el => el.remove()); break;
       case 'next': if (busy || screen !== 'evening' || !layer.hidden || E.eveningChoice(G)) break; E.endDay(G); if (G.ended) ending(); else startDay(); break;
       case 'dbg-money': if (G) { G.money += 100000; if (screen === 'morning') morning(); } break;
       case 'dbg-end': autoEnd(); break;

@@ -124,7 +124,7 @@ with sync_playwright() as p:
             res=stored['resume']['res']
             numbers=page.locator('.mind-legend span').all_text_contents()
             keys=['mine','rival']+(['truck']if res['truck']else[])+['none','soldout']
-            assert [int(n)for n in numbers]==[res['counts'][k]+(res['counts']['budget']if k=='none'else 0)for k in keys]
+            assert [int(n.rsplit(' ', 1)[-1])for n in numbers]==[res['counts'][k]+(res['counts']['budget']if k=='none'else 0)for k in keys]
             if day == 0:
                 shot(page,size+'-evening')
                 page.reload()
@@ -240,7 +240,8 @@ with sync_playwright() as p:
         page.reload();page.locator('[data-action="continue"]').click()
         page.locator('[data-action="open"]').click();page.wait_for_selector('.kid');page.wait_for_timeout(1300)
         shot(page,'scene-'+mode)
-        assert page.locator('.bubble-s').count()<=1
+        assert page.evaluate("[...document.querySelectorAll('.bubble-stack')].every(e=>e.children.length<=3)")
+        assert page.locator('.kid .bubble-s').count()==0
         if mode=='fallback':
             assert page.locator('.street-art.failed').count()==1
             assert page.locator('.street-fallback').is_visible()

@@ -52,3 +52,4 @@ a.icon-button{color:var(--ink);text-decoration:none;touch-action:manipulation}a:
 @media(max-width:700px){.badge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* 카드의 보조 글씨도 누르는 버튼 안에서는 20px 이상으로 유지한다. */
 button .cap,button .case-no,button .slot-state,.climate-option .chip{font-size:20px}
+.title-guide{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink);background:#FFFDF8;border:2px solid currentColor;border-radius:14px;text-decoration:none;touch-action:manipulation}.title-guide:hover{filter:brightness(.96)}.title-guide:focus-visible{outline:3px solid currentColor;outline-offset:4px}

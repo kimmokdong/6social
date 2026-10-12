@@ -4,11 +4,11 @@
  */
 window.TTEOK = {
   dayCount: 10,
-  start: { money: 100000, taste: 3, rep: 3, fair: 100 },
+  start: { money: 130000, taste: 3, rep: 3, fair: 100 },
   rent: 25000,            // 하루 가게 임대료
   ingredient: 800,        // 떡볶이 1인분 재료비
   prices: [1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000],
-  portions: [20, 30, 40, 50, 60, 70, 80],
+  portions: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80],
   baseVisitors: 70,       // 학교 앞을 지나는 아이들
   capacity: 40,           // 하루에 만들어 팔 수 있는 최대 그릇 수(의자·알바로 늘어남)
 
@@ -17,17 +17,23 @@ window.TTEOK = {
    * 어느 가게의 만족도 outside 보다 낮거나 용돈이 모자라면 사 먹지 않는다 */
   customer: {
     budgets: [[2000, 0.08], [3000, 0.22], [4000, 0.35], [5000, 0.35]],
-    tasteW: 1, repW: 0.6, priceW: [0.6, 1.3], outside: 0.8, noise: 0.9,
+    tasteW: 0.8, repW: 0.75, priceW: [0.7, 1.2], outside: 0.6, noise: 0.9,
+    profiles: [
+      { id: 'value', share: 0.20, taste: 0.7, price: 1.4, loyalty: 0 },
+      { id: 'taste', share: 0.30, taste: 1.4, price: 0.8, loyalty: 0 },
+      { id: 'loyal', share: 0.15, taste: 1, price: 1, loyalty: 1.4 },
+      { id: 'normal', share: 0.35, taste: 1, price: 1, loyalty: 0 }
+    ],
     cartelOutside: -0.5   // 담합 중: 두 가게가 똑같이 비싸서 다른 데가 없으니 비싸도 사 먹는다
   },
 
   /* 평판(별) 변화: 맛, 가격, 다 팔려서 돌아간 손님, 사건 */
-  repRules: { tastePer: 0.25, cheapBonus: 0.15, pricyPenalty: 0.2, turnedAwayEach: 0.02, turnedAwayMax: 0.4 },
+  repRules: { tastePer: 0.15, cheapBonus: 0.15, pricyPenalty: 0.2, turnedAwayEach: 0.02, turnedAwayMax: 0.4 },
 
   /* 투자 카드: 하루에 하나. once = 한 번 사면 계속 효과 */
   upgrades: {
-    cheese:  { name: '치즈 토핑',   cost: 30000, taste: 1,   once: true },
-    sundae:  { name: '순대 메뉴',   cost: 35000, taste: 0.5, visitors: 0.1, once: true },
+    cheese:  { name: '치즈 토핑',   cost: 30000, taste: 1, ingredient: 300, once: true },
+    sundae:  { name: '순대 메뉴',   cost: 35000, taste: 0.5, ingredient: 100, visitors: 0.1, once: true },
     chairs:  { name: '의자 추가',   cost: 25000, cap: 15,    once: true },
     staff:   { name: '알바 고용',   cost: 0,     cap: 25,    wage: 15000, once: true },
     clean:   { name: '위생 점검',   cost: 15000, rep: 0.5,   once: true },
@@ -84,8 +90,9 @@ window.TTEOK = {
   rivals: {
     discount: { name: '싸게 파는 왕떡볶이', price: 2500, taste: 2.8, rep: 3, line: '우린 싸게 많이 판다오! 허허!' },
     premium: { name: '맛있는 왕떡볶이', price: 3500, taste: 3.6, rep: 3.2, line: '비싸도 맛있으면 사 먹는 법이지!' },
-    normal: { name: '보통 왕떡볶이', price: 3000, taste: 3, rep: 3, line: '어디 한번 붙어 봅시다! 허허!' }
+    normal: { name: '보통 왕떡볶이', price: 3000, taste: 3.1, rep: 3.1, line: '어디 한번 붙어 봅시다! 허허!' }
   },
+  rivalResponse: { from: 1, lead: 0.15, days: 2, cutStep: 500, cutMax: 500, floor: 1500, tasteStep: 0.3, tasteMax: 4.2 },
   /* 담합으로 값이 비싸지면 새로 들어오는 경쟁자 */
   truck: { name: '꼬마 푸드트럭', price: 2500, taste: 2.9, rep: 2.8, days: 3 },
 
@@ -176,6 +183,11 @@ window.TTEOK = {
   ],
 
   // 손님 생각 말풍선
+  reasonThoughts: {
+    taste: '여기 맛있어!', price: '더 싸다!', loyalty: '난 원래 왕떡볶이!',
+    reputation: '믿고 먹는 가게야!', preference: '친구 따라 왔어!',
+    budget: '용돈 부족', expensive: '너무 비싸…', soldout: '다 팔렸대…', cartel: '다 같은 값이네…'
+  },
   thoughts: {
     mine: ['맛있어!', '여기 최고!', '또 올래!'],
     rival: ['저기가 더 싸네', '왕떡볶이 갈래'],

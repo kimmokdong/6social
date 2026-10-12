@@ -26,7 +26,9 @@ window.TycoonArt = (() => {
   const steam = (x, y) => `<g class="steam">${[0, 1, 2].map(i => `<path class="s s${i}" d="M${x - 10 + i * 10} ${y}q-5-8 0-14t0-14" fill="none" stroke="#FFFFFFCC" stroke-width="3" stroke-linecap="round"/>`).join('')}</g>`;
 
   const icons = {
-    bowl: bowlBody(50, 48, 1.15) + steam(50, 30),
+    bowl: `<g stroke="${C.ink}" stroke-width="5" stroke-linejoin="round"><path d="M7 36Q10 90 50 94Q90 90 93 36Z" fill="${C.paper}"/><ellipse cx="50" cy="35" rx="43" ry="24" fill="${C.sauce}"/></g>`
+      + [[24, 22, -20], [48, 19, 15], [65, 33, -25], [34, 38, 12]].map(([x, y, angle]) => `<rect x="${x}" y="${y}" width="13" height="24" rx="6" fill="#FFE7BA" transform="rotate(${angle} ${x + 6} ${y + 12})"/>`).join('')
+      + line('M24 67q26 20 52 0', '#D7C5AB', 5) + c(73, 21, 4, C.green),
     cheese: p('M10 66 74 30l16 10v32L10 82Z', '#F7C948') + p('M10 66 74 30l16 10L26 76Z', '#FBDD7A') + c(40, 66, 5, '#E3AE24') + c(64, 62, 4, '#E3AE24') + c(76, 54, 3, '#E3AE24'),
     sundae: p('M14 58q8-26 36-22t36 18q-4 22-36 20T14 58Z', '#6B3B3B') + [26, 40, 54, 68].map(x => c(x, 54, 5, '#8E5A5A')).join('') + line('M20 56q30 12 60 0', '#4A2626', 2),
     chairs: [12, 54].map(x => r(x, 24, 34, 30, '#D9895B', 5) + r(x - 4, 54, 42, 9, C.wood, 3) + r(x + 1, 63, 6, 26, '#8A5C3B') + r(x + 29, 63, 6, 26, '#8A5C3B')).join(''),
@@ -57,7 +59,7 @@ window.TycoonArt = (() => {
     trash: r(28, 30, 44, 60, '#8C8F99', 6) + r(22, 22, 56, 10, '#6E717C', 4) + r(42, 14, 16, 8, '#6E717C', 3) + line('M40 42v38M50 42v38M60 42v38', '#B7B9C2', 3)
   };
   const icon = (name, cls = '') => svg(icons[name] || icons.star, '0 0 100 100', `ico ${cls}`);
-  const stars = v => `<span class="stars" aria-label="평판 별 ${v}개">${[0, 1, 2, 3, 4].map(i => `<span class="st">${icon(v >= i + 1 ? 'star' : 'starOff')}${v > i && v < i + 1 ? `<span class="half" style="width:${(v - i) * 100}%">${icon('star')}</span>` : ''}</span>`).join('')}</span>`;
+  const stars = (v, label = '평판 별') => `<span class="stars" aria-label="${label} ${v}${label === '평판 별' ? '개' : '점'}">${[0, 1, 2, 3, 4].map(i => `<span class="st">${icon(v >= i + 1 ? 'star' : 'starOff')}${v > i && v < i + 1 ? `<span class="half" style="width:${(v - i) * 100}%">${icon('star')}</span>` : ''}</span>`).join('')}</span>`;
 
   /* ───── 거리 장면 (장사 화면·타이틀) 1000 × 560 ───── */
   function myShop(o = {}) {

@@ -54,10 +54,13 @@ for (const c of cases) {
     const base = baseCache[seed] || (baseCache[seed] = play(seed, fair)), alt = play(seed, c.policy);
     if (!alt.trail.some(t => t.root === c.root && t.start && t.pick)) continue;
     if (!alt.trail.some(t => t.id === T.chains[c.root].branch)) continue; // 사슬이 실제로 이어진 판만
-    n++; diff += alt.money - base.money; dRep += alt.rep - base.rep; if (alt.money > base.money) wins++; worst = Math.max(worst, alt.money - base.money);
+    n++; diff += alt.money - base.money; dRep += alt.rep - base.rep;
+    if (alt.money > base.money) { wins++; console.log(`  확인 필요: 씨앗 ${seed}, 차이 ${alt.money - base.money}원`); }
+    worst = Math.max(worst, alt.money - base.money);
   }
   const avg = Math.round(diff / n);
-  if (avg >= 0 || wins > 0) bad++;
+  if (!n || avg >= 0 || wins > 0) bad++;
   console.log(c.name.padEnd(26), String(avg.toLocaleString()).padStart(10), `${Math.round(wins / n * 100)}%`.padStart(8), (dRep / n).toFixed(1).padStart(8), `최고 ${worst.toLocaleString()}`.padStart(12), `(${n}판)`);
 }
 console.log(bad ? `⚠ 거절보다 나을 수 있는 갈래 ${bad}개` : '✔ 모든 갈래가 거절보다 손해');
+if (bad) process.exitCode = 1;

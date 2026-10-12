@@ -126,11 +126,17 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 .walking-kid.loaded>img{visibility:visible}
 .go-mine .walking-kid,.go-soldout .walking-kid{transform:scaleX(-1)}
 .go-soldout.arrived .walking-kid{transform:scaleX(1)}
-.go-none .bubble-s{left:0;transform:none}
-.go-rival .bubble-s{left:auto;right:0;transform:none}
 @media (prefers-reduced-motion:reduce){.kid,.street-rain{animation:none}}
 @keyframes bob{to{transform:translate(-50%,-104%)}}
-.bubble-s{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:max-content;max-width:140px;background:var(--white);border-radius:12px;padding:2px 8px;font-size:18px;font-weight:900;box-shadow:0 2px 6px #24212B33}
+.shop-bubbles{position:absolute;inset:0;pointer-events:none;z-index:110}
+.bubble-stack{position:absolute;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:5px;width:31%;bottom:30%}
+.bubble-stack.mine{left:2%}.bubble-stack.rival{right:2%;align-items:flex-end}
+.bubble-stack.truck{left:35%;bottom:24%}.bubble-stack.road{left:35%;bottom:3%}
+.painted-bubbles .bubble-stack.mine,.painted-bubbles .bubble-stack.rival{bottom:36%}
+.bubble-s{display:block;max-width:100%;background:var(--white);border:2px solid var(--ink);border-radius:12px;padding:4px 8px;font-size:18px;font-weight:900;line-height:1.25;box-shadow:0 2px 6px #24212B33;animation:thought 3.4s ease both}
+@keyframes thought{0%{opacity:0;transform:translateY(9px)}12%,82%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-8px)}}
+@media(max-width:600px){.bubble-stack{gap:3px;width:31%}.bubble-stack.truck{bottom:48%}.bubble-stack.road{bottom:2%}.painted-bubbles .bubble-stack.mine,.painted-bubbles .bubble-stack.rival{bottom:28%}.bubble-s{padding:2px 3px;font-size:18px}}
+@media(prefers-reduced-motion:reduce){.bubble-s{animation:none}}
 .steam .s{opacity:0;animation:steam 2.4s ease-out infinite}
 .steam .s1{animation-delay:.8s}.steam .s2{animation-delay:1.6s}
 @keyframes steam{0%{opacity:0;transform:translateY(6px)}30%{opacity:.9}100%{opacity:0;transform:translateY(-16px)}}
@@ -161,6 +167,12 @@ b.plus{color:var(--good)}b.minus{color:var(--danger)}
 .mind-legend{display:flex;gap:12px;margin-top:6px;font-size:22px;font-weight:900;flex-wrap:wrap}
 .mind-legend span{display:flex;align-items:center;gap:4px}
 .mind-legend svg{width:30px;height:30px}
+.mind-legend{font-size:18px;gap:8px}
+.mind-legend span{border-bottom:4px solid var(--segment);padding-bottom:3px}
+.mind-legend .mine{--segment:var(--role)}.mind-legend .rival{--segment:#2D2A33}.mind-legend .truck{--segment:#2E9E6B}.mind-legend .none{--segment:#B9AE99}.mind-legend .soldout{--segment:#F2A08F}
+.choice-summary{margin-top:12px;display:grid;gap:5px;font-size:18px;line-height:1.45}
+.chart-note{font-size:18px;color:var(--soft);line-height:1.4}
+.plan-stats{display:flex;flex-wrap:wrap;gap:8px 20px;padding:8px 14px;border-radius:14px;background:#FFF3C7;font-size:20px;font-weight:800}
 .rep-row{display:flex;align-items:center;gap:10px;font-size:24px}
 .rep-row .st,.rep-row .st .ico{width:32px;height:32px}
 .chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:18px}
@@ -273,6 +285,7 @@ b.plus{color:var(--good)}b.minus{color:var(--danger)}
   .choices{grid-template-columns:1fr}
   .final-paper{padding:16px}
 }
+@media(max-width:360px){.day{flex-wrap:wrap;gap:8px}}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 /* 아이콘 크기: 상자에 꽉 차게 */
@@ -371,3 +384,4 @@ b.plus{color:var(--good)}b.minus{color:var(--danger)}
 /* 폰: 장사 화면 위 막대를 한 줄로, 장면은 위쪽에 붙여 크게 */
 @media (max-width:700px){.biz-top{gap:8px}.biz-top strong{font-size:22px;width:100%}.counts{flex-wrap:wrap;gap:4px;flex:1}.cnt{font-size:18px;padding:2px 7px;min-height:44px;gap:3px}.cnt svg{width:22px;height:22px}.biz-top .small{min-height:44px;padding:4px 10px;font-size:20px}.business .stage{place-items:start center}.business .scene-wrap{width:100%}}
 .cnt b{white-space:nowrap}
+.title-guide{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink);background:#FFFDF8;border:2px solid currentColor;border-radius:14px;text-decoration:none;touch-action:manipulation}.title-guide:hover{filter:brightness(.96)}.title-guide:focus-visible{outline:3px solid currentColor;outline-offset:4px}
