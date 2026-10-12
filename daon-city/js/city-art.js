@@ -144,11 +144,27 @@ window.CityArt = (() => {
   };
   function building(id, opts = {}) {
     const draw = B[id] || B.house;
-    return svg(id === 'house' ? house(opts.d || 0) : draw(), '0 0 100 100', `bld bld-${id}${opts.cls ? ' ' + opts.cls : ''}`);
+    const d = opts.d || 0;
+    let body = id === 'house' ? house(d) : draw();
+    if (id === 'road') {
+      const start = body.indexOf(cube(14, 38, 22, 8, 6, C.blue));
+      body = body.slice(0, start) + `<g class="traffic">${body.slice(start)}</g>`;
+    }
+    if (id === 'park') body = `<g class="park-trees">${body}</g>`;
+    if (d >= 2 && ['school', 'market', 'textile', 'steel', 'car', 'elec'].includes(id)) {
+      const color = id === 'school' ? C.orange : id === 'market' ? C.red : C.blue;
+      body += cube(78, 64, 14, 22, 6, mix(color, .65)) + win(80, 68, 8, 7);
+      if (d >= 4) body += p('M14 46l8-8h34l-8 8Z', '#2C4A7A') + line('M26 38l-8 8M38 38l-8 8M50 38l-8 8', C.glass, 1.5);
+    }
+    // 굴뚝이 없는 오염 건물도 실제 오염량에 맞춰 연기를 보여 준다.
+    if (opts.pol > 0 && !body.includes('class="smoke"')) body += smoke(78, 18, Math.min(3, opts.pol));
+    return svg(body, '0 0 100 100', `bld bld-${id}${opts.cls ? ' ' + opts.cls : ''}`);
   }
+  const construction = () => svg(line('M14 90V32h66v58M14 52h66M14 72h66M36 32v58M58 32v58M14 90l22-18 22 18 22-18', '#B78357', 3) + r(82, 10, 4, 78, C.gold) + r(42, 10, 48, 4, C.gold) + line('M46 14v22', C.ink, 2) + r(42, 36, 8, 5, C.ink));
+  const boat = () => svg(p('M18 72h64l-12 14H30Z', C.paper) + cube(36, 56, 24, 16, 8, C.blue) + win(40, 59, 10, 7));
 
   /* ───── 지형 ───── */
-  function terrain(t, coastal, seed = 0) {
+  function terrain(t, coastal, seed = 0, d = 0) {
     if (t === 'S') return svg(r(0, 0, 100, 100, '#4F9CCB') + r(0, 0, 100, 20, '#6DB0D8')
       + `<g class="waves">${line('M-10 34q6-5 12 0t12 0 12 0', '#8CC3E3', 3)}${line('M40 62q6-5 12 0t12 0 12 0', '#8CC3E3', 3)}${line('M10 84q6-5 12 0t12 0', '#8CC3E3', 3)}</g>`
       + c(72 - seed % 5 * 6, 24, 1.6, '#DDF0FA'), '0 0 100 100', 'ter ter-sea');
@@ -158,11 +174,15 @@ window.CityArt = (() => {
       + pine(14, 98, .9) + pine(86, 98, .8) + pine(54, 99, .7), '0 0 100 100', 'ter ter-mountain');
     const rows = [14, 32, 50, 68].map((y, i) => [10, 34, 58].map((x, j) => r(x + ((i + seed) % 2) * 6, y, 20, 7, (i + j + seed) % 3 ? '#BBD58F' : '#AACB7C', 3.5)).join('')).join('');
     const sand = coastal ? p('M0 84q12 5 25 0t25 0 25 0 25 0v16H0Z', '#EAD9A6') + line('M0 84q12 5 25 0t25 0 25 0 25 0', '#F7EED3', 2.5) : '';
+    if (t === 'F' && d >= 2) return svg(r(0, 0, 100, 100, d < 4 ? '#D8C5A5' : '#D8DADF')
+      + (d < 4 ? line('M0 70L100 28M18 100L100 58', '#BCAB8D', 12) + c(18, 24, 3, '#AFA080')
+        : line('M0 24h100M24 0v100M0 76h100M76 0v100', '#BEC3CB', 2) + r(0, 86, 100, 14, '#959AA4')) + sand, '0 0 100 100', 'ter ter-city');
     return svg(r(0, 0, 100, 100, '#CFE3A8') + rows + c(30 + seed % 4 * 12, 46, 1.6, '#F5C542') + sand, '0 0 100 100', 'ter ter-farm');
   }
 
   /* ───── 아이콘(채운 도형) ───── */
   const icons = {
+    compass: c(50, 50, 40, '#DCE8EE') + c(50, 50, 30, '#FFFDF8') + p('M66 24 56 58 34 76 44 42Z', '#2B7A9B') + c(50, 50, 4, C.ink),
     coin: c(50, 50, 40, C.gold) + c(50, 50, 30, '#E3AE24') + p('m50 28 6 14 15 1-11 10 4 15-14-8-14 8 4-15-11-10 15-1Z', C.gold),
     star: p('m50 6 13 28 30 3-23 20 7 30-27-15-27 15 7-30L7 37l30-3Z', C.purple),
     hammer: `<g transform="rotate(-35 50 50)">${r(44, 34, 12, 62, '#8A5C3B', 4)}${r(22, 14, 56, 24, C.dark, 5)}</g>`,
@@ -199,5 +219,5 @@ window.CityArt = (() => {
     return items.map(([id, d], i) => `<div class="sky-b" style="--i:${i}">${building(id, { d })}</div>`).join('');
   }
 
-  return { C, mix, building, terrain, icon, gauge, skyline, list: Object.keys(B) };
+  return { C, mix, building, terrain, construction, boat, icon, gauge, skyline, list: Object.keys(B) };
 })();

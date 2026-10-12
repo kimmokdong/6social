@@ -40,7 +40,7 @@ window.TradeArt = (() => {
   const emblem = id => { const d = window.TRADE.countries[id]; return svg(`<circle cx="50" cy="50" r="47" fill="${mix(d.color, .8)}"/><g transform="translate(15 15) scale(.7)">${body(({ drop: 'oil', wheat: 'grain', crystal: 'lithium' })[d.emblem] || d.emblem, d.color)}</g>`); };
   const stars = n => `<span class="stars" aria-label="별 ${n}개, 최대 5개">${Array.from({ length: 5 }, (_, i) => icon('star', i < n ? C.gold : '#D8CDB8')).join('')}</span>`;
   // 그림이 준비되기 전·실패한 뒤에도 같은 위치의 SVG를 남깁니다.
-  const raster = (path, fallback, x, y, width, height, cls = '', style = '') => `<g class="chart-art"><g class="chart-fallback">${fallback}</g><image class="${cls}" style="${style}" href="../shared-art/trade/${path}.webp" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet" onload="this.previousElementSibling.style.visibility='hidden'" onerror="this.previousElementSibling.style.visibility='visible';this.remove()"/></g>`;
+  const raster = (path, fallback, x, y, width, height, cls = '', style = '') => `<g class="chart-art"><g class="chart-fallback" style="visibility:${window.GameAssets?.isReady(`../shared-art/trade/${path}.webp`) ? 'hidden' : 'visible'}">${fallback}</g><image class="${cls}" style="${style}" href="../shared-art/trade/${path}.webp" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet" onload="this.previousElementSibling.style.visibility='hidden'" onerror="this.previousElementSibling.style.visibility='visible';this.remove()"/></g>`;
   let serial = 0, lastChart = { key: '', known: [], reveals: {} };
   function map(s, miniature = false) {
     const w = s.world, T = window.TRADE, uid = `chart-${++serial}`, known = s.known;

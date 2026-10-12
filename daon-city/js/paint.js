@@ -3,7 +3,8 @@ window.Paint = (() => {
   const esc = window.SamgwonArt.esc;
   const source = path => `../shared-art/${path}.webp`;
   function picture(path, fallback, alt, loading, kind, width, height) {
-    return `<span class="paint paint-${kind}" style="aspect-ratio:${width}/${height}"><span class="paint-fallback">${fallback}</span><img src="${esc(source(path))}" width="${width}" height="${height}" alt="${esc(alt)}" decoding="async" loading="${loading}" draggable="false" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.remove('loaded');this.remove()"></span>`;
+    if (window.GameAssets?.isFailed(source(path))) return fallback;
+    return `<span class="paint paint-${kind}${window.GameAssets?.isReady(source(path)) ? ' loaded' : ''}" style="aspect-ratio:${width}/${height}"><span class="paint-fallback">${fallback}</span><img src="${esc(source(path))}" width="${width}" height="${height}" alt="${esc(alt)}" decoding="async" loading="${loading}" draggable="false" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.remove('loaded');this.remove()"></span>`;
   }
   function person(id, fallback) {
     if (id === 'trucker') return fallback;

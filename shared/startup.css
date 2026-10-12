@@ -1,0 +1,30 @@
+/* 다운로드 없이 바로 보이는 게임별 준비 연출 */
+body.game-preparing #app{visibility:hidden}
+.game-preparation{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 20%,#fffdf6,#efe3ce);color:#302820;font-family:inherit}
+.prep-card{width:min(460px,100%);text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.prep-card h1{font-size:clamp(24px,4vw,34px);margin:0;line-height:1.3}
+.prep-name{margin:0;font-size:18px;font-weight:800;color:#876b45}
+.prep-copy{margin:0;font-size:18px;line-height:1.5}
+.prep-card progress{width:100%;height:12px;accent-color:#d95c3e}
+.prep-count{font-size:14px;margin:0;color:#876b45;font-variant-numeric:tabular-nums}
+.prep-art{position:relative;width:120px;height:100px;margin:16px 0;background:#d95c3e;border:5px solid #593f35;border-radius:12px 12px 50px 50px;box-shadow:0 8px 0 #593f3520}
+.prep-art span{position:absolute;left:24px;top:-30px;width:10px;height:30px;background:#fff;border-radius:100%;animation:prep-steam 1.2s infinite ease-out}
+.prep-art span:nth-child(2){left:52px;animation-delay:.3s}.prep-art span:nth-child(3){left:80px;animation-delay:.6s}
+@keyframes prep-steam{from{transform:translateY(10px);opacity:0}50%{opacity:1}to{transform:translateY(-15px);opacity:0}}
+.game-preparation[data-game="samgwon-swipe"] .prep-art{background:#fffaf2;border-radius:6px;transform:rotate(-5deg)}
+.game-preparation[data-game="samgwon-swipe"] .prep-art:after{content:"";position:absolute;width:38px;height:38px;border:5px double #d95c3e;right:10px;bottom:12px;border-radius:50%;animation:prep-stamp 1.4s infinite}
+@keyframes prep-stamp{from{transform:scale(1.5);opacity:0}50%,to{transform:scale(1);opacity:1}}
+.game-preparation[data-game="fake-traveler"] .prep-art{background:#ecd4a9;border-radius:8px;transform:rotate(5deg)}
+.game-preparation[data-game="fake-traveler"] .prep-art:after{content:"";position:absolute;inset:14px;background:linear-gradient(150deg,#b9dce2 50%,#8bad78 51%);border:8px solid #fffaf2;transform:rotate(-8deg)}
+.game-preparation[data-game="daon-city"] .prep-art{background:#d8e6cb;border-radius:12px;border-color:#668565}
+.game-preparation[data-game="daon-city"] .prep-art span{top:auto;bottom:0;width:22px;height:65px;left:12px;background:#6f9cb3;border-radius:3px 3px 0 0;transform-origin:bottom;animation:prep-build 1.8s infinite}
+.game-preparation[data-game="daon-city"] .prep-art span:nth-child(2){left:44px;height:85px;background:#e7a773}.game-preparation[data-game="daon-city"] .prep-art span:nth-child(3){left:76px;height:55px;background:#99b47c}
+@keyframes prep-build{from{transform:scaleY(.1)}60%,to{transform:scaleY(1)}}
+.game-preparation[data-game="trade-king"] .prep-art{height:60px;margin-top:55px;background:#537e96;border-radius:8px 8px 55px 55px;animation:prep-sail 2s infinite ease-in-out}
+.game-preparation[data-game="trade-king"] .prep-art:after{content:"";position:absolute;width:48px;height:65px;bottom:55px;left:50px;background:#fffaf2;clip-path:polygon(0 0,0 100%,100% 100%)}
+@keyframes prep-sail{50%{transform:rotate(4deg) translateY(4px)}}
+.prep-home{inset:auto;left:16px;bottom:16px;max-width:calc(100vw - 32px);padding:12px 16px;border:1px solid #d4c3a6;border-radius:16px;background:#fffaf2f5;box-shadow:0 4px 16px #30282018;pointer-events:none}
+.prep-home .prep-card{width:300px;gap:6px}.prep-home .prep-art,.prep-home .prep-name{display:none}.prep-home h1{font-size:17px}.prep-home .prep-copy{font-size:14px}
+.prep-failed progress,.prep-failed .prep-count{display:none}
+button[data-startup-blocked]{opacity:.6;cursor:wait}
+@media(prefers-reduced-motion:reduce){.prep-art,.prep-art span,.prep-art:after{animation:none!important}}

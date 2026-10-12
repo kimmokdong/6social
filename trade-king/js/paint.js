@@ -4,7 +4,8 @@ window.Paint = (() => {
   const source = path => `../shared-art/${path}.webp`;
   const available = new Set(['president', 'reporter', 'teacher', ...Object.keys(window.TRADE.countries)]);
   function picture(path, fallback, alt, loading, kind, width, height) {
-    return `<span class="paint paint-${kind}" style="aspect-ratio:${width}/${height}"><span class="paint-fallback">${fallback}</span><img src="${esc(source(path))}" width="${width}" height="${height}" alt="${esc(alt)}" decoding="async" loading="${loading}" draggable="false" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.remove('loaded');this.remove()"></span>`;
+    if (window.GameAssets?.isFailed(source(path))) return fallback;
+    return `<span class="paint paint-${kind}${window.GameAssets?.isReady(source(path)) ? ' loaded' : ''}" style="aspect-ratio:${width}/${height}"><span class="paint-fallback">${fallback}</span><img src="${esc(source(path))}" width="${width}" height="${height}" alt="${esc(alt)}" decoding="async" loading="${loading}" draggable="false" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.remove('loaded');this.remove()"></span>`;
   }
   function person(id, fallback) {
     if (!available.has(id) && !/^p\d_/.test(id)) return fallback;

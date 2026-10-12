@@ -104,7 +104,7 @@ window.TycoonArt = (() => {
     };
     const props = ['chairs', 'staff', 'cheese', 'clean', 'truck'].filter(id => o[id]).map(id =>
       `<img class="street-prop prop-${id}" style="${placement[id]}" src="../shared-art/tteok/sp_${id}.webp" alt="" draggable="false" onerror="this.closest('.street-art').classList.add('failed');this.remove()">`).join('');
-    return `<div class="street-art${o.rain ? ' wet' : ''}"><div class="street-fallback">${fallback}</div><div class="street-paint"><img class="street-bg" src="../shared-art/tteok/street.webp" width="1600" height="900" alt="학교 앞 우리 떡볶이 가게와 왕떡볶이" draggable="false" onload="this.closest('.street-art').classList.add('loaded')" onerror="this.closest('.street-art').classList.add('failed');this.remove()">${props}</div>${o.rain ? '<div class="street-rain" aria-hidden="true"></div>' : ''}</div>`;
+    return `<div class="street-art${o.rain ? ' wet' : ''}${window.GameAssets?.isReady('../shared-art/tteok/street.webp') ? ' loaded' : ''}"><div class="street-fallback">${fallback}</div><div class="street-paint"><img class="street-bg" src="../shared-art/tteok/street.webp" width="1600" height="900" alt="학교 앞 우리 떡볶이 가게와 왕떡볶이" draggable="false" onload="this.closest('.street-art').classList.add('loaded')" onerror="this.closest('.street-art').classList.add('failed');this.remove()">${props}</div>${o.rain ? '<div class="street-rain" aria-hidden="true"></div>' : ''}</div>`;
   }
 
   /* 손님 아이: 피부·머리·옷 색이 조금씩 다름 */
@@ -116,7 +116,7 @@ window.TycoonArt = (() => {
   }
 
   function walkingKid(i) {
-    return `<span class="walking-kid"><span class="walking-fallback">${kid(i)}</span><img src="../shared-art/tteok/kid_${i % 8}.webp" alt="" draggable="false" onload="this.parentElement.classList.add('loaded')" onerror="this.remove()"></span>`;
+    return `<span class="walking-kid${window.GameAssets?.isReady(`../shared-art/tteok/kid_${i % 8}.webp`) ? ' loaded' : ''}"><span class="walking-fallback">${kid(i)}</span><img src="../shared-art/tteok/kid_${i % 8}.webp" alt="" draggable="false" onload="this.parentElement.classList.add('loaded')" onerror="this.remove()"></span>`;
   }
 
   return { C, icon, stars, scene, kid, walkingKid, bowl: () => svg(icons.bowl, '0 0 100 100', 'ico') };

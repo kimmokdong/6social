@@ -2357,6 +2357,17 @@
       "crop": null,
       "bytes": 29008,
       "visual_review": "비교 그림을 직접 열어 확인: 기존 얼굴·머리·피부색·나이·웃는 표정 유지, 차분한 평상복, 동일한 크림 배경·구아슈 화풍·구도, 글자·워터마크 없음"
+    },
+    "people/trucker": {
+      "id": "trucker",
+      "file": "people/trucker.webp",
+      "size": [
+        512,
+        512
+      ],
+      "status": "complete",
+      "raw": "codex generated_images (2026-10-12)",
+      "note": "떡볶이 타이쿤 푸드트럭 사장님. shopkeeper 화풍 참고"
     }
   },
   "generation_history": [

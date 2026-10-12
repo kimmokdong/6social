@@ -16,7 +16,7 @@ This game is part of a series with **삼권 스와이프** (`../samgwon-swipe/`)
 Copy what you need from `../samgwon-swipe/js/art.js` (read only — do not modify that folder) into `js/art.js` here, and extend it with map tiles and buildings in the same style.
 
 ## 1. Tech constraints
-- Plain static files: `index.html`, `css/style.css`, `js/data.js` (written — **do not change its Korean text or numbers**), `js/art.js`, `js/sfx.js`, `js/game.js`. No build step, no libraries, classic `<script>` tags (works from file://).
+- Plain static files: `index.html`, `css/style.css`, `js/data.js` (written — **역사·사건·엔딩·배지 문구는 유지한다. 교사가 요청한 수입 숫자 변경은 아래 변경 기록을 따른다**), `js/art.js`, `js/sfx.js`, `js/game.js`. No build step, no libraries, classic `<script>` tags (works from file://).
 - Fonts: Black Han Sans (Google Fonts) for headlines, Pretendard Variable (jsdelivr) for everything else, Nanum Myeongjo 800 for the newspaper masthead only. System fallbacks.
 - All art inline SVG. Save in `localStorage` key `daon-city-v1` (try/catch everywhere). No console errors.
 - Sound: WebAudio synth, **default OFF**.
@@ -41,7 +41,7 @@ For each building `b` in the city (including ones placed this decade):
 - **Export** (only buildings with `exp`): `e = exp[d]`; if `steelBonus` and the city has a `steel` → `e += steelBonus`;
   if `factory` and adjacent to a `port` or `road` → `× boost.one`; adjacent to both → `× boost.both`.
 - `exports = Σ e`.
-- `money += income.base + round(exports × income.exportRate) + income.perMarket × (#market)`.
+- `money += income.base[d] + round(exports × income.exportRate) + income.perMarket × (#market)`.
 - `tech += Σ tech_b` (+ event `tech` effects are added immediately when chosen).
 - Gauges (clamp 0..100, round):
   - `econ = exports / exportTarget[d] × 70`
@@ -116,6 +116,57 @@ Buttons: **다시 하기** · **엔딩 도감**.
   - 성장: `['port','textile','textile','school'],['power','steel','road','ship'],['car','elec','chem','univ'],['semi','ship','elec'],['it','car','chem'],['content','semi'],['battery','semi']`
   - 교육 없음: `['port','textile','textile','market'],['power','steel','road','ship'],['car','elec','chem'],['ship','elec','car'],['car','chem','steel'],['steel','ship'],['car','elec']`
   - 환경: `['park','school','market','park'],['park','school','market'],['univ','park','welfare'],['park','school','cleaner'],['green','it','park'],['content','park'],['park','cleaner']`
-  Expected roughly: 균형+a → 모두의 도시, 성장 → 잿빛 수출왕, 교육 없음 → 불공평한 부자 도시 or 멈춰 버린 도시, 환경 → 조용한 초록 마을. **Report the actual results; do not change data.js numbers to force them** (tell me if they differ).
+  Expected roughly: 균형+a → 모두의 도시, 성장 → 잿빛 수출왕, 교육 없음 → 불공평한 부자 도시 or 멈춰 버린 도시, 환경 → 조용한 초록 마을. **실제 결과를 보고한다. 2026-10-12 교사 요청에 따른 수입 조정은 아래 기록을 따른다. 엔딩 판정과 건물 비용은 유지한다.**
 - All screens checked at every target viewport, no overlapping text, no console errors, file:// works.
 - `?debug=1`: set money/tech, jump to any decade, run a bot, jump to any ending.
+
+## 6. 교사 요청 개선 기록 (2026-10-12)
+
+- 기본 수입: 모든 시대 6 → `[24, 22, 20, 16, 12, 8, 6]`. 초반에 건설비를 확보하고, 수출이 늘어나는 만큼 서서히 줄여 시대가 바뀌어도 수입이 갑자기 줄지 않게 한다.
+- 수출→돈 비율: `0.7 → 0.25`. 후반 수출 규모가 커져도 돈이 지나치게 쌓이지 않게 한다.
+- 시작 돈 15, 시장 수입 +2, 건물 비용, 기술 요구량, 게이지 공식, 엔딩 판정은 유지한다.
+- 예상 수입·기술은 `engine.production()`을 사용하고 `advance()`도 같은 함수로 생산한다. 예상에는 다음 사건 효과가 포함되지 않는다.
+- 건물 패널은 이번 시대 기본 수출·조건·수치와 대략의 개별 수입을 표시한다. 칸마다 실제 배율 적용 수출을 미리 보여 준다. 수출 수입은 도시 전체 수출을 합친 뒤 반올림한다.
+- 돈·기술 및 네 게이지를 누르면 짧은 도움말과 현재 도시의 계산 내역을 본다. 게이지 내역은 `gaugeDetails()`와 실제 게이지 계산이 공유한다.
+- 미래·돈·기술·전기 잠금 카드도 숫자 정보를 볼 수 있다. 건설 가능 여부는 기존 엔진 검사를 따른다.
+- 다른 역사 선택은 나침반과 중립 색으로 표시한다. 역사 탐험가 배지 판정은 그대로다.
+- 이번 시대 건물은 10년 보내기 중 비계에서 완성된다. 차·항구 근처 배·공원 성장·오염량에 따른 연기가 움직이고, 이전 시대 환경에서 현재 환경으로 하늘·바다의 탁함이 서서히 바뀐다.
+- 논밭은 1980~1990년대 흙길·공터, 2000년대부터 포장 바닥이 된다. 학교·시장·섬유·제철·자동차·전자 건물에는 시대별 증축과 현대식 지붕을 더한다.
+- 움직임은 주로 transform/opacity를 쓴다. 건설 중은 잔잔하고, reduced-motion에서는 비계·성장·차·배·연기 움직임을 최소화한다.
+- 저장 키와 저장 상태 필드는 추가·변경하지 않는다. 옛 돈·지도·기록을 그대로 이어가며 다음 생산부터 새 수입 규칙을 적용한다.
+- 태블릿은 건설 화면에서 전체 페이지 스크롤이 없다. 휴대폰은 상세 정보와 카드 영역을 세로로 스크롤할 수 있다. 팝업·도움말은 화면 안에서 스크롤한다.
+
+### 시대별 시작 돈 / 수입 (좋은 선택, 동일한 봇 계획)
+
+| 시대 | 균형 이전 | 균형 이후 | 역사 이전 | 역사 이후 |
+|---|---:|---:|---:|---:|
+| 1960년대 | 15 / +10 | 15 / +26 | 15 / +10 | 15 / +26 |
+| 1970년대 | 18 / +18 | 34 / +28 | 18 / +18 | 34 / +28 |
+| 1980년대 | 19 / +24 | 45 / +30 | 19 / +32 | 45 / +33 |
+| 1990년대 | 24 / +37 | 52 / +17 | 24 / +44 | 45 / +24 |
+| 2000년대 | 42 / +51 | 48 / +22 | 46 / +67 | 35 / +31 |
+| 2010년대 | 58 / +75 | 35 / +31 | 68 / +100 | 29 / +41 |
+| 2020년대 | 104 / +109 | 37 / +43 | 129 / +156 | 39 / +63 |
+
+1960~1990년대 균형·역사 봇은 좋은 선택·성장 선택 모두 돈 부족 실패 0회, 시대마다 3~4개 건설. 역사+좋은 선택은 후반 2000년대 석유 화학, 2010년대 자동차가 돈 부족으로 빠지지만 각 시대 3개를 짓는다.
+
+### 봇 엔딩과 끝 돈 (a=좋은 선택, b=성장 선택)
+
+| 봇 | 이전 엔딩 / 끝 돈 | 이후 엔딩 / 끝 돈 |
+|---|---|---|
+| 균형+a | 모두의 도시 / 179 | 모두의 도시 / 46 |
+| 균형+b | 조용한 초록 마을 / 99 | 열심히 자란 도시 / 70 |
+| 역사 그대로+a | 잿빛 수출왕 / 238 | 잿빛 수출왕 / 55 |
+| 역사 그대로+b | 잿빛 수출왕 / 235 | 잿빛 수출왕 / 83 |
+| 성장+a | 멈춰 버린 도시 / 144 | 열심히 자란 도시 / 55 |
+| 성장+b | 불공평한 부자 도시 / 193 | 불공평한 부자 도시 / 97 |
+| 교육 없음+a | 멈춰 버린 도시 / 141 | 멈춰 버린 도시 / 37 |
+| 교육 없음+b | 멈춰 버린 도시 / 177 | 멈춰 버린 도시 / 79 |
+| 환경+a | 조용한 초록 마을 / 42 | 조용한 초록 마을 / 68 |
+| 환경+b | 조용한 초록 마을 / 74 | 조용한 초록 마을 / 96 |
+
+요청한 주요 엔딩은 모두 유지된다. 균형+b는 교육·복지가 돈에 막히지 않아 조용한 초록 마을 → 열심히 자란 도시, 성장+a는 대학교를 지어 멈춰 버린 도시 → 열심히 자란 도시로 달라졌다. 종류·문구·판정을 바꾼 결과가 아니다.
+
+성장+b(97), 환경+b(96), 역사+b(83)는 대략 목표 30~80보다 조금 더 남는다. 이 봇들은 기술 부족으로 건설을 건너뛰거나 돈을 주는 사건을 고른다. 모든 봇을 억지로 동일한 잔액에 맞추는 추가 비용·엔딩 변경은 넣지 않았다.
+
+전체 10개 봇의 시대별 시작 돈·수입·건설·실패 원인은 [balance.json](check-verify/balance.json)에 기록한다. `node daon-city/tests/bots.js --trace`로 현재 추적을 다시 볼 수 있다.

@@ -1,13 +1,13 @@
 /* 다온시 70년 — 게임 콘텐츠·규칙 데이터
  * 배경: 실제 우리나라의 시대 흐름(1960~2020년대) 속 가상 도시 '다온시'. 플레이어는 시장.
- * 숫자는 밸런스 시뮬레이션을 거친 값이므로 SPEC.md 의 공식과 함께 그대로 쓸 것.
+ * 교사 요청에 따른 수입 조정은 SPEC.md에 이유와 검증 결과를 기록한다.
  */
 window.DAON_CITY = {
   rules: {
     startMoney: 15,
     buildsPerDecade: [3, 3, 4, 4, 4, 4, 4],   // 1980년대부터 도시가 커져 4개
     demolishCost: 1,
-    income: { base: 6, exportRate: 0.7, perMarket: 2 },
+    income: { base: [24, 22, 20, 16, 12, 8, 6], exportRate: 0.25, perMarket: 2 }, // 초반 건설 지원, 후반 수출 수입 완화
     exportTarget: [5, 14, 26, 40, 56, 72, 90], // 경제 게이지 70 = 목표 달성
     boost: { one: 1.5, both: 2 },              // 공장이 항구 또는 고속도로 옆: ×1.5, 둘 다: ×2
     housePollutionPenalty: 4                   // 오염 2 이상 건물 옆 주택 1채당 생활 -4

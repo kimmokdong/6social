@@ -20,7 +20,7 @@ assert.equal(E.undo(s, 2).ok, true);
 assert.equal(s.money, before.money + D.buildings.school.cost);
 assert.equal(E.place(s, 'school', 2).ok, true);
 const money=s.money, tech=s.tech, r=E.advance(s);
-assert.equal(s.money, money + D.rules.income.base + Math.round(6*D.rules.income.exportRate));
+assert.equal(s.money, money + D.rules.income.base[0] + Math.round(6*D.rules.income.exportRate));
 assert.equal(s.tech, tech+1);
 assert.equal(r.match, true);
 assert.equal(r.gauges.econ, 84);
@@ -49,4 +49,33 @@ E.place(priority,'power',2);E.place(priority,'steel',3);E.place(priority,'chem',
 const problem=E.advance(priority).problem;
 assert.equal(problem.id,'pollution');
 assert.equal(priority.problemsSeen.pollution,1);
+// 예상 생산과 실제 생산은 설치·되돌리기·철거 후에도 같아야 한다.
+const forecast=E.newGame();forecast.money=100;
+const empty=plain(E.production(forecast));
+E.place(forecast,'market',2);E.place(forecast,'school',3);
+assert.equal(E.production(forecast).income,empty.income+2);
+assert.equal(E.production(forecast).techGain,1);
+E.undo(forecast,3);assert.equal(E.production(forecast).techGain,0);
+const next=plain(E.production(forecast)), produced=E.advance(forecast);
+assert.equal(produced.income,next.income);assert.equal(produced.techGain,next.techGain);
+E.nextDecade(forecast);E.demolish(forecast,2);
+assert.equal(E.production(forecast).marketIncome,0);
+// 미리보기는 저장을 바꾸지 않고 현재 시대의 수출 배율을 계산한다.
+const ghost=E.newGame();ghost.money=100;E.place(ghost,'port',28);
+const snapshot=plain(ghost);
+assert.equal(E.exportOf(ghost,21,0,'textile'),6);
+assert.deepEqual(plain(ghost),snapshot);
+E.place(ghost,'textile',21);assert.equal(E.exportOf(ghost,21),6);
+ghost.d=1;E.place(ghost,'road',22);assert.equal(E.exportOf(ghost,21),8);
+// 옛 저장에는 새 필드가 없어도 그대로 계산된다.
+const old=plain(before);assert.equal(E.production(old).income,E.production(s,0).income);
+const detail=E.gaugeDetails(powered), values=E.gauges(powered);
+assert.equal(values.env,Math.max(0,Math.min(100,Math.round(detail.env.base-detail.env.loss+detail.env.gain+detail.env.bonus))));
+const bots=require('./bots');
+for(const [key,ending] of Object.entries({'균형+a':'모두의 도시','역사 그대로+a':'잿빛 수출왕','역사 그대로+b':'잿빛 수출왕','성장+b':'불공평한 부자 도시','교육 없음+a':'멈춰 버린 도시','교육 없음+b':'멈춰 버린 도시','환경+a':'조용한 초록 마을','환경+b':'조용한 초록 마을'})) assert.equal(bots[key].ending,ending,key);
+for(const key of ['균형+a','균형+b','역사 그대로+a','역사 그대로+b']) {
+  assert.ok(bots[key].trace.slice(0,4).every(row=>row.missed.every(m=>m.reason!=='money')),key);
+  assert.ok(bots[key].trace.slice(0,4).every(row=>row.built.length>=3),key);
+}
+for(const key of ['균형+a','역사 그대로+a']) assert.ok(bots[key].money>=30&&bots[key].money<=80,key);
 console.log('PASS: 배치·수출 배율·생산·게이지·공원·발전소 보호·사건 우선순위·저장 왕복');

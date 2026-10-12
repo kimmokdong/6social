@@ -26,19 +26,23 @@ function bestTile(s, id) {
 }
 function play(plan, policy) {
   const s = E.newGame();
+  const trace = [];
   for (let d = 0; d <= E.LAST; d++) {
+    const row = { era: D.eras[d].label, start: s.money, built: [], missed: [] };
     for (const id of plan[d]) {
       if (E.slotsLeft(s) <= 0) break;
       const i = bestTile(s, id);
-      if (i >= 0) E.place(s, id, i);
+      if (i >= 0) { E.place(s, id, i); row.built.push(id); }
+      else row.missed.push({ id, reason: E.cardStatus(s, id).reason || 'tile' });
     }
     const r = E.advance(s);
+    row.income = r.income; trace.push(row);
     if (r.problem) E.applyFx(s, r.problem[policy].fx, r.problem[policy].label);
     const ev = D.eras[d].event[policy];
     E.applyFx(s, ev.fx, ev.label);
     E.nextDecade(s);
   }
-  return { ending: E.ending(s).name, gauges: E.gauges(s, E.LAST), history: E.historyScore(s), money: s.money, tech: s.tech };
+  return { ending: E.ending(s).name, gauges: E.gauges(s, E.LAST), history: E.historyScore(s), money: s.money, tech: s.tech, trace };
 }
 const bots = {
   '균형': [['port','textile','school','school'],['power','steel','school','park'],['car','univ','park','welfare'],['semi','elec','welfare','park'],['it','green','cleaner','semi'],['content','semi','park','cleaner'],['battery','it','welfare','park']],
@@ -52,5 +56,6 @@ for (const [name, plan] of Object.entries(bots)) for (const policy of ['a', 'b']
   const r = play(plan, policy);
   out[`${name}+${policy}`] = r;
   console.log(`${name.padEnd(6)} ${policy === 'a' ? '좋은 선택' : '성장 선택'}: ${r.ending.padEnd(10)} 역사 ${r.history}/7  경제 ${r.gauges.econ} 생활 ${r.gauges.life} 환경 ${r.gauges.env} 공정 ${r.gauges.fair}  (돈 ${r.money}, 기술 ${r.tech})`);
+  if (process.argv.includes('--trace')) console.log(JSON.stringify(r.trace));
 }
 module.exports = out;

@@ -259,12 +259,12 @@
       groups[key].count++;
     }
     const lines = [];
-    for (const choices of [['mine'], ['rival', 'truck'], ['none', 'budget', 'soldout']]) {
+    for (const choices of [['mine'], ['rival'], ['truck'], ['none', 'budget', 'soldout']]) {
       const d = Object.values(groups).filter(g => choices.includes(g.choice)).sort((a, b) => b.count - a.count)[0];
       if (!d) continue;
-      const shop = { mine: '우리 가게', rival: '왕떡볶이', truck: '푸드트럭' }[d.choice];
+      const shop = { mine: '우리 가게로', rival: '왕떡볶이로', truck: '푸드트럭으로' }[d.choice];
       const why = { taste: '맛이 더 좋아서', reputation: '평판이 더 좋아서', loyalty: '왕떡볶이 단골이라서', price: `${d.saving.toLocaleString('ko-KR')}원 더 싸서`, preference: '친구 따라', cartel: '두 가게가 같은 값이라서' };
-      const text = d.reason === 'budget' ? '용돈이 모자라 안 사 먹었어요' : d.reason === 'expensive' ? '값에 비해 만족이 낮아 안 사 먹었어요' : d.reason === 'soldout' ? '다 팔려서 못 샀어요' : `${why[d.reason]} ${shop}로 갔어요`;
+      const text = d.reason === 'budget' ? '용돈이 모자라 안 사 먹었어요' : d.reason === 'expensive' ? '값에 비해 만족이 낮아 안 사 먹었어요' : d.reason === 'soldout' ? '다 팔려서 못 샀어요' : `${why[d.reason]} ${shop} 갔어요`;
       lines.push({ ...d, text: `${text} (${d.count}명)` });
     }
     return lines;

@@ -118,6 +118,44 @@
     tile: `${icon('cross')}`
   }[reason] || '');
 
+  /* 숫자는 엔진의 현재 시대와 배율을 그대로 보여 준다. */
+  function buildingInfo(id, i = null) {
+    const b = B[id], base = b.exp?.[G.d] || 0, ex = i === null ? (base ? base + (b.steelBonus && G.tiles.some(t => t.b === 'steel') ? b.steelBonus : 0) : 0) : E.exportOf(G, i, G.d, id);
+    const rows = [`${icon('coin')}비용 ${b.cost}`];
+    if (b.era > G.d) rows.push(`${era(b.era).label}부터 지을 수 있어요.`);
+    if (b.techReq) rows.push(`${icon('star')}기술 ${b.techReq} 필요 (쓰면 줄지 않아요)`);
+    if (b.needPower) rows.push(`${icon('bolt')}발전소 필요`);
+    if (b.power) rows.push(`${icon('bolt')}도시에 전기 공급`);
+    if (b.coastal) rows.push(`${icon('wave')}바다 바로 위 칸에만`);
+    if (b.exp) rows.push(`${icon('chart')}수출 ${ex}${i === null ? ' (이번 시대·기본)' : ' (이 칸)'} → 10년마다 돈 약 +${Math.round(ex * D.rules.income.exportRate)}`);
+    if (b.factory) rows.push('항구·도로 옆 ×1.5 · 둘 다 ×2');
+    if (b.steelBonus) rows.push(`제철소가 있으면 기본 수출 +${b.steelBonus}`);
+    if (b.boost) rows.push('옆 공장 수출 ×1.5 · 항구+도로는 ×2');
+    if (b.money) rows.push(`${icon('coin')}10년마다 돈 +${D.rules.income.perMarket}`);
+    if (b.tech) rows.push(`${icon('star')}10년마다 기술 +${b.tech}`);
+    if (b.life) rows.push(`${icon('home')}생활 +${b.life}`);
+    if (b.env) rows.push(`${icon('tree')}환경 +${b.env}`);
+    if (b.pol) rows.push(`${icon('smog')}오염 ${b.pol} → 환경 −${5 * b.pol}${i === null ? '' : ` (지금 −${5 * E.pollutionAt(G, i)})`}`);
+    if (b.pol >= 2) rows.push('옆 주택 1채마다 생활 −4');
+    if (b.parkAdj) rows.push('옆 건물마다 오염 −1 (최소 0)');
+    if (b.fair) rows.push(`${icon('scale')}공정 +${b.fair}`);
+    if (b.unfair) rows.push(`${icon('scale')}공정 −${4 * b.unfair}`);
+    return `<div class="info-lines">${rows.map(v => `<p>${v}</p>`).join('')}</div>`;
+  }
+  function help(key) {
+    const p = E.production(G), t = E.gaugeDetails(G), g = E.gauges(G), sign = n => n < 0 ? `−${Math.abs(n)}` : `+${n}`;
+    const texts = {
+      money: ['돈', `${icon('coin')}수출 공장·시장이 돈을 벌어요.`, `10년 수입 = 기본 ${p.base} + 수출 ${p.exportIncome} + 시장 ${p.marketIncome} = ${p.income}`, '수출 ×0.25를 반올림해요. 시장은 1개마다 +2. 사건으로도 돈이 바뀌어요.'],
+      tech: ['별은 기술', `${icon('star')}학교 +1 · 대학교 +2 (10년마다)`, `다음 10년 기술 +${p.techGain}`, '반도체 ★6 · IT ★9 · 콘텐츠 ★11 · 배터리 ★13 필요. 별은 쌓이고, 건설해도 줄지 않아요. 인터넷 깔기 사건은 +4.'],
+      econ: ['경제', `${icon('chart')}수출 공장 ↑ · 항구·도로 옆이면 더 ↑`, `수출 ${t.econ.exports} ÷ 목표 ${t.econ.target} ×70 → ${g.econ}`, '시대마다 수출 목표가 커져요.'],
+      life: ['생활', `${icon('home')}주택·학교·시장·복지관 ↑ · 오염 건물 옆 주택 ↓`, `기본 25 + 건물 ${t.life.gain} − 이웃 오염 ${t.life.loss} + 경제 ${t.life.economy.toFixed(1)} ${sign(t.life.bonus)}(사건) → ${g.life}`, '경제가 좋아져도 생활이 조금 올라요.'],
+      env: ['환경', `${icon('tree')}공원·정화 시설·친환경 발전 ↑ · 오염 ↓`, `기본 80 − 오염 ${t.env.loss} + 건물 ${t.env.gain} ${sign(t.env.bonus)}(사건) → ${g.env}`, '공원은 옆 건물의 오염도 1 줄여요.'],
+      fair: ['공정', `${icon('scale')}학교·복지관 ↑ · 불공정한 공장 ↓`, `기본 55 − 불공정 ${t.fair.loss} + 건물 ${t.fair.gain} ${sign(t.fair.bonus)}(사건) → ${g.fair}`, '사건에서 일하는 사람도 챙겨요.']
+    };
+    const [name, ...lines] = texts[key];
+    openLayer(`<div class="help"><h2>${name}</h2>${lines.map(v => `<p>${v}</p>`).join('')}${key === 'money' ? '<p class="help-note">사건에서 고른 것에 따라 돈이 더 늘거나 줄 수 있어요.</p>' : key === 'tech' ? '' : '<p class="help-note">게이지는 0부터 100까지예요.</p>'}${btn('close', '닫기', 'primary')}</div>`);
+  }
+
   /* ───── 지도 ───── */
   function tileHtml(i, readonly = false) {
     const t = G.tiles[i], coastal = E.coastal(t.x, t.y), id = t.b;
@@ -129,6 +167,7 @@
       if (can.ok) {
         cls += ' can';
         const boost = E.boostAt(G, i, sel);
+        if (B[sel].exp) badge += `<span class="export-preview">수출 ${E.exportOf(G, i, G.d, sel)}</span>`;
         if (boost > 1) badge += `<span class="badge boost">×${boost}</span>`;
         const ns = E.neighbors(i).map(j => G.tiles[j].b);
         const smoky = ((B[sel].pol || 0) >= 2 && ns.includes('house')) || (sel === 'house' && ns.some(n => n && (B[n].pol || 0) >= 2));
@@ -139,12 +178,13 @@
     let art = '';
     if (id) {
       const polNow = E.pollutionAt(G, i), boost = E.boostAt(G, i), ex = E.exportOf(G, i);
-      art = `<div class="b${polNow > 0 ? ' smoky' : ''}${B[id].pol && !polNow ? ' clean' : ''}">${A.building(id, { d: G.d })}</div>`;
+      art = `<div class="b${polNow > 0 ? ' smoky' : ''}${B[id].pol && !polNow ? ' clean' : ''}" style="--smoke-opacity:${Math.min(.8, .2 + polNow * .15)}">${A.building(id, { d: G.d, pol: polNow })}</div>${placedNow && !readonly ? `<div class="scaffold" aria-hidden="true">${A.construction()}</div>` : ''}`;
       if (boost > 1 && ex > 0) art += `<span class="badge boost on">×${boost}</span>`;
     }
+    if (t.t === 'S' && E.neighbors(i).some(j => G.tiles[j].b === 'port')) art += `<div class="sea-boat" aria-hidden="true">${A.boat()}</div>`;
     const name = id ? B[id].name : t.t === 'S' ? '바다' : t.t === 'M' ? '산' : coastal ? '해안 빈 땅' : '빈 땅';
     const tag = readonly ? 'div' : 'button';
-    return `<${tag} ${readonly ? '' : 'type="button"'} class="${cls}" data-tile="${i}" ${readonly ? '' : `aria-label="${name}" tabindex="${i === cursor ? 0 : -1}"`}>${A.terrain(t.t, coastal, i)}${art}${badge}</${tag}>`;
+    return `<${tag} ${readonly ? '' : 'type="button"'} class="${cls}" data-tile="${i}" ${readonly ? '' : `aria-label="${name}${sel && B[sel].exp && E.canPlace(G, sel, i).ok ? `, 수출 ${E.exportOf(G, i, G.d, sel)}` : ''}" tabindex="${i === cursor ? 0 : -1}"`}>${A.terrain(t.t, coastal, i, G.d)}${t.t === 'S' ? '<span class="water-haze" aria-hidden="true"></span>' : ''}${art}${badge}</${tag}>`;
   }
   const mapHtml = (readonly = false) => `<div class="map${readonly ? ' mini' : ''}" style="--cols:${E.W};--rows:${E.H}">${G.tiles.map((_, i) => tileHtml(i, readonly)).join('')}</div>`;
   function fitMap() {
@@ -158,7 +198,7 @@
 
   /* ───── 게이지 ───── */
   function gaugesHtml(g, cls = '') {
-    return `<div class="gauges ${cls}">${GK.map(k => `<div class="gauge${g[k] <= 25 ? ' low' : ''}" data-g="${k}"><div class="g-icon">${A.gauge(k, GICON[k], g[k])}</div><span class="g-label">${D.gauges[k].label}</span><b class="g-num">${g[k]}</b></div>`).join('')}</div>`;
+    return `<div class="gauges ${cls}">${GK.map(k => `<button type="button" class="gauge${g[k] <= 25 ? ' low' : ''}" data-g="${k}" data-action="help" data-help="${k}" aria-label="${D.gauges[k].label} ${g[k]}, 도움말"><div class="g-icon">${A.gauge(k, GICON[k], g[k])}</div><span class="g-label">${D.gauges[k].label}</span><b class="g-num">${g[k]}</b></button>`).join('')}</div>`;
   }
 
   /* ───── 타이틀 ───── */
@@ -184,12 +224,13 @@
     const d = G.d, g = E.gauges(G, d), slots = E.slotsLeft(G), total = D.rules.buildsPerDecade[d];
     const cards = Object.keys(B).filter(id => B[id].era <= d + 1).sort((a, b) => (B[b].era === d) - (B[a].era === d) || B[a].era - B[b].era);
     const smog = g.env < 40 ? Math.min(.55, (40 - g.env) / 60) : 0;
-    setScreen('build', `<section class="build era-${d}" style="--smog:${smog}">
+    const forecast = E.production(G);
+    setScreen('build', `<section class="build era-${d}" style="--smog:${smog};--haze:${(100 - g.env) / 100}">
       <header class="topbar">${iconBtn('menu', '메뉴', 'menu')}<div class="decade"><strong>${era(d).label}</strong><div class="timeline">${D.eras.map((e, i) => `<i class="${i < d ? 'done' : i === d ? 'now' : ''}"></i>`).join('')}</div></div>
-        <div class="res"><span class="res-item" aria-label="돈 ${G.money}">${icon('coin')}<b>${G.money}</b></span><span class="res-item" aria-label="기술 ${G.tech}">${icon('star')}<b>${G.tech}</b></span><span class="res-item slots" aria-label="남은 건설 ${slots}번">${Array.from({ length: total }, (_, i) => `<span class="slot${i < slots ? '' : ' used'}">${icon('hammer')}</span>`).join('')}</span></div></header>
+        <div class="res"><button type="button" data-action="help" data-help="money" class="res-item" aria-label="돈 ${G.money}, 도움말">${icon('coin')}<b>${G.money}</b></button><button type="button" data-action="help" data-help="tech" class="res-item" aria-label="기술 ${G.tech}, 도움말">${icon('star')}<span class="tech-label">기술</span><b>${G.tech}</b></button><span class="res-item slots" aria-label="남은 건설 ${slots}번">${Array.from({ length: total }, (_, i) => `<span class="slot${i < slots ? '' : ' used'}">${icon('hammer')}</span>`).join('')}</span></div></header>
       ${gaugesHtml(g)}
-      <div class="main"><div class="map-wrap">${mapHtml()}${smog ? `<div class="smog" aria-hidden="true"></div>` : ''}</div>
-        <aside class="tray"><div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
+      <div class="main"><div class="map-wrap"><span class="sky-haze" aria-hidden="true"></span>${mapHtml()}${smog ? `<div class="smog" aria-hidden="true"></div>` : ''}</div>
+        <aside class="tray"><div class="forecast" role="status">다음 10년 예상 ${icon('coin')}+${forecast.income} · ${icon('star')}+${forecast.techGain}</div>${sel ? `<section class="building-info" aria-label="건물 정보"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : '<div class="info-hint">카드를 누르면 자세한 숫자가 보여요.</div>'}<div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
         <div class="tray-foot">${btn('undo', icon('undo'), 'icon-btn', `aria-label="되돌리기" ${G.placed.length ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>
       ${pop !== null ? popHtml() : ''}</section>`);
     fitMap(); positionPop();
@@ -199,7 +240,7 @@
   function cardHtml(id) {
     const b = B[id], st = E.cardStatus(G, id), future = b.era > G.d;
     const isNew = b.era === G.d && G.d > 0;
-    return `<button type="button" role="listitem" class="card${sel === id ? ' sel' : ''}${st.ok ? '' : ' locked'}${future ? ' future' : ''}" data-card="${id}" aria-label="${b.name}, ${b.cost}원" aria-pressed="${sel === id}" ${future ? 'disabled' : ''}>
+    return `<button type="button" role="listitem" class="card${sel === id ? ' sel' : ''}${st.ok ? '' : ' locked'}${future ? ' future' : ''}" data-card="${id}" aria-label="${b.name}, ${b.cost}원" aria-pressed="${sel === id}">
       <div class="c-icon">${A.building(id, { d: G.d })}</div><div class="c-name">${b.name}</div>
       <div class="c-row"><span class="cost">${icon('coin')}<b>${b.cost}</b></span>${needs(id)}</div><div class="c-fx">${effects(id)}</div>
       ${!st.ok ? `<span class="c-lock">${reasonHtml(st.reason, id)}</span>` : ''}${isNew ? '<span class="c-new">NEW</span>' : ''}</button>`;
@@ -209,9 +250,9 @@
     const t = G.tiles[pop];
     if (!t || !t.b) return '';
     const now = G.placed.includes(pop), dem = E.canDemolish(G, pop);
-    return `<div class="pop" role="dialog" aria-label="${B[t.b].name}"><div class="pop-head">${A.building(t.b, { d: G.d })}<b>${B[t.b].name}</b></div>
+    return `<div class="pop" role="dialog" aria-label="${B[t.b].name}"><div class="pop-head">${A.building(t.b, { d: G.d })}<b>${B[t.b].name}</b></div>${buildingInfo(t.b, pop)}<div class="pop-actions">
       ${now ? btn('pop-undo', `${icon('undo')} 되돌리기`, 'secondary') : btn('pop-demolish', `철거 ${icon('coin')}${D.rules.demolishCost}`, 'danger', dem.ok ? '' : 'disabled')}
-      ${btn('pop-close', icon('cross'), 'icon-btn', 'aria-label="닫기"')}</div>`;
+      ${btn('pop-close', icon('cross'), 'icon-btn', 'aria-label="닫기"')}</div></div>`;
   }
   function positionPop() {
     const el = app.querySelector('.pop'), tile = pop !== null && app.querySelector(`[data-tile="${pop}"]`);
@@ -225,11 +266,9 @@
   function selectCard(id) {
     if (busy) return;
     const st = E.cardStatus(G, id);
-    if (B[id].era > G.d) return;
     pop = null;
     if (sel === id) sel = null;
-    else if (!st.ok) { S.play('no'); toast(`${A.building(id, { d: G.d })}${reasonHtml(st.reason, id)}`); return; }
-    else sel = id;
+    else { sel = id; if (!st.ok) { S.play('no'); toast(`${A.building(id, { d: G.d })}${reasonHtml(st.reason, id)}`); } }
     S.play('tick'); build();
   }
   function tapTile(i) {
@@ -299,7 +338,13 @@
     saveGame();
     if (res.problem) Paint.preload(res.problem.char);
     build();
-    app.querySelector('.build').classList.add('timelapse');
+    const climate = app.querySelector('.build');
+    climate.classList.add('timelapse', 'city-running');
+    const oldEnv = G.records[d - 1]?.gauges.env ?? 80;
+    const haze = app.querySelectorAll('.sky-haze,.water-haze');
+    haze.forEach(el => { el.style.transition = 'none'; el.style.opacity = (100 - oldEnv) / 100; });
+    void climate.offsetWidth;
+    haze.forEach(el => { el.style.transition = reduce ? 'none' : 'opacity 1.4s linear'; el.style.opacity = (100 - res.gauges.env) / 100; });
     const year = document.createElement('div'); year.className = 'year-roll'; year.setAttribute('aria-live', 'polite');
     app.querySelector('.map-wrap').appendChild(year);
     S.play('whoosh');
@@ -314,6 +359,7 @@
     if (techEl) techEl.textContent = G.tech;
     year.innerHTML = `<span class="gain">${icon('coin')}+${res.income}</span>${res.techGain ? `<span class="gain">${icon('star')}+${res.techGain}</span>` : ''}`;
     await wait(1300);
+    climate.classList.remove('city-running');
     await finishDecade();
   }
   async function finishDecade() {
@@ -359,7 +405,7 @@
       const rec = G.records[d], cat = era(d).real;
       openLayer(`<div class="hist"><span class="hist-tag">그때 우리나라는?</span><h3>${era(d).label}</h3>
         <div class="hist-row"><div class="hist-ico">${A.building(REPR[cat])}</div><p>${esc(era(d).realText)}</p></div>
-        <div class="hist-me ${rec.match ? 'yes' : 'no'}">${icon(rec.match ? 'check' : 'cross')}<b>${rec.match ? '나도 같은 길!' : '나는 다른 길'}</b><span class="mine">${rec.built.map(id => A.building(id, { d })).join('')}</span></div>
+        <div class="hist-me ${rec.match ? 'yes' : 'no'}">${icon(rec.match ? 'check' : 'compass')}<b>${rec.match ? '나도 같은 길!' : '다온시는 다른 길로!'}</b><span class="mine">${rec.built.map(id => A.building(id, { d })).join('')}</span></div>
         ${btn('hist-next', d < E.LAST ? `다음 10년 ${icon('play')}` : `70년사 보기 ${icon('play')}`, 'primary big')}</div>`, 'hist-layer');
       layer.querySelector('[data-action="hist-next"]').addEventListener('click', () => { closeLayer(); resolve(); }, { once: true });
     });
@@ -391,7 +437,7 @@
         <div class="mini-photo">${Paint.scene(`daon/era${r.d}`, `<span class="mini-built">${r.built.map(id => A.building(id, { d: r.d })).join('')}</span>`, `${era(r.d).label} 다온시 풍경`)}</div>
         <div class="mini-built">${r.built.length ? r.built.map(id => A.building(id, { d: r.d })).join('') : '<span class="empty">—</span>'}</div>
         <div class="mini-g">${GK.map(k => `<span class="bar" data-g="${k}"><i style="width:${r.gauges[k]}%"></i></span>`).join('')}</div>
-        <div class="mini-match ${r.match ? 'yes' : 'no'}">${icon(r.match ? 'check' : 'cross')}</div></article>`).join('')}</div>
+        <div class="mini-match ${r.match ? 'yes' : 'no'}" aria-label="${r.match ? '같은 길' : '다온시는 다른 길로!'}">${icon(r.match ? 'check' : 'compass')}</div></article>`).join('')}</div>
       ${end.legend ? '<div class="confetti" aria-hidden="true">' + Array.from({ length: 40 }, (_, i) => `<i style="--x:${(i * 37) % 100};--d:${(i % 7) * .35}s;--c:${['#F5C542', '#2E9E6B', '#3B6FE0', '#E5484D', '#7B52D3'][i % 5]}"></i>`).join('') + '</div>' : ''}
     </section>`);
   }
@@ -476,6 +522,7 @@
       case 'reset-ask': settings(true); break;
       case 'reset': progress = fresh(); save(); clearGame(); S.setEnabled(false); closeLayer(); title(); break;
       case 'close': closeLayer(); break;
+      case 'help': if (G) help(el.dataset.help); break;
       case 'sound': progress.sound = !progress.sound; save(); S.setEnabled(progress.sound); S.play('tick'); if (!layer.hidden) settings(); else el.outerHTML = soundBtn(); break;
       case 'undo': if (G.placed.length) { const r = E.undo(G, G.placed[G.placed.length - 1]); if (!r.ok) { toast(reasonHtml(r.reason)); break; } S.play('undo'); saveGame(); build(); } break;
       case 'pop-undo': { const r = E.undo(G, pop); if (!r.ok) toast(reasonHtml(r.reason)); else { S.play('undo'); saveGame(); } pop = null; build(); break; }

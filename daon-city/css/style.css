@@ -326,3 +326,43 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 @media(orientation:portrait){.final-body:has(.paint){grid-template-columns:1fr}}
 @media (max-width:700px){.new-stamp{top:-14px;right:-8px;font-size:18px}}
 .title-guide{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink);background:#FFFDF8;border:2px solid currentColor;border-radius:14px;text-decoration:none;touch-action:manipulation}.title-guide:hover{filter:brightness(.96)}.title-guide:focus-visible{outline:3px solid currentColor;outline-offset:4px}
+
+/* 숫자 안내는 건설 카드와 같은 자리에, 긴 설명은 패널 안에서 읽는다. */
+.tray{grid-template-rows:auto auto minmax(0,1fr) auto}
+.forecast{display:flex;align-items:center;justify-content:center;gap:4px;font-size:18px;font-weight:800;flex-wrap:wrap}
+.forecast .ico{width:22px;height:22px}
+.building-info{max-height:160px;overflow:auto;background:var(--white);border-radius:12px;padding:10px;font-size:18px;line-height:1.45}
+.info-lines p{margin:4px 0;font-size:18px;line-height:1.45}
+.info-lines .ico,.help p .ico{display:inline-block;width:22px;height:22px;vertical-align:-4px;margin-right:4px}
+.info-hint{font-size:18px;text-align:center;color:var(--soft)}
+.tech-label{font-size:18px}
+.help{display:grid;gap:18px;text-align:left}
+.help h2{font-size:34px}.help p{font-size:22px;line-height:1.5}.help .help-note{font-size:18px;color:var(--soft)}
+.pop{display:block;width:min(350px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto}
+.pop-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.pop-head{margin-bottom:8px}
+.export-preview{position:absolute;bottom:3px;left:2px;right:2px;z-index:3;font-size:18px;font-weight:900;background:#FFFDF8EA;border-radius:6px;pointer-events:none;white-space:nowrap}
+.hist-me.no{background:#E2EBEF;color:#416778}.mini-match.no{background:#E2EBEF;border-radius:50%}
+.map-wrap{background:linear-gradient(#CBE6F4,#EAF6F8);border-radius:18px;isolation:isolate}
+.sky-haze{position:absolute;inset:0;background:linear-gradient(#8E929C88,#B0AAA344);border-radius:18px;opacity:var(--haze);z-index:3;pointer-events:none}
+.water-haze{position:absolute;inset:0;border-radius:inherit;background:#8C9290;opacity:var(--haze);pointer-events:none}
+.sea-boat{position:absolute;inset:0;pointer-events:none;animation:sail 16s ease-in-out infinite alternate}
+.traffic{animation:drive 12s ease-in-out infinite alternate;transform-box:view-box}
+.park-trees{transform-origin:50% 90%;transform-box:view-box}
+.scaffold{display:none;position:absolute;inset:0;pointer-events:none}
+.tile .b.smoky .smoke{opacity:var(--smoke-opacity)}
+.smoke .puff{animation-duration:7s}.smoke .p1{animation-delay:2.3s}.smoke .p2{animation-delay:4.6s}
+.city-running .smoke .puff{animation-duration:1.8s}.city-running .smoke .p1{animation-delay:.6s}.city-running .smoke .p2{animation-delay:1.2s}
+.city-running .traffic{animation-duration:1.2s}.city-running .sea-boat{animation-duration:1.5s}
+.city-running .now .b{transform-origin:50% 90%;animation:finish-building 1.4s ease-out both}
+.city-running .now .scaffold{display:block;animation:remove-scaffold 1.4s linear both}
+.city-running .bld-park .park-trees{animation:tree-grow 1.4s ease-out both}
+.map.mini .traffic,.map.mini .sea-boat{animation:none}
+@keyframes finish-building{from{transform:scaleY(.18);opacity:.55}to{transform:scaleY(1);opacity:1}}
+@keyframes remove-scaffold{0%,65%{opacity:1}100%{opacity:0}}
+@keyframes tree-grow{from{transform:scale(.65)}to{transform:scale(1)}}
+@keyframes drive{to{transform:translateX(12px)}}
+@keyframes sail{to{transform:translateX(14px) translateY(-3px)}}
+@media(orientation:portrait){.tray{grid-template-rows:auto auto auto auto}.building-info{max-height:110px}.cards{max-height:178px}}
+@media(max-width:700px){.building-info{max-height:150px}.forecast{font-size:18px}.res-item{min-height:48px}.gauge{min-height:48px}.tech-label{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.city-running .now .b,.city-running .park-trees{animation:none;transform:none}.city-running .scaffold{display:none}.traffic,.sea-boat{animation:none}.smoke{display:none}.sky-haze,.water-haze{transition:none!important}}

@@ -94,13 +94,13 @@
     const port = ns.includes('port'), road = ns.includes('road');
     return port && road ? R.boost.both : port || road ? R.boost.one : 1;
   }
-  function exportOf(s, i, d = s.d) {
-    const id = s.tiles[i].b, b = id && B[id];
+  function exportOf(s, i, d = s.d, id = s.tiles[i].b) {
+    const b = id && B[id];
     if (!b || !b.exp) return 0;
     let e = b.exp[d];
     if (!e) return 0;
     if (b.steelBonus && has(s, 'steel')) e += b.steelBonus;
-    return e * boostAt(s, i);
+    return e * boostAt(s, i, id);
   }
   const exportsTotal = (s, d = s.d) => s.tiles.reduce((sum, t, i) => sum + exportOf(s, i, d), 0);
 
@@ -119,23 +119,35 @@
     }, []);
   }
 
-  function gauges(s, d = s.d) {
+  function gaugeDetails(s, d = s.d) {
     const ids = cityIds(s), sum = key => ids.reduce((a, id) => a + (B[id][key] || 0), 0);
     const ex = exportsTotal(s, d);
     const econ = clamp(ex / R.exportTarget[d] * 70);
     const pol = s.tiles.reduce((a, t, i) => a + pollutionAt(s, i), 0);
-    const env = clamp(80 - 5 * pol + sum('env') + s.bonus.env);
-    const life = clamp(25 + sum('life') - R.housePollutionPenalty * smokyHouses(s).length + econ * 0.2 + s.bonus.life);
-    const fair = clamp(55 - 4 * sum('unfair') + sum('fair') + s.bonus.fair);
-    return { econ, life, env, fair, exports: ex };
+    return {
+      econ: { exports: ex, target: R.exportTarget[d], value: econ },
+      env: { base: 80, loss: 5 * pol, gain: sum('env'), bonus: s.bonus.env },
+      life: { base: 25, loss: R.housePollutionPenalty * smokyHouses(s).length, gain: sum('life'), economy: econ * 0.2, bonus: s.bonus.life },
+      fair: { base: 55, loss: 4 * sum('unfair'), gain: sum('fair'), bonus: s.bonus.fair }
+    };
+  }
+  function gauges(s, d = s.d) {
+    const t = gaugeDetails(s, d), g = { econ: t.econ.value, exports: t.econ.exports };
+    for (const k of ['env', 'life', 'fair']) g[k] = clamp(t[k].base - t[k].loss + t[k].gain + (t[k].economy || 0) + t[k].bonus);
+    return g;
+  }
+  function production(s, d = s.d) {
+    const ids = cityIds(s), exports = exportsTotal(s, d);
+    const base = R.income.base[d];
+    const marketIncome = R.income.perMarket * ids.filter(id => id === 'market').length;
+    const exportIncome = Math.round(exports * R.income.exportRate);
+    return { exports, base, marketIncome, exportIncome, income: base + exportIncome + marketIncome,
+      techGain: ids.reduce((a, id) => a + (B[id].tech || 0), 0) };
   }
 
   /* 10년 보내기: 생산 → 돈·기술 → 게이지 → 문제 사건 결정 */
   function advance(s) {
-    const d = s.d, ex = exportsTotal(s, d);
-    const markets = cityIds(s).filter(id => id === 'market').length;
-    const income = R.income.base + Math.round(ex * R.income.exportRate) + R.income.perMarket * markets;
-    const techGain = cityIds(s).reduce((a, id) => a + (B[id].tech || 0), 0);
+    const d = s.d, { exports: ex, income, techGain } = production(s, d);
     s.money += income; s.tech += techGain;
     const g = gauges(s, d);
     const built = s.placed.map(i => s.tiles[i].b);
@@ -182,6 +194,6 @@
 
   root.DaonEngine = {
     W, H, LAST, terrain, buildable, coastal, neighbors, newGame, cardStatus, canPlace, place, undo, canDemolish, demolish,
-    boostAt, exportOf, exportsTotal, pollutionAt, smokyHouses, gauges, advance, applyFx, nextDecade, ending, historyScore, slotsLeft, hasPower
+    boostAt, exportOf, exportsTotal, pollutionAt, smokyHouses, gaugeDetails, gauges, production, advance, applyFx, nextDecade, ending, historyScore, slotsLeft, hasPower
   };
 })(typeof window !== 'undefined' ? window : globalThis);

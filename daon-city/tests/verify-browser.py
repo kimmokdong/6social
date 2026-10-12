@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright
 OUT = ROOT / 'daon-city/check-verify'
 OUT.mkdir(exist_ok=True)
 BASE = 'http://localhost:8790/daon-city/?debug=1'
-SIZES = [(1366,768),(1280,800),(1024,768),(768,1024),(390,844)]
+SIZES = [(1366,768),(1280,800),(1180,820),(1024,768),(768,1024),(800,1280),(390,844)]
 PLAN = [['port','textile','school'],['power','steel','school'],['car','univ','park','welfare'],['semi','elec','welfare','park'],['it','green','cleaner','semi'],['content','semi','park','cleaner'],['battery','it','welfare','park']]
 RESULT = {'screens':[], 'flows':[], 'edges':[], 'errors':[], 'warnings':[]}
 
@@ -63,8 +63,8 @@ def shot(page, size, stage):
     }''')
     metrics = page.evaluate('''() => {
       const visible=e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&!e.closest('[hidden],.debug')};
-      const outside=[...document.querySelectorAll('.map-wrap .map,.tray-foot,.pop')].filter(e=>{
-        const r=e.getBoundingClientRect();return visible(e)&&(r.left<0||r.right>innerWidth+1||r.bottom>innerHeight+1);
+      const outside=[...document.querySelectorAll('.map-wrap .map,.tray-foot,.building-info,.pop,.sheet')].filter(e=>{
+        const r=e.getBoundingClientRect();return visible(e)&&(r.left<0||r.right>innerWidth+1||(innerWidth>=700||e.matches('.pop,.sheet'))&&(r.top<0||r.bottom>innerHeight+1));
       }).map(e=>({cls:e.className,rect:e.getBoundingClientRect().toJSON()}));
       const small=[...document.querySelectorAll('button,.g-label,.c-name,.fx,.need,.c-lock,.c-new,.bdg p,.mini-mast,.badge')].filter(e=>visible(e)&&parseFloat(getComputedStyle(e).fontSize)<(e.tagName==='BUTTON'?20:18)).map(e=>({cls:e.className,size:getComputedStyle(e).fontSize,text:e.textContent}));
       const tiny=[...document.querySelectorAll('button,a.icon-btn')].filter(e=>visible(e)&&!e.disabled&&(e.getBoundingClientRect().width<44||e.getBoundingClientRect().height<44)).map(e=>e.className);
@@ -318,6 +318,84 @@ def edge_checks(browser):
     context.close()
 
 
+
+def feature_checks(browser):
+    for size in SIZES:
+        context=browser.new_context(viewport={'width':size[0],'height':size[1]},reduced_motion='reduce')
+        page=context.new_page();watch(page,f'features-{size}');page.goto(BASE);start(page)
+        # 돈·기술과 네 게이지의 도움말이 화면 안에서 닫히는지 확인한다.
+        for key in ['money','tech','econ','life','env','fair']:
+            page.locator(f'[data-action="help"][data-help="{key}"]').click()
+            assert page.locator('.help').count()==1
+            shot(page,size,'help-'+key);click(page,'close')
+        page.locator('[data-card="school"]').click()
+        assert '기술 +1' in page.locator('.building-info').inner_text()
+        assert '생활 +2' in page.locator('.building-info').inner_text()
+        shot(page,size,'school-info');page.keyboard.press('Escape')
+        # 미래·돈·기술 잠금 카드도 정보를 읽을 수 있다.
+        page.locator('[data-card="steel"]').click()
+        assert '발전소 필요' in page.locator('.building-info').inner_text()
+        shot(page,size,'future-info');page.keyboard.press('Escape')
+        place(page,'port')
+        page.locator('[data-card="textile"]').click()
+        previews=page.evaluate("""() => [...document.querySelectorAll('.tile.can')].map(el=>({i:Number(el.dataset.tile),text:el.querySelector('.export-preview').textContent}))""")
+        for item in previews:
+            expected=page.evaluate("i=>DaonEngine.exportOf(window.__verifyGame,i,window.__verifyGame.d,'textile')",item['i'])
+            assert item['text']==f"수출 {expected}"
+        assert any(x['text']=='수출 6' for x in previews)
+        shot(page,size,'export-preview');page.keyboard.press('Escape')
+        page.locator('[data-card="school"]').click();page.locator('.tile.can').first.click()
+        expected=page.evaluate('DaonEngine.production(window.__verifyGame)')
+        text=page.locator('.forecast').inner_text()
+        assert f"+{expected['income']}" in text and f"+{expected['techGain']}" in text
+        click(page,'undo');assert '+0' in page.locator('.forecast').inner_text()
+        tile=state(page)['placed'][0];page.locator(f'[data-tile="{tile}"]').click()
+        shot(page,size,'port-info-pop');click(page,'pop-close')
+        # 변경 전 저장 형식·시작 돈 15인 도시도 이어서 놀 수 있다.
+        old=page.evaluate("""() => {
+          const s=DaonEngine.newGame();s.money=15;
+          localStorage.setItem('daon-city-v1-game',JSON.stringify(s));
+          localStorage.setItem('daon-city-v1',JSON.stringify({endings:['green'],badges:['history'],tutorialSeen:true,sound:false}));return s;
+        }""")
+        page.reload();instrument(page);click(page,'continue')
+        assert state(page)==old
+        assert page.evaluate("JSON.parse(localStorage.getItem('daon-city-v1')).badges.includes('history')")
+        page.locator('[data-action="advance"]').click();page.wait_for_selector('[data-action="choose"]')
+        assert not page.locator('.city-running').count()
+        assert page.locator('.scaffold').first.evaluate('el=>getComputedStyle(el).display')=='none' if page.locator('.scaffold').count() else True
+        while page.locator('[data-action="choose"]').count():
+            text=page.locator('.bubble').inner_text();page.locator('[data-action="choose"][data-k="a"]').click()
+            page.wait_for_function('text=>!document.querySelector(".bubble")||document.querySelector(".bubble").textContent!==text',arg=text)
+        page.wait_for_selector('.hist-me.no')
+        assert '다온시는 다른 길로!' in page.locator('.hist-me').inner_text()
+        assert 'E5484D' not in page.locator('.hist-me>.ico').inner_html()
+        RESULT['edges'].append(f'{size}: 자원·게이지 도움말, 건물 숫자, 잠금 정보, 실제 수출, 예상 수입 갱신, 옛 저장, 중립 역사 카드')
+        context.close()
+    # 일반 모션에서는 비계·차·배·나무와 환경색이 연도가 오르는 동안 움직인다.
+    context=browser.new_context(viewport={'width':1024,'height':768},reduced_motion='no-preference')
+    page=context.new_page();watch(page,'animation');page.goto(BASE);start(page)
+    page.evaluate("""() => {
+      const s=window.__verifyGame;s.d=2;s.money=100;s.tech=10;
+      s.tiles[14].b='steel';s.tiles[14].at=1;s.tiles[7].b='power';s.tiles[7].at=1;s.tiles[21].b='textile';s.tiles[21].at=0;
+      for(const [id,i] of [['school',2],['park',3],['road',4],['port',28]])DaonEngine.place(s,id,i);
+    }""")
+    click(page,'dbg-money');click(page,'advance');page.wait_for_selector('.city-running')
+    page.wait_for_timeout(200)
+    first=page.locator('[data-tile="2"] .b').evaluate('el=>getComputedStyle(el).transform')
+    opacity=page.locator('.water-haze').first.evaluate('el=>getComputedStyle(el).opacity')
+    assert page.locator('.scaffold').first.evaluate('el=>getComputedStyle(el).display')=='block'
+    assert page.locator('.traffic,.sea-boat,.park-trees,.smoky .smoke').count()>=4
+    page.screenshot(path=str(OUT/'animation-start.png'),animations='allow')
+    page.wait_for_timeout(600)
+    assert page.locator('[data-tile="2"] .b').evaluate('el=>getComputedStyle(el).transform')!=first
+    assert page.locator('.water-haze').first.evaluate('el=>getComputedStyle(el).opacity')!=opacity
+    page.screenshot(path=str(OUT/'animation-grown.png'),animations='allow')
+    page.wait_for_selector('[data-action="choose"]')
+    assert not page.locator('.city-running').count()
+    RESULT['edges'].append('일반 모션: 비계→완성 transform, 차·배·나무·오염 연기, 환경색 opacity 보간')
+    context.close()
+
+
 def all_endings(browser):
     # 엔진의 판정은 내부 gauges를 쓰므로 최종 지도·보너스를 테스트 상태로 만듭니다.
     fixtures={'together':[5,80,80,80],'gray':[5,70,30,60],'unfair':[4,70,50,30],'green':[2,80,80,60],'stuck':[2,40,30,50],'grown':[3,55,50,50]}
@@ -351,7 +429,7 @@ def all_endings(browser):
 
 def main():
     parser=argparse.ArgumentParser(description='다온시 전체 검증 또는 중단 구간 재검증')
-    parser.add_argument('--stage',choices=['all','flows','edges','endings'],default='all')
+    parser.add_argument('--stage',choices=['all','flows','edges','endings','features'],default='all')
     parser.add_argument('--width',type=int,choices=[s[0] for s in SIZES])
     args=parser.parse_args()
     with sync_playwright() as p:
@@ -363,6 +441,8 @@ def main():
                         full_flow(browser,size)
             if args.stage in ['all','edges']:
                 edge_checks(browser)
+            if args.stage in ['all','features']:
+                feature_checks(browser)
             if args.stage in ['all','endings']:
                 all_endings(browser)
             assert not RESULT['errors'], RESULT['errors']
