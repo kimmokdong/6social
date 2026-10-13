@@ -429,3 +429,5 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 }
 
 .city-v2 .card.locked .c-fx{visibility:hidden}
+
+@media(max-width:700px){.city-readiness>button b{display:block;font-size:18px}.city-readiness>button{font-size:13px}}

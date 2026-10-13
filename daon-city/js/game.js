@@ -12,7 +12,6 @@
   const PEOPLE = { tycoon: '왕부자 회장', reporter: '나팩트 기자', kid: '도윤', teacher: '다정 선생님', activist: '초록 활동가', shopkeeper: '떡볶이 사장님', grandma: '봉순 할머니' };
   const REPR = { light: 'textile', heavy: 'steel', carElec: 'car', semi: 'semi', it: 'it', content: 'content', battery: 'battery' };
   const HINTS = Object.fromEntries(D.endings.map(e => [e.id, e.hint]));
-  const ENDING_ICON = { together: 'tree', export: 'port', tech: 'star', creative: 'content', gray: 'smog', unfair: 'scale', stuck: 'lock', grown: 'chart' };
 
   /* 글꼴은 온라인일 때만 불러옴(오프라인이면 시스템 글꼴) */
   if (location.protocol !== 'file:' && navigator.onLine) {
