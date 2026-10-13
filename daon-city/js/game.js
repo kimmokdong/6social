@@ -34,7 +34,7 @@
   }
   let progress = loadProgress();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (_) {} };
-  const saveGame = () => { try { localStorage.setItem(GAME_KEY, JSON.stringify(G)); } catch (_) {} };
+  const saveGame = () => { if (practice) return; try { localStorage.setItem(GAME_KEY, JSON.stringify(G)); } catch (_) {} };
   const clearGame = () => { try { localStorage.removeItem(GAME_KEY); } catch (_) {} };
   function savedGame() {
     try {
@@ -45,6 +45,7 @@
   }
   S.setEnabled(progress.sound);
 
+  let practice = null;
   let lens = 'industry', trayMode = 'industry', relocating = null, viewPlan = null;
   let G = null, sel = null, busy = false, pop = null, screen = '', cursor = 0, drag = null, toastTimer = 0, layerFocus = null;
 
@@ -85,58 +86,109 @@
     layerFocus = null;
   }
 
-  /* 효과 아이콘 줄: 카드에 표시 */
+  /* 같은 숫자라도 돈·사람·평가 점수를 구분해서 읽게 한다. */
+  const num = v => Number.isInteger(v) ? String(v) : v.toFixed(1);
+  const moneyCost = n => `<span class="action-cost">${icon('coin')}도시 돈 ${n} 사용</span>`;
+  const landCount = land => G.tiles.filter((t, i) => E.buildable(t.x, t.y) && E.isOpen({ land }, i)).length;
   function effects(id) {
-    const b = B[id];
-    return `<span class="fx">${icon(b.exp ? 'chart' : b.homes ? 'home' : b.education ? 'star' : b.supply ? 'bolt' : b.cleaning ? 'tree' : 'scale')}<b>${b.exp ? `일자리 ${b.jobs}` : b.homes ? `주민 ${b.homes}` : b.education ? `교육 ${b.education}` : b.supply ? `전력 ${b.supply}` : b.logistics ? `물류 ${b.logistics}` : '주변 지원'}</b></span>`;
+    const b = B[id], text = b.exp ? `일자리 ${b.jobs}개` : b.homes ? `${b.homes}명 거주` : b.education ? `${b.education}명 교육` : b.supply ? `전력 ${b.supply} 공급` : b.cleaning ? '오염 줄이기' : b.logistics ? '이웃 산업 지원' : '주민 생활 지원';
+    return `<span class="fx"><b>${text}</b></span>`;
   }
   function needs(id) {
-    const b = B[id]; return `${b.coastal ? `<span class="need">${icon('wave')}</span>` : ''}${b.skilled ? `<span class="need">${icon('star')}${b.skilled}</span>` : ''}`;
+    const b = B[id]; return b.coastal ? '<span class="need" title="바다 바로 위 땅에 지어요">해안</span>' : '';
   }
   const reasonHtml = (reason, id) => ({
-    money: `${icon('coin')}<b>부족</b>`,
-    tech: `${icon('star')}<b>${B[id]?.techReq ?? ''}</b>`,
-    power: `${icon('bolt')}<b>필요</b>`,
-    era: `${icon('lock')}<b>${B[id] ? era(B[id].era).label : ''}</b>`,
-    land: `${icon('lock')}<b>도시 확장 필요</b>`,
-    phase: '계획은 건설 시간에 바꿔요',
-    coast: `${icon('wave')}<b>해안만</b>`,
-    tile: `${icon('cross')}`
-  }[reason] || '');
-
-  /* 숫자는 엔진의 현재 시대와 배율을 그대로 보여 준다. */
+    money: '도시 돈이 부족해요', era: `${B[id] ? era(B[id].era).label : '다음 시대'}부터`,
+    land: '먼저 땅을 넓혀요', phase: '건설 시간에 바꿀 수 있어요', coast: '바다 바로 위에 지어요', tile: '빈 땅을 골라요'
+  }[reason] || '지금은 할 수 없어요');
   function buildingInfo(id, i = null) {
     const b = B[id], row = i === null ? null : E.production(G).rows.find(r => r.i === i), l = i === null ? 1 : E.level(G.tiles[i]);
-    const rows = [`${icon('coin')}신축 ${b.cost} · 운영비 ${b.upkeep * l}/10년`];
-    if (b.era > G.d) rows.push(`${era(b.era).label}부터 가능해요.`);
+    const main = [], detail = [];
+    if (i === null) main.push(`짓는 비용: 도시 돈 ${b.cost}`);
+    main.push(b.upkeep ? `10년 동안 운영하는 비용: 도시 돈 ${b.upkeep * l}` : '운영비가 들지 않아요.');
+    if (b.era > G.d) main.push(`${era(b.era).label}부터 지을 수 있어요.`);
     if (b.exp) {
-      rows.push(`일자리 ${b.jobs * l} · 기술 인력 ${b.skilled * l} · 전력 ${b.energy * l}`);
-      rows.push(`기본 생산 ${b.exp[G.d] * l} · 시대 수출 기회 ${D.rules.demand[b.cat][G.d]}`);
-      if (row) rows.push(`<b>가동 ${Math.round(row.rate * 100)}% · 실제 수출 ${row.exports.toFixed(1)}</b>${row.market < .99 ? ' · 주문을 나눠 받아요' : ''}`);
-      if (b.links) rows.push(`2칸 안에서 ${b.links.map(x => B[x].name).join('·')}와 협업`);
-      rows.push(`물류 시설 가까이에서 수출 지원 · 오염 ${b.pol || 0}`);
+      main.push(`일할 사람 ${b.jobs * l}명과 전력 ${b.energy * l}이 필요해요.`);
+      main.push(b.skilled ? `그중 ${b.skilled * l}명은 기술을 배운 사람이어야 해요.` : '배운 기술이 없어도 일할 수 있어요.');
+      if (row) main.push(`<b>${Math.round(row.rate * 100)}% 가동 중</b> · ${row.rate >= .99 ? '사람과 전력이 충분해요.' : '사람·기술·전력이 모자라 덜 만들어요.'}`);
+      detail.push(`수출 실적: ${row ? num(row.exports) : b.exp[G.d] * l}점${row ? ' (운영 조건과 주문을 반영한 값)' : ' (도움 없이 모두 가동할 때)'}`);
+      detail.push(`같은 산업끼리 나눠 갖는 수출 기회: ${D.rules.demand[b.cat][G.d]}점`);
+      if (row?.market < .99) detail.push('같은 산업의 주문을 나눠 받아요. 공장을 더 지어도 그만큼 더 팔리지는 않아요.');
+      if (b.links) detail.push(`${b.links.map(x => B[x].name).join('·')}가 2칸 안에 있으면 협업해요.`);
+      detail.push(`최대 오염 배출: ${(b.pol || 0) * l} · 환경 보기에서 피해 주택을 살펴요.`);
     }
-    if (b.homes) rows.push(`살 공간 ${b.homes * l} · 일자리가 있으면 주민이 들어와요`);
-    if (b.education) rows.push(`${b.range}칸 안의 주민 ${b.education * l} 교육 · 다음 시대부터 기술 인력 양성`);
-    if (b.supply) rows.push(`전력 ${b.supply * l} 공급 · 산업이 늘면 증축해요`);
-    if (b.logistics) rows.push(`${b.range}칸 안의 산업에 수출 지원 최대 ${b.logistics * l}`);
-    if (b.cleaning) rows.push(`${b.range}칸 안의 배출 ${b.cleaning * l}까지 처리`);
-    if (b.service) rows.push(`${b.range}칸 안의 주민 ${b.capacity * l} 생활 지원${id === 'park' ? ' · 공원이 폐수를 정화하지는 않아요' : ''}`);
-    if (b.coastal) rows.push('바다 바로 위 해안 칸에 지어요.');
-    return `<div class="info-lines">${rows.map(v => `<p>${v}</p>`).join('')}</div>`;
+    if (b.homes) main.push(`<b>${b.homes * l}명까지 살 수 있어요.</b> 일자리가 생기면 주민이 들어와요.`);
+    if (b.education) { main.push(`<b>주변 주민 ${b.education * l}명이 기술을 배울 수 있어요.</b>`); main.push('학교를 지은 뒤 10년을 보내야 배운 사람이 늘어요.'); detail.push(`가로·세로로 ${b.range}칸 안의 주택에 교육이 닿아요. 대각선은 가로와 세로 칸 수를 더해요.`); }
+    if (b.supply) main.push(`<b>산업이 쓸 전력 ${b.supply * l}을 공급해요.</b>`);
+    if (b.logistics) { main.push('바로 옆 산업이 상품을 더 잘 수출하도록 도와요.'); detail.push(`수출 지원은 최대 ${b.logistics * l}점까지 가까운 산업끼리 나눠 받아요.`); }
+    if (b.cleaning) { main.push('가까운 공장의 오염을 줄여요.'); detail.push(`${b.range}칸 안의 오염을 최대 ${b.cleaning * l}까지 나누어 처리해요.`); }
+    if (b.service) { main.push(`가까운 주민 ${b.capacity * l}명의 생활을 도와요.`); detail.push(`가로·세로로 ${b.range}칸 안의 주택에 닿아요.${id === 'park' ? ' 공원은 공장 폐수를 없애지는 않아요.' : ''}`); }
+    if (b.coastal) main.push('바다 바로 위 해안 땅에 지어요.');
+    return `<div class="info-lines">${main.map(v => `<p>${v}</p>`).join('')}${detail.length ? `<details><summary>수출·범위 등 자세히 보기</summary>${detail.map(v => `<p>${v}</p>`).join('')}</details>` : ''}</div>`;
+  }
+  function capacityChange(id, from = 1, to = 2) {
+    const b = B[id];
+    if (b.homes) return `살 수 있는 사람 ${b.homes * from}명 → ${b.homes * to}명`;
+    if (b.education) return `교육받을 수 있는 사람 ${b.education * from}명 → ${b.education * to}명`;
+    if (b.supply) return `공급하는 전력 ${b.supply * from} → ${b.supply * to}`;
+    if (b.exp) return `일자리 ${b.jobs * from}개 → ${b.jobs * to}개 · 운영비도 늘어요`;
+    if (b.cleaning) return `줄일 수 있는 오염 ${b.cleaning * from} → ${b.cleaning * to}`;
+    if (b.logistics) return `수출 지원 한도 ${b.logistics * from} → ${b.logistics * to}`;
+    return `생활 지원 ${b.capacity * from}명 → ${b.capacity * to}명`;
+  }
+  function comparison(aLabel, a, bLabel, b, unit = '') {
+    return `<div class="help-compare"><div><span>${aLabel}</span><strong>${num(a)}${unit}</strong></div><div><span>${bLabel}</span><strong>${num(b)}${unit}</strong></div></div>`;
   }
   function help(key) {
     const p = E.production(G), g = E.gauges(G);
-    const texts = {
-      money: ['도시 투자금', `기본 지원 ${p.base} + 수출 ${p.exportIncome} + 시장 ${p.marketIncome} − 운영비 ${p.upkeep} = ${p.income}`, '횟수 제한은 없어요. 운영비도 생각하며 신축·증축·산업 전환을 골라요.'],
-      tech: ['사람과 기술 인력', `살 공간 ${p.housing} · 일할 사람 ${p.workers} / 일자리 ${p.jobs}`, `기술 인력 ${p.skilled} / 필요 ${p.skilledNeed} · 다음 시대 +${p.techGain}`, '학교·대학교를 주택 가까이 배치해요. 기술 인력은 일할 사람의 일부예요.'],
-      power: ['전력 공급', `공급 ${p.supply} / 산업에 필요 ${p.energy}`, '처음 마을 전력은 2예요. 발전소는 공급량에 한도가 있고 증축할 수 있어요.'],
-      econ: ['산업과 수출', `수출 ${p.exports} / 이번 시대 목표 ${D.rules.exportTarget[G.d]}`, '사람·기술·전력이 준비된 만큼 가동해요. 같은 산업은 수출 기회를 나눠 받아요.'],
-      life: ['주민 생활', `생활 ${g.life} · 지원 주민 ${p.service}/${p.workers}`, '일자리·시장·공원·복지관이 실제 주민에게 닿아야 해요.'],
-      env: ['환경과 피해 지역', `환경 ${g.env} · 남은 배출 ${p.pollution.toFixed(1)} · 피해 주택 ${p.exposed.length}곳`, '정화 시설은 가까운 배출을 처리해요. 환경 보기로 피해 주택을 찾아요.'],
-      fair: ['성장의 혜택', `공정 ${g.fair}`, '일자리와 생활 지원에서 소외된 주민, 오염 피해, 시대 선택을 함께 살펴요.']
-    }[key] || ['도시 도움말'];
-    openLayer(`<div class="help"><h2>${texts[0]}</h2>${texts.slice(1).map(v => `<p>${esc(v)}</p>`).join('')}${btn('close', '닫기', 'primary')}</div>`);
+    let title, meaning, visual, status, advice, details = '', mapLink = '';
+    if (key === 'people') {
+      title = '일할 사람과 일자리'; meaning = '사람은 산업에서 일할 수 있는 주민, 일자리는 산업이 필요로 하는 사람 수예요.';
+      visual = comparison('일할 수 있는 사람', p.workers, '산업에 필요한 사람', p.jobs, '명');
+      status = p.jobs > p.workers ? `${p.jobs - p.workers}명이 부족해요. 그래서 공장이 덜 돌아가요.` : p.workers > p.jobs ? `사람은 충분해요. 일자리가 ${p.jobs}개여서 ${p.workers - p.jobs}명은 아직 일할 곳이 없어요.` : '사람 수와 일자리가 맞아요.';
+      advice = p.jobs > p.workers ? '집을 짓거나 키워 살 곳을 늘려 주세요. 일자리가 있으면 주민이 들어와요.' : '집만 많이 지어도 주민이 계속 늘지는 않아요. 사람·전력·교육을 살피며 산업을 키워 주세요.';
+      details = `지금 집에는 최대 ${p.housing}명이 살 수 있어요.
+이 숫자는 현재 건설 계획대로 산업을 운영할 때의 예상 인원을 포함해요.`;
+    } else if (key === 'tech') {
+      title = '기술을 배운 사람'; meaning = '기술 인력은 학교·대학교에서 기술을 배운 주민이에요. 일할 사람 안에 포함돼요.';
+      visual = comparison('지금 일할 수 있는 기술 인력', p.skilled, '산업에 필요한 기술 인력', p.skilledNeed, '명');
+      status = p.skilledNeed === 0 ? '지금 지은 산업은 기술 인력이 없어도 운영할 수 있어요.' : p.skilledNeed > p.skilled ? `${p.skilledNeed - p.skilled}명이 부족해서 새 산업이 덜 돌아가요.` : '이 산업에 필요한 기술 인력이 충분해요.';
+      advice = p.techGain ? `10년을 보내면 ${p.techGain}명이 새로 기술을 배워요. 학교를 지었다고 바로 늘지는 않아요.` : p.education === 0 ? '교육이 주택에 닿지 않아요. 학교를 주택 가까이 지어 주세요.' : '지금 학교가 가르칠 수 있는 주민은 이미 배웠어요. 다음 산업에 기술 인력이 더 필요해지면 학교를 키우거나 더 지어 주세요.';
+      details = `일할 사람 ${p.workers}명 중 기술 인력은 ${p.skilled}명이에요.
+교육은 가로·세로 2칸 안의 실제 주민에게 닿아요. 한 시대에 최대 2명을 새로 가르쳐요.`;
+      mapLink = btn('help-map', '지도에서 교육 범위 보기', 'secondary', 'data-lens="people"');
+    } else if (key === 'power') {
+      title = '전기가 충분한가요?'; meaning = '전력은 산업을 움직이는 전기예요. 공급이 필요한 양보다 적으면 공장이 덜 돌아가요.';
+      visual = comparison('도시가 공급하는 전력', p.supply, '산업에 필요한 전력', p.energy);
+      status = p.supply < p.energy ? `전력이 ${p.energy - p.supply} 부족해요.` : `전력이 충분해요. ${p.supply - p.energy}만큼 더 쓸 수 있어요.`;
+      advice = p.supply < p.energy ? '발전소를 짓거나 기존 발전소를 키워 주세요.' : '산업을 더 지을 때 필요한 전력이 늘어나요. 짓기 전에 필요한 양을 확인해요.';
+      details = '처음 마을이 공급하는 전력은 2예요.\n화력 발전소는 8, 친환경 발전소는 10을 공급해요. 게임에서 비교하는 전력량이에요.';
+    } else if (key === 'money') {
+      title = '건물을 짓는 도시의 돈'; meaning = '도시 돈은 건물을 짓고, 키우고, 옮기는 데 써요. 비용만큼 가지고 있는 돈이 줄어요.';
+      visual = comparison('지금 가진 돈', G.money, '10년 뒤 예상 돈', Math.max(0, G.money + p.income));
+      status = `10년 운영 후 돈이 ${Math.abs(p.income)} ${p.income >= 0 ? '늘어날' : '줄어들'} 예정이에요.`;
+      advice = '새 건물의 짓는 비용과 운영비를 함께 살펴요. 되돌리기를 누르면 이번 계획에 쓴 돈을 돌려받아요.';
+      details = `기본 지원 +${p.base}
+수출로 번 돈 +${p.exportIncome}
+시장에서 번 돈 +${p.marketIncome}
+10년 운영비 −${p.upkeep}
+운영비를 뺀 결과 ${p.income >= 0 ? '+' : ''}${p.income}${G.money + p.income < 0 ? '\n돈이 모자라는 만큼 긴급 지원을 받아 0으로 시작해요.' : ''}`;
+    } else {
+      const descriptions = {
+        econ: ['경제: 산업이 얼마나 자랐나요?', '산업이 해외에 상품을 많이 팔수록 경제 평가가 높아져요.', `이번 10년의 수출 실적은 ${p.exports}점이에요.`, '사람·전력·교육을 준비해 산업이 잘 돌아가게 해요. 같은 산업만 늘리면 주문을 나눠 받아요.'],
+        life: ['생활: 주민이 살기 좋은가요?', '일자리와 가까운 시장·공원·복지관이 생활을 돕고, 오염 피해는 생활을 나쁘게 해요.', `주민 ${p.workers}명 중 ${p.service}명에게 생활 지원이 닿아요.`, '생활 시설을 주택 가까이 놓고, 피해를 받는 주택을 살펴요.'],
+        env: ['환경: 오염이 얼마나 적나요?', '환경 점수가 높을수록 깨끗해요. 공장·발전소의 배출이 남으면 점수가 내려가요.', `오염 피해를 받는 주택은 ${p.exposed.length}곳이에요.`, '환경 보기의 😷 주택을 확인해요. 공장을 옮겨 피해를 피하거나 정화 시설로 배출을 줄일 수 있어요.'],
+        fair: ['공정: 성장의 혜택이 닿았나요?', '일자리와 생활 지원의 혜택이 주민에게 잘 닿는지 보여 줘요.', `실제로 일할 수 있는 주민은 약 ${num(p.employed)}명, 생활 지원을 받는 주민은 ${p.service}명이에요.`, '일하지 못하는 주민과 생활 지원을 받지 못하는 주택을 줄여 보세요. 시대의 선택도 영향을 줘요.']
+      }[key];
+      if (!descriptions) return;
+      [title, meaning, status, advice] = descriptions;
+      visual = `<div class="help-score"><strong>${g[key]}<small> / 100점</small></strong><meter min="0" max="100" value="${g[key]}" aria-label="${D.gauges[key].label} 평가"></meter><span>점수가 높을수록 좋아요</span></div>`;
+      if (key === 'econ') details = `이번 시대의 성장 기준은 수출 ${D.rules.exportTarget[G.d]}점이에요. 기준만큼 수출하면 경제 70점, 더 성장하면 최대 100점이에요.
+수출 실적 × 0.8을 반올림한 만큼 도시 돈을 벌어요.`;
+      if (key === 'env') { details = `남은 오염 배출은 ${num(p.pollution)}이에요.
+공원은 주민 생활을 돕고, 공장 폐수를 없애는 것은 정화 시설이에요.`; mapLink = btn('help-map', '지도에서 피해 주택 보기', 'secondary', 'data-lens="env"'); }
+    }
+    openLayer(`<div class="help help-clear"><h2>${title}</h2><p class="help-meaning">${meaning}</p>${visual}<p class="help-status">${status}</p><div class="help-advice"><b>이렇게 해 보세요</b><p>${advice}</p></div>${details ? `<details><summary>자세한 숫자와 규칙 보기</summary>${details.split('\n').map(v => `<p>${v}</p>`).join('')}</details>` : ''}<div class="help-buttons">${mapLink}${btn('close', '도시로 돌아가기', 'primary')}</div></div>`);
   }
   function tileHtml(i, readonly = false) {
     const t = G.tiles[i], id = t.b, coastal = E.coastal(t.x, t.y), row = viewPlan?.rows.find(r => r.i === i), open = !E.buildable(t.x, t.y) || E.isOpen(G, i);
@@ -147,6 +199,7 @@
       if (!readonly && row?.b.exp) badge += `<span class="tile-status ${row.rate < .99 ? 'short' : ''}">${Math.round(row.rate * 100)}%</span>`;
       if (!readonly && viewPlan?.exposed.includes(i)) badge += '<span class="tile-alert" aria-label="오염 피해">😷</span>';
     }
+    if (practice && !practice.pending && i === (relocating !== null ? PRACTICE[practice.step].to : PRACTICE[practice.step].tile)) cls += ' lesson-target';
     if (!readonly && lens === 'people' && id === 'house') { const taught = new Map(viewPlan?.educated).get(i) || 0; if (taught) cls += ' lens-good'; badge += `<span class="tile-status">👷${new Map(viewPlan?.residents).get(i) || 0} 🎓${taught}</span>`; }
     if (!readonly && lens === 'env' && row?.pollution > 0) { cls += ' lens-bad'; badge += `<span class="tile-status short">배출 ${row.pollution.toFixed(0)}</span>`; }
     if (sel && E.canPlace(G, sel, i).ok) cls += ' can';
@@ -174,7 +227,7 @@
 
   /* ───── 게이지 ───── */
   function gaugesHtml(g, cls = '') {
-    return `<div class="gauges ${cls}">${GK.map(k => `<button type="button" class="gauge${g[k] <= 25 ? ' low' : ''}" data-g="${k}" data-action="help" data-help="${k}" aria-label="${D.gauges[k].label} ${g[k]}, 도움말"><div class="g-icon">${A.gauge(k, GICON[k], g[k])}</div><span class="g-label">${D.gauges[k].label}</span><b class="g-num">${g[k]}</b></button>`).join('')}</div>`;
+    return `<div class="gauges ${cls}">${GK.map(k => `<button type="button" class="gauge${g[k] <= 25 ? ' low' : ''}" data-g="${k}" data-action="help" data-help="${k}" aria-label="${D.gauges[k].label} ${g[k]}, 도움말"><div class="g-icon">${A.gauge(k, GICON[k], g[k])}</div><span class="g-label">${D.gauges[k].label}</span><b class="g-num">${g[k]}<small>/100점</small></b></button>`).join('')}</div>`;
   }
 
   function oldSaveExists() { try { return !!localStorage.getItem('daon-city-v1-game'); } catch (_) { return false; } }
@@ -184,7 +237,7 @@
     const saved = savedGame();
     setScreen('title', `<header class="tbar"><span class="title-left"><a class="title-guide" href="../guides/daon.html">게임 설명서</a><span class="title-credit">만든이 현승쌤</span></span><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
       <section class="title-main"><div class="skyline" aria-hidden="true">${A.skyline()}</div><h1 class="logo">다온시 <span>70년</span></h1><p class="v2-title-note">산업을 골라, 나만의 발전을 만들어요</p>${oldSaveExists() ? '<p class="legacy-note">새 산업 규칙으로 시작해요. 이전 버전의 저장은 보관되어 있어요.</p>' : ''}
-      <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
+      <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('practice', '연습 도시로 배우기', 'secondary practice-entry')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
   }
 
   /* ───── 시대 신문 ───── */
@@ -199,35 +252,42 @@
   /* ───── 건설 화면 ───── */
   function build() {
     const d = G.d, g = E.gauges(G), forecast = G.phase === 'events' ? G.last : E.production(G);
-    const cards = Object.keys(B).filter(id => B[id].era <= d + 1 && (!!B[id].exp === (trayMode === 'industry'))).sort((a, b) => (B[b].era === d) - (B[a].era === d) || B[a].era - B[b].era);
+    const cards = practice ? (PRACTICE[practice.step].card && !!B[PRACTICE[practice.step].card].exp === (trayMode === 'industry') ? [PRACTICE[practice.step].card] : []) : Object.keys(B).filter(id => B[id].era <= d + 1 && (!!B[id].exp === (trayMode === 'industry'))).sort((a, b) => (B[b].era === d) - (B[a].era === d) || B[a].era - B[b].era);
     const leaders = Object.entries(forecast.categories).sort((a, b) => b[1] - a[1]).filter(([, v]) => v > 0);
-    setScreen('build', `<section class="build era-${d} city-v2">
+    const nowLand = landCount(G.land), nextLand = landCount(Math.min(2, G.land + 1));
+    const expansion = G.land < 2 ? `땅 넓히기${moneyCost(D.rules.expandCost[G.land])}<small>${nowLand}칸 → ${nextLand}칸${d < (G.land === 0 ? 1 : 3) ? ` · ${era(G.land === 0 ? 1 : 3).label}부터` : ''}</small>` : `땅 확장 완료<small>최대 ${nowLand}칸</small>`;
+    const metric = (key, title, available, need, unit, supplyLabel = '가능') => btn('help', `<span class="metric-title">${title}</span><span class="metric-numbers"><span>${supplyLabel} <b>${num(available)}${unit}</b></span><span>필요 <b>${num(need)}${unit}</b></span></span><small class="${available < need ? 'short' : ''}">${available < need ? `${num(need - available)}${unit} 부족` : need === 0 ? '아직 필요한 산업 없음' : '충분해요'}</small>`, 'readiness-card', `data-help="${key}"`);
+    setScreen('build', `<section class="build era-${d} city-v2${practice ? ' practice-city' : ''}" ${practice ? `data-lesson-kind="${PRACTICE[practice.step].kind}"` : ''}>
       <header class="topbar">${iconBtn('menu', '메뉴', 'menu')}<div class="decade"><strong>${era(d).label}</strong><div class="timeline">${D.eras.map((e, i) => `<i class="${i < d ? 'done' : i === d ? 'now' : ''}"></i>`).join('')}</div></div>
-        <div class="res"><button data-action="help" data-help="money" class="res-item" aria-label="투자금 도움말">${icon('coin')}<b>${G.money}</b></button><button data-action="help" data-help="tech" class="res-item" aria-label="기술 인력 도움말">${icon('star')}<b>${forecast.skilled}</b></button>${btn('expand', `땅 확장 ${G.land < 2 ? D.rules.expandCost[G.land] : '완료'}`, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
-      <div class="city-readiness"><button data-action="help" data-help="tech">👷 사람 <b>${forecast.workers}/${forecast.jobs}</b></button><button data-action="help" data-help="tech">🎓 기술 인력 <b>${forecast.skilled}/${forecast.skilledNeed}</b></button><button data-action="help" data-help="power">⚡ 전력 <b>${forecast.supply}/${forecast.energy}</b></button>${gaugesHtml(g)}</div>
-      <div class="main"><div class="map-wrap"><div class="map-toolbar">${[['industry', '산업'], ['people', '사람·교육'], ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '이전할 빈 칸을 골라요 · 비용 2' : forecast.warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
-      <aside class="tray"><div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div><div class="forecast">예상 순수입 ${forecast.income >= 0 ? '+' : ''}${forecast.income} · 교육 +${forecast.techGain}<small>수입 ${forecast.base + forecast.exportIncome + forecast.marketIncome} − 운영비 ${forecast.upkeep}</small></div>
+        <div class="res"><button data-action="help" data-help="money" class="res-item money-res" aria-label="도시 돈 ${G.money}, 도움말">${icon('coin')}<span>도시 돈 <b class="money-amount">${G.money}</b></span></button>${btn('expand', expansion, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
+      <div class="city-readiness">${metric('people', '👷 일할 사람', forecast.workers, forecast.jobs, '명')}${metric('tech', '🎓 기술 인력', forecast.skilled, forecast.skilledNeed, '명')}${metric('power', '⚡ 전력', forecast.supply, forecast.energy, '', '공급')}${gaugesHtml(g)}</div>${practice ? practicePanel() : ''}
+      <div class="main"><div class="map-wrap"><div class="map-toolbar">${relocating !== null ? btn('cancel-move', '옮기기 취소', 'secondary') : [['industry', '산업'], ['people', '사람·교육'], ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '빈 땅을 누르면 건물이 옮겨져요 · 도시 돈 2 사용' : forecast.warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
+      <aside class="tray">${practice ? '' : `<div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div>`}<div class="forecast"><button data-action="help" data-help="money">10년 뒤 도시 돈 <b>${G.money} → ${Math.max(0, G.money + forecast.income)}</b><small>운영비를 뺀 뒤 ${forecast.income >= 0 ? '+' : ''}${forecast.income}</small></button><button data-action="help" data-help="tech">새로 기술을 배울 사람 <b>${forecast.techGain}명</b></button></div>
       <div class="tray-tabs">${btn('tray', '산업 키우기', trayMode === 'industry' ? 'active' : '', 'data-tray="industry"')}${btn('tray', '기반 준비', trayMode === 'support' ? 'active' : '', 'data-tray="support"')}</div>
-      ${sel ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : '<div class="info-hint">카드와 건물을 눌러 운영 조건을 살펴요.</div>'}<div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
-      <div class="tray-foot">${btn('undo', icon('undo'), 'icon-btn', `aria-label="계획 되돌리기" ${G.actions.length ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}</section>`);
+      ${sel && !practice ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
+      <div class="tray-foot">${btn('undo', `${icon('undo')}<small>되돌리기</small>`, 'icon-btn undo-labeled', `aria-label="계획 되돌리기, 쓴 돈 돌려받기" ${G.actions.length && !practice ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}</section>`);
     fitMap(); positionPop(); if (matchMedia('(orientation: portrait)').matches) { const c = app.querySelector('.card.sel'), cards = app.querySelector('.cards'); if (c && cards) cards.scrollLeft = c.offsetLeft - cards.offsetLeft; }
-    if (!progress.tutorialSeen && d === 0) tutorial(0);
+    if (practice) { app.querySelector('[data-action="expand"]').disabled ||= practice.pending || PRACTICE[practice.step].kind !== 'expand'; app.querySelector('[data-action="advance"]').disabled = practice.pending || PRACTICE[practice.step].kind !== 'advance'; checkPractice(); }
+    else if (!progress.tutorialSeen && d === 0) tutorial();
   }
   function cardHtml(id) {
     const b = B[id], st = E.cardStatus(G, id), future = b.era > G.d;
     const isNew = b.era === G.d && G.d > 0;
-    return `<button type="button" role="listitem" class="card${sel === id ? ' sel' : ''}${st.ok ? '' : ' locked'}${future ? ' future' : ''}" data-card="${id}" aria-label="${b.name}, ${b.cost}원" aria-pressed="${sel === id}">
+    return `<button type="button" role="listitem" class="card${sel === id ? ' sel' : ''}${st.ok ? '' : ' locked'}${future ? ' future' : ''}" data-card="${id}" aria-label="${b.name}, 짓는 비용 도시 돈 ${b.cost}" aria-pressed="${sel === id}">
       <div class="c-icon">${A.building(id, { d: G.d })}</div><div class="c-name">${b.name}</div>
-      <div class="c-row"><span class="cost">${icon('coin')}<b>${b.cost}</b></span>${needs(id)}</div><div class="c-fx">${effects(id)}</div>
+      <div class="c-row"><span class="cost">${icon('coin')}짓는 돈 <b>${b.cost}</b></span>${needs(id)}</div><div class="c-fx">${effects(id)}</div>
       ${!st.ok ? `<span class="c-lock">${reasonHtml(st.reason, id)}</span>` : ''}${isNew ? '<span class="c-new">NEW</span>' : ''}</button>`;
   }
   /* 지은 건물에서 증축·이전·산업 전환을 고른다. */
   function popHtml() {
     const t = G.tiles[pop]; if (!t?.b) return '';
     const up = E.canUpgrade(G, pop), conversion = sel && E.canConvert(G, sel, pop);
-    return `<div class="pop" role="dialog" aria-label="${B[t.b].name}"><div class="pop-head">${A.building(t.b, { d: G.d, level: E.level(t) })}<b>${B[t.b].name} ${E.level(t) === 2 ? '증축' : ''}</b></div>${buildingInfo(t.b, pop)}<div class="pop-actions">
-      ${conversion?.ok ? btn('pop-convert', `${B[sel].name}로 전환 ${conversion.cost}`, 'primary', `data-id="${sel}"`) : ''}
-      ${btn('pop-upgrade', `증축 ${up.cost || ''}`, 'secondary', up.ok ? '' : 'disabled')}${btn('pop-move', '이전 2', 'secondary', G.money < 2 ? 'disabled' : '')}${btn('pop-demolish', '철거 1', 'danger', E.canDemolish(G, pop).ok ? '' : 'disabled')}${btn('pop-close', icon('cross'), 'icon-btn', 'aria-label="닫기"')}</div></div>`;
+    const action = (name, title, cost, result, enabled, extra = '') => btn(name, `<strong>${title}</strong>${moneyCost(cost)}<small>${result}</small>`, 'operation', `${enabled ? '' : 'disabled'} ${extra}`);
+    return `<div class="pop" role="dialog" aria-label="${B[t.b].name} 관리"><div class="pop-head">${A.building(t.b, { d: G.d, level: E.level(t) })}<b>${B[t.b].name}${E.level(t) === 2 ? ' · 크게 지은 상태' : ''}</b>${btn('pop-close', icon('cross'), 'icon-btn', 'aria-label="건물 안내 닫기"')}</div>${buildingInfo(t.b, pop)}<div class="pop-actions">
+      ${conversion?.ok ? action('pop-convert', `${B[sel].name}로 바꾸기`, conversion.cost, '같은 땅에서 다른 산업을 시작해요', true, `data-id="${sel}"`) : ''}
+      ${E.level(t) === 2 ? '<p class="upgrade-done">✓ 이 건물은 최대 크기예요.</p>' : action('pop-upgrade', '건물 키우기 (증축)', up.cost, capacityChange(t.b), up.ok)}
+      ${action('pop-move', '다른 땅으로 옮기기', 2, '다음에 누르는 빈 땅으로 옮겨요', G.money >= 2)}
+      ${action('pop-demolish', '건물 없애기 (철거)', D.rules.demolishCost, '이 땅을 비워요 · 돈을 돌려받지는 않아요', E.canDemolish(G, pop).ok)}</div><p class="operation-note">이번 건설 시간의 변경은 되돌리기로 취소할 수 있어요.</p></div>`;
   }
   function positionPop() {
     const el = app.querySelector('.pop'), tile = pop !== null && app.querySelector(`[data-tile="${pop}"]`);
@@ -240,6 +300,7 @@
   }
   function selectCard(id) {
     if (busy) return;
+    if (practice && (practice.pending || PRACTICE[practice.step].card !== id)) return;
     const st = E.cardStatus(G, id);
     pop = null;
     if (sel === id) sel = null;
@@ -249,6 +310,7 @@
   function tapTile(i) {
     if (busy) return;
     cursor = i;
+    if (practice && (practice.pending || i !== (relocating !== null ? PRACTICE[practice.step].to : PRACTICE[practice.step].tile))) { toast('연습에서는 빛나는 땅을 눌러 보세요.'); return; }
     if (relocating !== null) { const result = E.move(G, relocating, i); if (result.ok) { relocating = null; saveGame(); build(); } else toast('비어 있는 열린 땅을 골라요. 해안 조건도 확인해요.'); return; }
     const t = G.tiles[i];
     if (sel) {
@@ -290,7 +352,7 @@
 
   /* 끌어다 놓기 (터치·마우스) */
   function startDrag(e, id) {
-    if (busy || B[id].era > G.d) return;
+    if (busy || (practice && (practice.pending || PRACTICE[practice.step].card !== id)) || B[id].era > G.d) return;
     drag = { id, x: e.clientX, y: e.clientY, moved: false, pid: e.pointerId, ghost: null, over: null,
       scroll: e.pointerType === 'touch' && matchMedia('(orientation: portrait)').matches };
   }
@@ -349,9 +411,8 @@
     }
     for (let y = 0; y <= 9; y++) { year.textContent = `${1960 + d * 10 + y}`; await wait(140); }
     S.play('coin');
-    const moneyEl = app.querySelector('.res-item b'), techEl = app.querySelectorAll('.res-item b')[1];
+    const moneyEl = app.querySelector('.money-amount');
     if (moneyEl) moneyEl.textContent = G.money;
-    if (techEl) techEl.textContent = E.production(G).skilled;
     year.innerHTML = `<span class="gain">${icon('coin')}${res.income >= 0 ? '+' : ''}${res.income}</span>${res.techGain ? `<span class="gain">${icon('star')}+${res.techGain}</span>` : ''}`;
     await wait(1300);
     climate.classList.remove('city-running');
@@ -389,8 +450,7 @@
         S.play(Object.values(fx).some(v => v < 0) ? 'down' : 'up');
         const g = E.gauges(G);
         app.querySelector('.gauges').outerHTML = gaugesHtml(g);
-        app.querySelectorAll('.res-item b')[0].textContent = G.money;
-        app.querySelectorAll('.res-item b')[1].textContent = E.production(G).skilled;
+        app.querySelector('.money-amount').textContent = G.money;
         await wait(1300); closeLayer(); build(); app.querySelector('.build')?.classList.add('timelapse'); resolve();
       }, { once: true }));
     });
@@ -450,22 +510,73 @@
       }).join('')}</section>`);
   }
 
-  /* ───── 안내(처음 한 번) ───── */
-  function tutorial(step) {
-    const art = [
-      `<div class="tut-art">${A.building('textile')}<span class="tut-arrow">${icon('play')}</span><div class="tut-tile">${A.terrain('F')}</div></div>`,
-      `<div class="tut-art"><div class="tut-tile">${A.terrain('F', true)}${A.building('school')}</div><div class="tut-tile">${A.terrain('F')}${A.building('house')}</div></div>`,
-      `<div class="tut-art"><div class="tut-tile">${A.terrain('F')}<div class="b smoky">${A.building('steel')}</div></div><div class="tut-tile">${A.terrain('F')}${A.building('cleaner')}</div></div>`
+  /* ───── 기존 도시와 저장을 건드리지 않는 직접 조작 연습 ───── */
+  const PRACTICE = [
+    { kind: 'place', card: 'textile', tile: 21, title: '돈을 써서 첫 산업 짓기', task: '섬유 공장 카드를 고른 뒤 빛나는 땅을 눌러요. 짓는 돈 3이 무슨 뜻인지 확인해요.' },
+    { kind: 'place', card: 'school', tile: 7, title: '학교로 다음 산업 준비하기', task: '기반 준비에서 학교를 골라 주택 옆 빛나는 땅에 지어요. 기술은 배우는 시간이 필요해요.' },
+    { kind: 'upgrade', tile: 8, title: '같은 땅에서 집 키우기', task: '빛나는 주택을 누르고 건물 키우기를 골라요. 쓸 돈과 늘어나는 인원은 서로 다른 숫자예요.' },
+    { kind: 'advance', title: '10년 운영한 결과 보기', task: '10년 보내기를 눌러요. 산업이 돈을 벌고, 학교의 주민이 기술을 배워요.' },
+    { kind: 'place', card: 'steel', tile: 22, title: '새 산업에 필요한 전력 읽기', task: '1970년대의 제철소를 빛나는 땅에 지어요. 가능한 사람과 필요한 전력을 비교해요.' },
+    { kind: 'place', card: 'power', tile: 28, title: '부족한 전력 채우기', task: '기반 준비에서 화력 발전소를 골라 빛나는 땅에 지어요. 공장이 얼마나 돌아가는지 다시 확인해요.' },
+    { kind: 'move', tile: 22, to: 30, title: '오염 피해 주택 지키기', task: '😷 주택 가까이 있는 빛나는 제철소를 누르고 다른 땅으로 옮기기를 골라요. 새로 빛나는 빈 땅으로 옮겨요.' },
+    { kind: 'expand', title: '돈과 땅의 칸 수 구분하기', task: '땅 넓히기를 눌러요. 도시 돈 5를 쓰면 땅이 5칸 늘어나는 것인지 확인해요.' }
+  ];
+  function tutorial() {
+    openLayer(`<div class="help welcome"><h2>산업이 자라는 도시를 만들어요</h2><p>도시 돈은 건물을 짓는 데 쓰고, 사람·기술·전력은 산업을 움직여요.</p><p>연습 도시에서 직접 지으며 숫자를 읽어 볼까요?</p><div class="help-buttons">${btn('practice', '연습 도시로 배우기', 'primary')}${btn('tut-skip', '바로 도시 만들기', 'secondary')}</div></div>`, 'tut-layer');
+  }
+  function beginPractice() {
+    closeLayer(); practice = { step: 0, pending: false, returnGame: G };
+    G = E.newGame(); sel = null; pop = null; relocating = null; lens = 'industry'; trayMode = 'industry'; busy = false;
+    practice.before = { money: G.money, plan: E.production(G), land: landCount(G.land) }; build();
+  }
+  function endPractice() {
+    closeLayer(); G = practice.returnGame; practice = null; sel = null; pop = null; relocating = null; busy = false; title();
+  }
+  function practicePanel() {
+    const step = PRACTICE[practice.step];
+    return `<section class="practice-panel" aria-label="연습 안내"><div class="practice-heading"><b>연습 ${practice.step + 1}/${PRACTICE.length}</b>${btn('practice-exit', '연습 나가기', 'text-btn')}</div><strong>${step.title}</strong><p>${step.task}</p><small>연습용 도시예요. 내 도시 저장과 엔딩 도감은 그대로예요.</small>${practice.pending ? btn('practice-next', '다음 연습으로', 'primary') : ''}</section>`;
+  }
+  function checkPractice() {
+    if (practice.pending) return;
+    const step = PRACTICE[practice.step];
+    const done = step.kind === 'place' ? G.tiles[step.tile].b === step.card : step.kind === 'upgrade' ? E.level(G.tiles[step.tile]) === 2 : step.kind === 'advance' ? G.d === 1 : step.kind === 'move' ? G.tiles[step.to].b === 'steel' && !G.tiles[step.tile].b : G.land === 1;
+    if (!done) return;
+    practice.pending = true; const p = E.production(G), before = practice.before;
+    const lessons = [
+      [`도시 돈 ${before.money} → ${G.money}`, '공장 짓는 돈 3을 썼어요. 일자리 2개는 비용이 아니라 공장이 필요로 하는 사람 수예요.'],
+      ['학교를 지어도 기술 인력은 아직 0명', '10년을 보내면 2명이 새로 배워요. 학교의 교육 숫자는 지금 배운 사람 수가 아니라 가르칠 수 있는 사람 수예요.'],
+      ['도시 돈 2 사용 · 살 곳 2명 → 4명', '같은 땅에서 집을 더 크게 지었어요. 살 곳이 늘어도 일자리가 없으면 주민이 바로 늘지는 않아요.'],
+      [`돈 ${before.money} → ${G.money} · 기술을 배운 사람 2명`, '10년 운영비를 뺀 돈을 받았고, 학교에 다닌 주민이 기술을 배웠어요. 본 게임에서는 시대의 사건과 실제 역사도 만나게 돼요.'],
+      [`공급 전력 ${p.supply} · 필요한 전력 ${p.energy}`, '사람은 충분하지만 전력이 모자라서 공장이 50%만 돌아가요. 건물을 짓는 것과 잘 운영하는 것은 달라요.'],
+      ['전력이 충분해져 공장이 100% 가동해요', '그런데 😷 주택은 오염 피해를 받아요. 생산 조건과 주민의 피해를 함께 살펴야 해요.'],
+      [`피해 주택 ${before.plan.exposed.length}곳 → ${p.exposed.length}곳`, '도시 돈 2를 써서 공장을 옮겼어요. 주민의 피해는 피했지만 공장이 내보내는 오염 자체가 사라진 것은 아니에요.'],
+      [`도시 돈 5 사용 · 땅 ${before.land}칸 → ${landCount(G.land)}칸`, '5는 비용이에요. 이번에는 건설 가능한 땅이 8칸 늘었어요. 비용과 효과를 따로 읽으면 선택하기 쉬워요.']
     ];
-    const caps = ['시대의 산업을 골라요!', '사람·교육·전력이 있어야 돌아가요!', '환경 보기에서 피해를 확인해요!'];
-    openLayer(`<div class="tut">${art[step]}<h2>${caps[step]}</h2><div class="dots">${[0, 1, 2].map(i => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>
-      ${btn('tut-next', step < 2 ? '다음' : '해 볼게요!', 'primary big', `data-step="${step}"`)}${btn('tut-skip', '건너뛰기', 'text-btn')}</div>`, 'tut-layer');
+    pop = null; sel = null;
+    app.querySelector('.practice-panel').outerHTML = practicePanel();
+    app.querySelector('[data-action="advance"]').disabled = true; app.querySelector('[data-action="expand"]').disabled = true; fitMap();
+    openLayer(`<div class="help practice-feedback"><span class="lesson-success">✓ 직접 해 봤어요</span><h2>${lessons[practice.step][0]}</h2><p>${lessons[practice.step][1]}</p><div class="help-buttons">${btn('practice-next', practice.step === PRACTICE.length - 1 ? '연습 마치기' : '다음 연습', 'primary')}${btn('practice-exit', '연습 나가기', 'secondary')}</div></div>`);
+  }
+  function nextPractice() {
+    closeLayer();
+    if (practice.step === PRACTICE.length - 1) {
+      openLayer(`<div class="help practice-complete"><h2>이제 나만의 도시를 만들어요!</h2><p>돈은 비용, 명은 사람 수, 칸은 땅의 넓이예요. 건물을 고르기 전에 비용과 바뀔 모습을 함께 살펴요.</p><p>모르는 숫자는 누르면 뜻과 해결 방법이 나와요. 연습은 언제든 다시 할 수 있어요.</p>${btn('practice-finish', savedGame() ? '내 도시 이어하기' : '본 게임 시작하기', 'primary')}${btn('practice-exit', '게임 홈으로', 'secondary')}</div>`); return;
+    }
+    practice.step++; practice.pending = false; sel = null; pop = null; relocating = null;
+    const step = PRACTICE[practice.step]; trayMode = step.card && !B[step.card].exp ? 'support' : 'industry';
+    lens = step.kind === 'move' ? 'env' : 'industry';
+    practice.before = { money: G.money, plan: E.production(G), land: landCount(G.land) }; build();
+  }
+  function practiceAllows(action) {
+    if (!practice) return true;
+    if (['practice-next', 'practice-exit', 'practice-finish', 'help', 'help-map', 'close', 'menu', 'pop-close', 'cancel-move', 'lens', 'tray', 'to-title', 'title'].includes(action)) return true;
+    const step = PRACTICE[practice.step];
+    return !practice.pending && ((step.kind === 'upgrade' && action === 'pop-upgrade' && pop === step.tile) || (step.kind === 'move' && action === 'pop-move' && pop === step.tile) || (step.kind === 'advance' && action === 'advance') || (step.kind === 'expand' && action === 'expand'));
+  }
+  function menu() {
+    openLayer(`<div class="menu"><h2>${practice ? '연습 중이에요' : '잠깐!'}</h2>${btn('close', '계속하기', 'primary big')}${practice ? btn('practice-exit', '연습 나가기', 'secondary') : `${btn('practice', '연습 도시로 배우기', 'secondary')}${btn('settings', '설정', 'secondary')}${btn('to-title', '처음으로', 'secondary')}`}</div>`);
   }
 
-  /* ───── 메뉴·설정 ───── */
-  function menu() {
-    openLayer(`<div class="menu"><h2>잠깐!</h2>${btn('close', '계속하기', 'primary big')}${btn('settings', '설정', 'secondary')}${btn('to-title', '처음으로', 'secondary')}</div>`);
-  }
   function settings(confirm = false) {
     openLayer(`<div class="menu"><h2>설정</h2>${btn('sound', `${P.icon(progress.sound ? 'sound' : 'mute')} 소리 ${progress.sound ? '켜짐' : '꺼짐'}`, 'secondary', `aria-pressed="${progress.sound}"`)}
       ${confirm ? `<div class="confirm"><h3>정말 지울까요?</h3>${btn('reset', '모두 지우기', 'danger')}${btn('settings', '취소', 'secondary')}</div>` : btn('reset-ask', '기록 모두 지우기', 'text-btn')}${btn('close', '닫기', 'primary')}</div>`);
@@ -505,13 +616,14 @@
 
   /* ───── 조작 연결 ───── */
   async function act(a, el) {
+    if (!practiceAllows(a)) { toast('이번 연습의 빛나는 버튼·땅을 눌러 보세요.'); return; }
     switch (a) {
       case 'new': clearGame(); lens = 'industry'; trayMode = 'industry'; relocating = null; G = E.newGame(); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
       case 'continue': G = savedGame(); if (G) { build(); if (G.phase === 'events') { app.querySelector('.build').classList.add('timelapse'); finishDecade(); } } else title(); break;
       case 'start-build': build(); break;
       case 'endings': endings(); break;
-      case 'title': closeLayer(); title(); break;
-      case 'to-title': closeLayer(); if (G && G.phase === 'build') saveGame(); title(); break;
+      case 'title': if (practice) endPractice(); else { closeLayer(); title(); } break;
+      case 'to-title': if (practice) { endPractice(); break; } closeLayer(); if (G && G.phase === 'build') saveGame(); title(); break;
       case 'menu': menu(); break;
       case 'settings': settings(); break;
       case 'reset-ask': settings(true); break;
@@ -529,8 +641,13 @@
       case 'lens': lens = el.dataset.lens; pop = null; build(); break;
       case 'tray': trayMode = el.dataset.tray; sel = null; pop = null; build(); break;
       case 'pop-close': pop = null; build(); break;
-      case 'advance': advance(); break;
-      case 'tut-next': { const s = Number(el.dataset.step); if (s < 2) tutorial(s + 1); else { progress.tutorialSeen = true; save(); closeLayer(); } break; }
+      case 'advance': if (practice) { E.advance(G); E.nextDecade(G); build(); } else advance(); break;
+      case 'practice': beginPractice(); break;
+      case 'practice-next': nextPractice(); break;
+      case 'practice-exit': endPractice(); break;
+      case 'practice-finish': { progress.tutorialSeen = true; save(); const next = savedGame() ? 'continue' : 'new'; endPractice(); act(next); break; }
+      case 'help-map': closeLayer(); lens = el.dataset.lens; pop = null; build(); break;
+      case 'cancel-move': relocating = null; build(); break;
       case 'tut-skip': progress.tutorialSeen = true; save(); closeLayer(); break;
       case 'dbg-money': if (G) { G.money += 50; build(); } break;
       case 'dbg-tech': if (G) { G.tech += 10; build(); } break;
@@ -554,7 +671,7 @@
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
-    if (e.key === 'Escape') { if (!layer.hidden && !layer.querySelector('.event,.hist')) { if (layer.querySelector('.tut')) { progress.tutorialSeen = true; save(); } closeLayer(); return; } if (sel || pop !== null || relocating !== null) { sel = null; pop = null; relocating = null; build(); } return; }
+    if (e.key === 'Escape') { if (!layer.hidden && !layer.querySelector('.event,.hist')) { if (layer.querySelector('.welcome')) { progress.tutorialSeen = true; save(); } closeLayer(); return; } if (sel || pop !== null || relocating !== null) { sel = null; pop = null; relocating = null; build(); } return; }
     if (screen !== 'build' || busy || !layer.hidden) return;
     const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -E.W, ArrowDown: E.W };
     const active = document.activeElement?.closest?.('[data-tile]');
