@@ -10,7 +10,11 @@
 
   const CFG = {
     rounds: 5, laps: 3, handSize: 5, startChips: 10,
-    score: { catch: 2, miss: -1, accused: -2, escape: 4 },
+    score: { catch: 2, miss: -1, accused: -2, escape: 4, glass: -1, combo: 1 },
+    /* 찬스 카드: 대회마다 자리별 횟수 */
+    chances: { glass: 1, swap: 1 },
+    /* 의심 게이지 단계(0~100): 이 값 미만이면 초록, 그 위 노랑, 빨강 */
+    heat: { calm: 40, hot: 70 },
     stages: {
       town:   { name: '동네 대회', ai: ['naive', 'naive', 'normal'], next: 'nation' },
       nation: { name: '전국 대회', ai: ['naive', 'normal', 'sharp'], next: 'world' },
@@ -19,11 +23,23 @@
     /* notice: 거짓 증거를 알아챌 확률, trap: 진짜인데 이상해 보이는 증거에 품는 의심,
      * proof: 무엇을 '진짜 다녀온 증거'로 믿는가 — wide(다른 기후 대부분에 없으면), confuse(닮은 기후에 없어야) */
     personas: {
-      naive:  { name: '순진해요', notice: .55, trap: 26, proof: 'wide',    gut: 10 },
-      normal: { name: '차분해요', notice: .85, trap: 12, proof: 'mixed',   gut: 7 },
-      sharp:  { name: '날카로워요', notice: 1, trap: 2,  proof: 'confuse', gut: 4 }
+      /* bet: 가장 의심하는 사람과 두 번째의 차이가 [2점, 3점] 기준 이상이면 더 건다 */
+      naive:  { name: '순진해요', notice: .55, trap: 26, proof: 'wide',    gut: 10, bet: [45, 999] },
+      normal: { name: '차분해요', notice: .85, trap: 12, proof: 'mixed',   gut: 7,  bet: [30, 80] },
+      sharp:  { name: '날카로워요', notice: 1, trap: 2,  proof: 'confuse', gut: 4,  bet: [20, 60] }
     },
     /* 여행자마다 어울리는 성격(대회 단계에 맞춰 뽑힘) */
+    /* 캐릭터 고유 능력 (사람·AI 모두 같은 규칙) */
+    perks: {
+      haneul:  { icon: '🔍', name: '눈썰미', text: '돋보기를 2번 쓸 수 있어요', glass: 1 },
+      junho:   { icon: '📸', name: '사진가', text: '돋보기를 써도 점수가 안 깎여요', freeGlass: true },
+      miso:    { icon: '🔄', name: '짐 정리왕', text: '카드 바꾸기를 2번 할 수 있어요', swap: 1 },
+      leo:     { icon: '🎯', name: '승부사', text: '확신 베팅을 4점까지 걸 수 있어요', maxBet: 4 },
+      ara:     { icon: '🔥', name: '연승 체질', text: '콤보 점수가 +2점이에요', combo: 1 },
+      park:    { icon: '🧓', name: '믿음직한 어른', text: '억울하게 지목돼도 점수가 안 깎여요', noAccuse: true },
+      sophie:  { icon: '🎭', name: '연기파', text: '라이어로 탈출하면 +2점 더 받아요', escape: 2 },
+      taeyang: { icon: '😊', name: '인기쟁이', text: '다들 처음엔 나를 덜 의심해요', calm: 8 }
+    },
     characters: { junho: 'naive', park: 'naive', haneul: 'normal', miso: 'normal', taeyang: 'normal', leo: 'sharp', ara: 'sharp', sophie: 'sharp' },
     lines: {
       lie:     ['{c}? 이상한데…', '{c}라고? 수상해!', '어? {c}?'],
@@ -33,6 +49,9 @@
       vote:    ['{n}, 수상해!', '나는 {n}!', '{n}일 것 같아.']
     }
   };
+
+  const perk = seat => (seat && CFG.perks[seat.who]) || {};
+  const maxBet = seat => perk(seat).maxBet || 3;
 
   /* ───── 카드 ───── */
   const itemName = k => D.items[k] || k;
@@ -67,7 +86,7 @@
   /* ───── 대회 만들기 ─────
    * seats: [{ kind: 'human'|'ai'|'remote', who: 여행자 id }] — 비우면 사람 1 + AI 3 */
   function newContest({ seed = (Math.random() * 1e9) | 0, stage = 'town', me = 'haneul', seats } = {}) {
-    const s = { v: 1, seed, rng: seed >>> 0 || 1, stage, round: -1, phase: 'lobby', seats: [], log: [], feed: [], results: [] };
+    const s = { v: 2, seed, rng: seed >>> 0 || 1, stage, round: -1, phase: 'lobby', seats: [], log: [], feed: [], results: [] };
     if (!seats) {
       const others = shuffle(s, Object.keys(D.travelers).filter(w => w !== me));
       const want = [...CFG.stages[stage].ai];
@@ -75,7 +94,7 @@
       for (const p of want) { const i = others.findIndex(w => CFG.characters[w] === p && !chosen.includes(w)); chosen.push(i >= 0 ? others[i] : others.find(w => !chosen.includes(w))); }
       seats = [{ kind: 'human', who: me }, ...chosen.map((who, i) => ({ kind: 'ai', who, persona: want[i] }))];
     }
-    s.seats = seats.map(x => ({ kind: x.kind, who: x.who, persona: x.persona || null, chips: CFG.startChips, hand: [], played: [], role: null, climate: null, vote: null, susp: {}, stats: { caught: 0, escaped: 0, accused: 0, liar: 0 } }));
+    s.seats = seats.map(x => ({ kind: x.kind, who: x.who, persona: x.persona || null, chips: CFG.startChips, hand: [], played: [], role: null, climate: null, vote: null, bet: null, susp: {}, chances: { glass: CFG.chances.glass + (perk(x).glass || 0), swap: CFG.chances.swap + (perk(x).swap || 0) }, glassed: [], streak: 0, peak: 0, stats: { caught: 0, escaped: 0, accused: 0, liar: 0, glassHit: 0, allin: 0, bestStreak: 0, ghost: 0 } }));
     /* 라이어 순서: 사람은 5라운드 중 1~2번 (여럿이면 고르게), 나머지는 AI */
     const humans = s.seats.map((x, i) => x.kind !== 'ai' ? i : -1).filter(i => i >= 0), ais = s.seats.map((x, i) => x.kind === 'ai' ? i : -1).filter(i => i >= 0);
     const plan = [];
@@ -99,10 +118,10 @@
     s.seats.forEach((seat, i) => {
       const liar = i === s.liarSeat;
       seat.role = liar ? 'liar' : 'innocent'; seat.climate = liar ? s.liarClimate : s.claim;
-      seat.played = []; seat.vote = null; seat.susp = {}; seat.why = {};
+      seat.played = []; seat.vote = null; seat.bet = null; seat.susp = {}; seat.why = {}; seat.glassed = []; seat.peak = 0;
       seat.hand = liar ? liarHand(s, taken) : innocentHand(s, taken);
       seat.hand.forEach(c => taken.add(c.id));
-      if (seat.kind === 'ai') s.seats.forEach((_, j) => { if (j !== i) seat.susp[j] = (rand(s) * 2 - 1) * CFG.personas[seat.persona].gut; });
+      if (seat.kind === 'ai') s.seats.forEach((_, j) => { if (j !== i) seat.susp[j] = (rand(s) * 2 - 1) * CFG.personas[seat.persona].gut - (perk(s.seats[j]).calm || 0); });
     });
     s.order = Array.from({ length: s.seats.length }, (_, k) => (s.round + k) % s.seats.length);
     s.turn = 0;
@@ -149,13 +168,37 @@
       const [card] = seat.hand.splice(k, 1);
       seat.played.push(card); s.log.push({ seat: cmd.seat, card: card.id });
       s.feed = observe(s, cmd.seat, card);
+      s.seats.forEach((x, i) => { x.peak = Math.max(x.peak || 0, heat(s, i)); });
       s.turn++;
       if (s.turn >= s.seats.length * CFG.laps) s.phase = 'vote';
       return { state: s };
     }
+    /* 찬스 🔍 돋보기: 남이 낸 카드 한 장이 여행지와 맞는지 확인 (점수 1 차감) */
+    if (cmd.type === 'glass') {
+      const seat = s.seats[cmd.seat], card = s.seats[cmd.target]?.played[cmd.index];
+      if (!['play', 'vote'].includes(s.phase) || !seat || !card || cmd.target === cmd.seat || !(seat.chances?.glass > 0) || (s.phase === 'vote' && seat.vote !== null)) return { state, error: 'glass' };
+      const lie = verdict(card, s.claim).v === 'lie';
+      seat.chances.glass--; seat.glassed.push({ target: cmd.target, card: card.id, lie });
+      seat.chips = Math.max(0, seat.chips + (perk(seat).freeGlass ? 0 : CFG.score.glass));
+      if (lie) seat.stats.glassHit++;
+      if (seat.kind === 'ai') seat.susp[cmd.target] = (seat.susp[cmd.target] || 0) + (lie ? 100 : -20);
+      return { state: s, lie };
+    }
+    /* 찬스 🔄 바꾸기: 내 차례에 손패 한 장을 새 카드로 (차례는 그대로) */
+    if (cmd.type === 'swap') {
+      const seat = s.seats[cmd.seat], k = seat ? seat.hand.findIndex(c => c.id === cmd.card) : -1;
+      if (s.phase !== 'play' || current(s) !== cmd.seat || k < 0 || !(seat.chances?.swap > 0)) return { state, error: 'swap' };
+      const have = new Set([...seat.hand, ...seat.played].map(c => c.id));
+      const from = seat.role === 'liar' ? pool(s.liarClimate).filter(c => verdict(c, s.claim).v !== 'lie') : pool(s.claim);
+      const fresh = from.filter(c => !have.has(c.id)), alt = neutral().filter(c => !have.has(c.id));
+      const card = fresh.length ? pickOne(s, fresh) : pickOne(s, alt);
+      seat.hand[k] = card; seat.chances.swap--;
+      return { state: s, card: card.id };
+    }
     if (cmd.type === 'vote') {
-      if (s.phase !== 'vote' || !Number.isInteger(cmd.seat) || !s.seats[cmd.seat] || s.seats[cmd.seat].vote !== null || !Number.isInteger(cmd.target) || cmd.target === cmd.seat || !s.seats[cmd.target]) return { state, error: 'vote' };
-      s.seats[cmd.seat].vote = cmd.target;
+      const bet = cmd.bet === undefined ? 1 : cmd.bet;
+      if (s.phase !== 'vote' || !Number.isInteger(cmd.seat) || !s.seats[cmd.seat] || s.seats[cmd.seat].vote !== null || !Number.isInteger(cmd.target) || cmd.target === cmd.seat || !s.seats[cmd.target] || !(Number.isInteger(bet) && bet >= 1 && bet <= maxBet(s.seats[cmd.seat]))) return { state, error: 'vote' };
+      s.seats[cmd.seat].vote = cmd.target; s.seats[cmd.seat].bet = bet;
       if (s.seats.every(x => x.vote !== null)) resolve(s);
       return { state: s };
     }
@@ -197,14 +240,24 @@
     const accused = tops.length === 1 ? tops[0] : null;
     const caught = accused === s.liarSeat, delta = Array(n).fill(0), Sc = CFG.score;
     s.seats.forEach((x, i) => {
-      if (i === s.liarSeat) { if (!caught) { delta[i] += Sc.escape; x.stats.escaped++; } x.stats.liar++; return; }
-      if (x.vote === s.liarSeat) { delta[i] += Sc.catch; x.stats.caught++; } else delta[i] += Sc.miss;
-      if (accused === i) { delta[i] += Sc.accused; x.stats.accused++; }
+      /* 라이어의 베팅 = 탈출 자신감: 탈출하면 더 얻고, 들키면 그만큼 잃음 */
+      if (i === s.liarSeat) { const extra = (x.bet || 1) - 1; x.stats.maxPeak = Math.max(x.stats.maxPeak || 0, x.peak || 0);
+        if (!caught) { delta[i] += Sc.escape + (perk(x).escape || 0) + extra; x.stats.escaped++; if (x.bet >= 4) x.stats.big = (x.stats.big || 0) + 1; if (x.peak < CFG.heat.hot) x.stats.ghost++; } else delta[i] -= extra; x.stats.liar++; return; }
+      const extra = (x.bet || 1) - 1;
+      x.stats.maxPeak = Math.max(x.stats.maxPeak || 0, x.peak || 0);
+      if (x.vote === s.liarSeat) {
+        delta[i] += Sc.catch + extra; x.stats.caught++; x.streak = (x.streak || 0) + 1;
+        if (x.streak >= 2) delta[i] += Sc.combo + (perk(x).combo || 0);
+        x.stats.bestStreak = Math.max(x.stats.bestStreak || 0, x.streak);
+        if (x.bet >= 3) x.stats.allin++;
+        if (x.bet >= 4) x.stats.big = (x.stats.big || 0) + 1;
+      } else { delta[i] += Sc.miss - extra; x.streak = 0; }
+      if (accused === i) { delta[i] += perk(x).noAccuse ? 0 : Sc.accused; x.stats.accused++; }
     });
     s.seats.forEach((x, i) => { x.chips = Math.max(0, x.chips + delta[i]); });
     /* AI 가 누구를 왜 지목했는지 (지목한 사람을 가장 의심하게 만든 카드, 없으면 느낌) */
     const reasons = s.seats.map((x, i) => x.kind === 'ai' && x.vote !== null ? { voter: i, target: x.vote, card: x.why?.[x.vote]?.card || null, d: x.why?.[x.vote]?.d || 0 } : null).filter(Boolean);
-    s.results.push({ round: s.round, claim: s.claim, liar: s.liarSeat, liarClimate: s.liarClimate, votes, voted: s.seats.map(x => x.vote), accused, caught, delta, reasons, lesson: lesson(s) });
+    s.results.push({ round: s.round, claim: s.claim, liar: s.liarSeat, liarClimate: s.liarClimate, votes, voted: s.seats.map(x => x.vote), bets: s.seats.map(x => x.bet), streaks: s.seats.map((x, i) => i === s.liarSeat ? 0 : x.vote === s.liarSeat ? x.streak : 0), accused, caught, delta, reasons, lesson: lesson(s) });
     s.phase = s.round + 1 >= CFG.rounds ? 'end' : 'reveal';
   }
   /* 배움 카드: 라이어의 카드(같은 점/들킨 점) + 진짜 여행자의 증명 카드(다른 점) */
@@ -218,13 +271,21 @@
     return { liarCards, proofCard };
   }
 
+  /* 의심 게이지: AI 들이 이 자리를 의심하는 정도의 평균을 0~100 으로 (-20 이하 안심, 60 이상 들킴 직전) */
+  function heat(s, seat) {
+    const v = s.seats.map((x, i) => x.kind === 'ai' && i !== seat ? x.susp[seat] || 0 : null).filter(x => x !== null);
+    if (!v.length) return 0;
+    const avg = v.reduce((a, b) => a + b, 0) / v.length;
+    return Math.round(Math.max(0, Math.min(100, (avg + 20) * 100 / 80)));
+  }
+
   /* 대회 순위 (칩 → 라이어 맞힌 수) */
   const ranking = s => s.seats.map((x, i) => i).sort((a, b) => s.seats[b].chips - s.seats[a].chips || s.seats[b].stats.caught - s.seats[a].stats.caught || a - b);
 
   /* 자리마다 보이는 것만 (멀티플레이용) */
   function view(s, seat) {
     const v = clone(s);
-    v.seats.forEach((x, i) => { if (i !== seat && s.phase !== 'reveal' && s.phase !== 'end') { x.hand = x.hand.map(() => null); x.role = null; x.climate = null; x.susp = {}; x.why = {}; } else if (i !== seat) { x.hand = x.hand.map(() => null); x.susp = {}; x.why = {}; } });
+    v.seats.forEach((x, i) => { if (i !== seat && s.phase !== 'reveal' && s.phase !== 'end') { x.hand = x.hand.map(() => null); x.role = null; x.climate = null; x.susp = {}; x.why = {}; x.glassed = []; x.peak = 0; } else if (i !== seat) { x.hand = x.hand.map(() => null); x.susp = {}; x.why = {}; } });
     if (s.phase !== 'reveal' && s.phase !== 'end') { v.liarSeat = null; v.liarClimate = null; v.liarPlan = null; }
     return v;
   }
@@ -235,6 +296,8 @@
     if (s.phase === 'play') {
       const X = s.claim;
       if (me.role === 'liar') {
+        /* 낼 카드가 모두 들킬 카드면 바꾸기 찬스 */
+        if (me.chances?.swap > 0 && me.hand.every(c => verdict(c, X).v === 'lie')) return { type: 'swap', seat, card: me.hand[0].id };
         const safe = me.hand.filter(c => verdict(c, X).v !== 'lie' && !c.neutral);
         const pickSafe = safe.sort((a, b) => proof(b, X, 'wide') - proof(a, X, 'wide'))[0];
         const card = pickSafe || me.hand.find(c => c.neutral) || pickOne(s, me.hand);
@@ -252,10 +315,18 @@
       if (me.role === 'liar') {
         /* 라이어는 가장 의심받기 쉬운 진짜 여행자를 지목 */
         const trapish = i => s.seats[i].played.reduce((a, c) => a + (verdict(c, s.claim).v === 'trap' ? 2 : 0) + (c.neutral ? 1 : 0), 0) + rand(s);
-        return { type: 'vote', seat, target: others.sort((a, b) => trapish(b) - trapish(a))[0] };
+        /* 내게 쏠린 의심이 낮을수록 탈출에 많이 건다 */
+        const h = heat(s, seat), want = h < 20 ? 4 : h < CFG.heat.calm ? 3 : h < CFG.heat.hot ? 2 : 1;
+        return { type: 'vote', seat, target: others.sort((a, b) => trapish(b) - trapish(a))[0], bet: Math.min(want, maxBet(me)) };
       }
-      const target = others.sort((a, b) => (me.susp[b] || 0) - (me.susp[a] || 0))[0];
-      return { type: 'vote', seat, target };
+      const ranked = others.sort((a, b) => (me.susp[b] || 0) - (me.susp[a] || 0)), gap = (me.susp[ranked[0]] || 0) - (me.susp[ranked[1]] || 0);
+      /* 날카로운 AI 는 헷갈릴 때 돋보기: 가장 의심하는 사람의 카드 중 증명력이 가장 약한 것 */
+      if (me.persona === 'sharp' && me.chances?.glass > 0 && gap < 15) {
+        const t = ranked[0], cards = s.seats[t].played.map((c, index) => ({ c, index })).filter(({ c }) => !me.glassed.some(g => g.card === c.id));
+        if (cards.length) return { type: 'glass', seat, target: t, index: cards.sort((a, b) => proof(a.c, s.claim, 'confuse') - proof(b.c, s.claim, 'confuse'))[0].index };
+      }
+      const b = P.bet || [999, 999], want = gap >= b[1] * 1.5 ? 4 : gap >= b[1] ? 3 : gap >= b[0] ? 2 : 1;
+      return { type: 'vote', seat, target: ranked[0], bet: Math.min(want, maxBet(me)) };
     }
     return null;
   }
@@ -271,5 +342,5 @@
   }
   const voteLine = (s, seat, target) => pickOne({ rng: (s.seed + seat * 31 + target) >>> 0 }, CFG.lines.vote).replace('{n}', D.travelers[s.seats[target].who].name);
 
-  root.Liar = { CFG, pool, verdict, proof, cardName, newContest, apply, current, lap, view, decide, runAI, ranking, voteLine, itemName };
+  root.Liar = { CFG, pool, verdict, proof, cardName, newContest, apply, current, lap, view, decide, runAI, ranking, voteLine, itemName, heat, perk, maxBet };
 })(typeof window !== 'undefined' ? window : globalThis);

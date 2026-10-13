@@ -42,8 +42,8 @@ function humanMove(s, style) {
   }
   const m = L.decide(s, 0); me.persona = null; return m;
 }
-function contest(stage, style, seed) {
-  let s = L.newContest({ seed, stage, me: 'haneul' });
+function contest(stage, style, seed, me = 'haneul') {
+  let s = L.newContest({ seed, stage, me });
   while (s.phase !== 'end') {
     s = L.apply(s, { type: 'start' }).state;
     if (s.phase === 'end') break;
@@ -81,3 +81,87 @@ for (let k = 0; k < 3000; k++) {
 }
 console.log('손패 5장이 안 되는 판', bad, '/ 3000');
 assert.equal(bad, 0, '모든 손패는 5장');
+
+// 찬스·베팅·콤보·의심 게이지 규칙
+{
+  let s = L.apply(L.newContest({ seed: 77, stage: 'world', me: 'taeyang' }), { type: 'start' }).state;
+  while (L.current(s) !== 0) s = L.apply(s, L.decide(s, L.current(s))).state;
+  const turn = s.turn, card = s.seats[0].hand[0].id;
+  let r = L.apply(s, { type: 'swap', seat: 0, card });
+  assert(!r.error, '바꾸기 성공'); assert.equal(r.state.turn, turn, '바꾸기 후 차례 그대로');
+  assert.equal(r.state.seats[0].hand.length, CFG.handSize, '바꾸기 후 손패 5장');
+  assert(!r.state.seats[0].hand.some(c => c.id === card), '버린 카드는 손패에서 빠짐');
+  assert(L.apply(r.state, { type: 'swap', seat: 0, card: r.state.seats[0].hand[0].id }).error, '바꾸기는 1번만');
+  s = L.apply(r.state, { type: 'play', seat: 0, card: r.state.seats[0].hand[0].id }).state;
+  while (L.current(s) !== 0) s = L.apply(s, L.decide(s, L.current(s))).state;
+  const target = s.seats.findIndex((x, i) => i !== 0 && x.played.length), chips = s.seats[0].chips;
+  r = L.apply(s, { type: 'glass', seat: 0, target, index: 0 });
+  assert(!r.error, '돋보기 성공'); assert.equal(r.state.seats[0].chips, chips + CFG.score.glass, '돋보기 1점 차감');
+  assert.equal(r.state.seats[0].glassed.length, 1, '돋보기 결과 저장');
+  assert(L.apply(r.state, { type: 'glass', seat: 0, target, index: 0 }).error, '돋보기는 1번만');
+  assert(L.view(r.state, 1).seats[0].glassed.length === 0, '남의 돋보기 결과는 가림');
+  for (let k = 0; k < 4; k++) { const h = L.heat(r.state, k); assert(h >= 0 && h <= 100, 'heat 0~100'); }
+}
+{
+  // 베팅·콤보: AI 라이어 라운드에서 사람이 라이어를 맞히면 catch+(bet-1), 2연속부터 combo
+  let s = L.newContest({ seed: 3, stage: 'town' }), hits = 0;
+  while (s.phase !== 'end') {
+    s = L.apply(s, { type: 'start' }).state; if (s.phase === 'end') break;
+    while (s.phase === 'play') { s = L.runAI(s); if (s.phase === 'play') s = L.apply(s, L.decide(s, 0)).state; }
+    const liar = s.liarSeat, before = s.seats[0].streak;
+    if (liar === 0) { s = L.runAI(s); s = L.apply(s, { type: 'vote', seat: 0, target: 1 }).state; s = L.runAI(s); continue; }
+    assert(L.apply(s, { type: 'vote', seat: 0, target: liar, bet: 4 }).error, '베팅은 1~3');
+    s = L.apply(s, { type: 'vote', seat: 0, target: liar, bet: 3 }).state; s = L.runAI(s);
+    const r = s.results.at(-1), want = CFG.score.catch + 2 + (before + 1 >= 2 ? CFG.score.combo : 0) + (r.accused === 0 ? CFG.score.accused : 0);
+    assert.equal(r.delta[0], want, '베팅·콤보 점수'); assert.equal(r.bets[0], 3, '베팅 기록'); hits++;
+  }
+  assert(hits >= 2 && s.seats[0].stats.allin === hits && s.seats[0].stats.bestStreak >= 2, '올인·연속 기록');
+}
+console.log('찬스·베팅·콤보·게이지 규칙 통과');
+
+// 캐릭터 능력
+{
+  const start = me => L.apply(L.newContest({ seed: 9, stage: 'town', me }), { type: 'start' }).state;
+  assert.equal(start('haneul').seats[0].chances.glass, 2, '하늘 돋보기 2번');
+  assert.equal(start('miso').seats[0].chances.swap, 2, '미소 바꾸기 2번');
+  assert.equal(L.maxBet(start('leo').seats[0]), 4, '레오 4점 베팅'); assert.equal(L.maxBet(start('ara').seats[0]), 3, '기본 3점 베팅');
+  let s = start('junho');
+  while (s.phase === 'play') { s = L.runAI(s); if (s.phase === 'play') s = L.apply(s, L.decide(s, 0)).state; }
+  const chips = s.seats[0].chips, r = L.apply(s, { type: 'glass', seat: 0, target: 1, index: 0 });
+  assert(!r.error && r.state.seats[0].chips === chips, '준호 돋보기 무료');
+  assert(L.apply(s, { type: 'vote', seat: 0, target: 1, bet: 4 }).error, '준호는 4점 베팅 불가');
+}
+{
+  // 능력 점수: 박 할아버지 억울한 지목 0점, 소피 탈출 +2, 아라 콤보 +2 — 여러 판 돌려 실제 delta 로 확인
+  let park = 0, sophie = 0;
+  for (let k = 0; k < 300; k++) for (const who of ['park', 'sophie']) {
+    const s = contest('town', 'random', 9000 + k, who);
+    for (const r of s.results) {
+      if (who === 'park' && r.accused === 0 && r.liar !== 0) { park++; assert.equal(r.delta[0], r.voted[0] === r.liar ? CFG.score.catch + (r.bets[0] - 1) + (r.streaks[0] >= 2 ? CFG.score.combo : 0) : CFG.score.miss - (r.bets[0] - 1), '박 할아버지 지목 감점 없음'); }
+      if (who === 'sophie' && r.liar === 0 && !r.caught) { sophie++; assert.equal(r.delta[0], CFG.score.escape + 2, '소피 탈출 +2'); }
+    }
+  }
+  assert(park > 0 && sophie > 0, '능력 점수 사례 있음');
+}
+// 캐릭터별 균형 (전국 대회, 보통 실력으로 플레이)
+for (const who of Object.keys(CFG.perks)) {
+  let win = 0, rankSum = 0;
+  for (let k = 0; k < 300; k++) { const s = contest('nation', 'normal', 20000 + k, who), rank = L.ranking(s); if (rank[0] === 0) win++; rankSum += rank.indexOf(0) + 1; }
+  console.log(`${CFG.perks[who].icon} ${D.travelers[who].name.padEnd(5)} ${CFG.perks[who].name.padEnd(7)} 우승 ${Math.round(win / 3)}% 평균 등수 ${(rankSum / 300).toFixed(2)}`);
+}
+console.log('캐릭터 능력 규칙 통과');
+// 라이어 탈출 베팅: 탈출 escape+(bet-1), 들킴 -(bet-1)
+{
+  let esc = 0, caught = 0;
+  for (let k = 0; k < 200 && (!esc || !caught); k++) {
+    let s = L.apply(L.newContest({ seed: 30000 + k, stage: 'town', me: 'ara' }), { type: 'start' }).state;
+    if (s.liarSeat !== 0) continue;
+    while (s.phase === 'play') { s = L.runAI(s); if (s.phase === 'play') s = L.apply(s, L.decide(s, 0)).state; }
+    s = L.apply(s, { type: 'vote', seat: 0, target: 1, bet: 3 }).state; s = L.runAI(s);
+    const r = s.results.at(-1);
+    if (r.caught) { caught++; assert.equal(r.delta[0], -2, '라이어 들킴 -(bet-1)'); }
+    else { esc++; assert.equal(r.delta[0], CFG.score.escape + 2, '라이어 탈출 +(bet-1)'); }
+  }
+  assert(esc && caught, '탈출·들킴 사례 모두 확인');
+}
+console.log('라이어 탈출 베팅 통과');
