@@ -1,61 +1,54 @@
-/* 실행: node daon-city/tests/bots.js — 실제 엔진으로 4가지 봇 플레이 결과 보고 */
+/* 실행: node daon-city/tests/bots.js — 돈을 추가하지 않고 서로 다른 산업 경로를 끝까지 검증한다. */
 'use strict';
-const fs = require('fs'), path = require('path'), vm = require('vm');
-const ctx = vm.createContext({});
-ctx.window = ctx;
-for (const f of ['../js/data.js', '../js/engine.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, f), 'utf8'), ctx);
+const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+const ctx = vm.createContext({}); ctx.window = ctx;
+for (const f of ['data.js', 'engine.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '../js', f), 'utf8'), ctx);
 const D = ctx.DAON_CITY, E = ctx.DaonEngine, B = D.buildings;
-
-/* 배치 요령: 공장은 항구·고속도로 옆, 공원은 가장 오염된 건물 옆, 주택·학교는 공장에서 멀리 */
-function bestTile(s, id) {
-  let best = -1, score = -Infinity;
+const plans = {
+  '균형': [['textile','school','market','park'], ['expand','power','ship','house+'], ['univ','elec','house+','welfare'], ['expand','cleaner','semi','univ+'], ['it','green','house','welfare+'], ['content','house+','univ','car'], ['house','house+','car+','cleaner+']],
+  '기술': [['textile','school','school+','market'], ['expand','power','ship','house+'], ['univ','elec','house+','univ+'], ['expand','semi','cleaner','power+','house'], ['it','green','semi+','house+'], ['it+','house','univ','welfare'], ['battery','green+','house+','cleaner+']],
+  '문화': [['textile','school','market','park'], ['expand','power','ship','house+'], ['univ','elec','house+','welfare'], ['expand','cleaner','semi','univ+'], ['it','green','house','welfare+'], ['content','content+','house+','univ'], ['content','content+','house','it+']],
+  '공장만': Array.from({ length: 7 }, (_, d) => Array(4).fill(d === 0 ? 'textile' : d < 3 ? 'steel' : 'semi')),
+  '경공업': [['textile','textile','market','park'], ['expand','house+','textile','power'], ['textile','house+','welfare','textile+'], ['market+','cleaner','textile','house'], ['green','welfare+','textile+'], ['park','house+','textile+'], ['cleaner+','market','textile+']]
+};
+function bestAction(s, action) {
+  if (action === 'expand') return E.expand(s);
+  const upgrade = action.endsWith('+'), id = action.replace('+', ''), base = E.production(s);
+  let best, score = -Infinity;
   s.tiles.forEach((t, i) => {
-    if (!E.canPlace(s, id, i).ok) return;
-    const ns = E.neighbors(i).map(j => s.tiles[j].b);
-    let v = 0;
-    if (B[id].factory) v += (ns.includes('port') ? 5 : 0) + (ns.includes('road') ? 5 : 0) - (ns.includes('house') ? 3 : 0) + ns.filter(n => n === 'park').length;
-    if (id === 'port' || id === 'road') v += ns.filter(n => n && B[n].factory).length * 4 + E.neighbors(i).filter(j => !s.tiles[j].b && E.buildable(s.tiles[j].x, s.tiles[j].y)).length;
-    if (id === 'park') v += ns.reduce((a, n) => a + (n ? (B[n].pol || 0) : 0), 0) * 3;
-    if (['house', 'school', 'univ', 'welfare', 'market'].includes(id)) v -= ns.filter(n => n && (B[n].pol || 0) >= 1).length * 4;
-    if ((B[id].pol || 0) >= 2) v -= ns.filter(n => n === 'house').length * 6;
-    if (!B[id].coastal && E.coastal(t.x, t.y)) v -= 2; // 해안은 아껴 두기
-    v -= t.y * 0.01 + t.x * 0.001;
-    if (v > score) { score = v; best = i; }
+    const can = upgrade ? t.b === id && E.canUpgrade(s, i).ok : E.canPlace(s, id, i).ok;
+    if (!can) return;
+    const copy = JSON.parse(JSON.stringify(s));
+    (upgrade ? E.upgrade(copy, i) : E.place(copy, id, i));
+    const p = E.production(copy);
+    let v = (p.exports-base.exports)*2 + (p.service-base.service)*2 + (p.education-base.education)*3 - (p.exposed.length-base.exposed.length)*5 - (p.pollution-base.pollution)*.3;
+    if (B[id].homes) v -= E.production(copy).rows.reduce((n,r)=>n+r.pollution/(E.distance(i,r.i)+1),0);
+    if (B[id].supply) v -= E.distance(i,28)*.01;
+    if (!B[id].coastal && E.coastal(t.x,t.y)) v -= .5;
+    if (v > score) { score=v; best=i; }
   });
-  return best;
+  return best === undefined ? { ok:false } : upgrade ? E.upgrade(s,best) : E.place(s,id,best);
 }
-function play(plan, policy) {
-  const s = E.newGame();
-  const trace = [];
-  for (let d = 0; d <= E.LAST; d++) {
-    const row = { era: D.eras[d].label, start: s.money, built: [], missed: [] };
-    for (const id of plan[d]) {
-      if (E.slotsLeft(s) <= 0) break;
-      const i = bestTile(s, id);
-      if (i >= 0) { E.place(s, id, i); row.built.push(id); }
-      else row.missed.push({ id, reason: E.cardStatus(s, id).reason || 'tile' });
-    }
-    const r = E.advance(s);
-    row.income = r.income; trace.push(row);
-    if (r.problem) E.applyFx(s, r.problem[policy].fx, r.problem[policy].label);
-    const ev = D.eras[d].event[policy];
-    E.applyFx(s, ev.fx, ev.label);
+function play(plan, policy = 'a') {
+  const s = E.newGame(), states = [], trace = [];
+  for (let d=0;d<=E.LAST;d++) {
+    const built=[], missed=[];
+    for (const action of plan[d]) (bestAction(s,action).ok ? built : missed).push(action);
+    states.push(JSON.parse(JSON.stringify(s)));
+    const forecast=E.production(s), before=s.money, r=E.advance(s);
+    if (r.exports!==forecast.exports || s.money!==Math.max(0,before+forecast.income)) throw Error('예상 생산 불일치');
+    if (r.problem) E.applyFx(s,E.choiceEffects(s,r.problem,policy),r.problem[policy].label);
+    const ev=D.eras[d].event; E.applyFx(s,E.choiceEffects(s,ev,policy),ev[policy].label);
+    if (!E.valid(JSON.parse(JSON.stringify(s)))) throw Error('사건 저장 복원 실패');
+    trace.push({era:d,built,missed,exports:r.exports,income:r.income,money:s.money,people:r.workers,skills:r.skilled,power:r.supply,needPower:r.energy,exposed:r.exposed.length,gauges:r.gauges});
     E.nextDecade(s);
   }
-  return { ending: E.ending(s).name, gauges: E.gauges(s, E.LAST), history: E.historyScore(s), money: s.money, tech: s.tech, trace };
+  return { id:E.ending(s).id, ending:E.ending(s).name, gauges:E.gauges(s), state:s, states, trace };
 }
-const bots = {
-  '균형': [['port','textile','school','school'],['power','steel','school','park'],['car','univ','park','welfare'],['semi','elec','welfare','park'],['it','green','cleaner','semi'],['content','semi','park','cleaner'],['battery','it','welfare','park']],
-  '역사 그대로': [['port','textile','school'],['power','steel','school'],['car','elec','univ','road'],['semi','elec','univ','ship'],['it','semi','car','chem'],['content','semi','it','car'],['battery','semi','it','content']],
-  '성장': [['port','textile','textile','school'],['power','steel','road','ship'],['car','elec','chem','univ'],['semi','ship','elec'],['it','car','chem'],['content','semi'],['battery','semi']],
-  '교육 없음': [['port','textile','textile','market'],['power','steel','road','ship'],['car','elec','chem'],['ship','elec','car'],['car','chem','steel'],['steel','ship'],['car','elec']],
-  '환경': [['park','school','market','park'],['park','school','market'],['univ','park','welfare'],['park','school','cleaner'],['green','it','park'],['content','park'],['park','cleaner']]
-};
-const out = {};
-for (const [name, plan] of Object.entries(bots)) for (const policy of ['a', 'b']) {
-  const r = play(plan, policy);
-  out[`${name}+${policy}`] = r;
-  console.log(`${name.padEnd(6)} ${policy === 'a' ? '좋은 선택' : '성장 선택'}: ${r.ending.padEnd(10)} 역사 ${r.history}/7  경제 ${r.gauges.econ} 생활 ${r.gauges.life} 환경 ${r.gauges.env} 공정 ${r.gauges.fair}  (돈 ${r.money}, 기술 ${r.tech})`);
-  if (process.argv.includes('--trace')) console.log(JSON.stringify(r.trace));
+const out={};
+if (require.main===module) for (const [name,plan] of Object.entries(plans)) {
+  const r=play(plan);out[name]=r;
+  console.log(`${name}: ${r.ending} · 경제 ${r.gauges.econ} 생활 ${r.gauges.life} 환경 ${r.gauges.env} 공정 ${r.gauges.fair} · 잔액 ${r.state.money}`);
+  if(process.argv.includes('--trace')) console.log(JSON.stringify(r.trace));
 }
-module.exports = out;
+module.exports={E,D,plans,play,bestAction};

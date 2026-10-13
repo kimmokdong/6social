@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const D = window.DAON_CITY, E = window.DaonEngine, A = window.CityArt, P = window.SamgwonArt, S = window.CitySfx;
-  const B = D.buildings, KEY = 'daon-city-v1', GAME_KEY = 'daon-city-v1-game';
+  const B = D.buildings, KEY = 'daon-city-v2', GAME_KEY = 'daon-city-v2-game';
   const app = document.getElementById('app'), layer = document.getElementById('layer');
   const params = new URLSearchParams(location.search), debug = params.has('debug');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -11,8 +11,8 @@
   const GK = ['econ', 'life', 'env', 'fair'], GICON = { econ: 'chart', life: 'home', env: 'tree', fair: 'scale' };
   const PEOPLE = { tycoon: '왕부자 회장', reporter: '나팩트 기자', kid: '도윤', teacher: '다정 선생님', activist: '초록 활동가', shopkeeper: '떡볶이 사장님', grandma: '봉순 할머니' };
   const REPR = { light: 'textile', heavy: 'steel', carElec: 'car', semi: 'semi', it: 'it', content: 'content', battery: 'battery' };
-  const HINTS = { together: '모두 60 이상으로', gray: '수출만 쫓으면…', unfair: '일하는 사람을 잊으면…', green: '환경만 챙기면…', stuck: '배움을 잊으면…', grown: '평범하게 70년' };
-  const ENDING_ICON = { together: 'tree', gray: 'smog', unfair: 'scale', green: 'tree', stuck: 'lock', grown: 'chart' };
+  const HINTS = Object.fromEntries(D.endings.map(e => [e.id, e.hint]));
+  const ENDING_ICON = { together: 'tree', export: 'port', tech: 'star', creative: 'content', gray: 'smog', unfair: 'scale', stuck: 'lock', grown: 'chart' };
 
   /* 글꼴은 온라인일 때만 불러옴(오프라인이면 시스템 글꼴) */
   if (location.protocol !== 'file:' && navigator.onLine) {
@@ -40,13 +40,13 @@
   function savedGame() {
     try {
       const g = JSON.parse(localStorage.getItem(GAME_KEY) || 'null');
-      if (g && Array.isArray(g.tiles) && g.tiles.length === E.W * E.H &&
-          (g.phase === 'build' || (g.phase === 'events' && g.last && g.records?.[g.d]))) return g;
+      if (E.valid(g) && g.phase !== 'end') return g;
     } catch (_) {}
     return null;
   }
   S.setEnabled(progress.sound);
 
+  let lens = 'industry', trayMode = 'industry', relocating = null, viewPlan = null;
   let G = null, sel = null, busy = false, pop = null, screen = '', cursor = 0, drag = null, toastTimer = 0, layerFocus = null;
 
   /* ───── 작은 부품 ───── */
@@ -57,7 +57,8 @@
   const era = d => D.eras[d];
   function focusSelector(el) {
     const key = ['action', 'card', 'tile'].find(k => el?.dataset?.[k] !== undefined);
-    return key ? `[data-${key}="${CSS.escape(el.dataset[key])}"]` : null;
+    const qualifier = ['lens', 'tray', 'help'].find(k => el?.dataset?.[k]);
+    return key ? `[data-${key}="${CSS.escape(el.dataset[key])}"]${qualifier ? `[data-${qualifier}="${CSS.escape(el.dataset[qualifier])}"]` : ''}` : null;
   }
   function setScreen(name, html) {
     const focus = app.contains(document.activeElement) ? focusSelector(document.activeElement) : null;
@@ -87,112 +88,88 @@
 
   /* 효과 아이콘 줄: 카드에 표시 */
   function effects(id) {
-    const b = B[id], out = [], d = G ? G.d : 0;
-    const exp = b.exp ? Math.max(...b.exp.slice(d)) : 0;
-    if (exp) out.push(['chart', 'up', exp >= 12 ? '++' : '+']);
-    if (b.boost) out.push(['chart', 'up', '×']);
-    if (b.money) out.push(['coin', 'up', '+']);
-    if (b.tech) out.push(['star', 'up', b.tech > 1 ? '++' : '+']);
-    if (b.life) out.push(['home', 'up', b.life > 3 ? '++' : '+']);
-    if (b.env) out.push(['tree', 'up', b.env > 4 ? '++' : '+']);
-    if (b.pol) out.push(['tree', 'down', b.pol >= 4 ? '−−−' : b.pol >= 2 ? '−−' : '−']);
-    if (b.fair) out.push(['scale', 'up', b.fair > 4 ? '++' : '+']);
-    if (b.unfair) out.push(['scale', 'down', '−']);
-    if (b.power) out.push(['bolt', 'up', '']);
-    return out.map(([ic, dir, s]) => `<span class="fx ${dir}">${icon(ic)}${s ? `<b>${s}</b>` : ''}</span>`).join('');
+    const b = B[id];
+    return `<span class="fx">${icon(b.exp ? 'chart' : b.homes ? 'home' : b.education ? 'star' : b.supply ? 'bolt' : b.cleaning ? 'tree' : 'scale')}<b>${b.exp ? `일자리 ${b.jobs}` : b.homes ? `주민 ${b.homes}` : b.education ? `교육 ${b.education}` : b.supply ? `전력 ${b.supply}` : b.logistics ? `물류 ${b.logistics}` : '주변 지원'}</b></span>`;
   }
   function needs(id) {
-    const b = B[id], out = [];
-    if (b.coastal) out.push(`<span class="need" title="해안">${icon('wave')}</span>`);
-    if (b.needPower) out.push(`<span class="need" title="전기">${icon('bolt')}</span>`);
-    if (b.techReq) out.push(`<span class="need">${icon('star')}<b>${b.techReq}</b></span>`);
-    return out.join('');
+    const b = B[id]; return `${b.coastal ? `<span class="need">${icon('wave')}</span>` : ''}${b.skilled ? `<span class="need">${icon('star')}${b.skilled}</span>` : ''}`;
   }
   const reasonHtml = (reason, id) => ({
     money: `${icon('coin')}<b>부족</b>`,
     tech: `${icon('star')}<b>${B[id]?.techReq ?? ''}</b>`,
     power: `${icon('bolt')}<b>필요</b>`,
     era: `${icon('lock')}<b>${B[id] ? era(B[id].era).label : ''}</b>`,
-    slots: `${icon('hammer')}<b>끝</b>`,
+    land: `${icon('lock')}<b>도시 확장 필요</b>`,
+    phase: '계획은 건설 시간에 바꿔요',
     coast: `${icon('wave')}<b>해안만</b>`,
     tile: `${icon('cross')}`
   }[reason] || '');
 
   /* 숫자는 엔진의 현재 시대와 배율을 그대로 보여 준다. */
   function buildingInfo(id, i = null) {
-    const b = B[id], base = b.exp?.[G.d] || 0, ex = i === null ? (base ? base + (b.steelBonus && G.tiles.some(t => t.b === 'steel') ? b.steelBonus : 0) : 0) : E.exportOf(G, i, G.d, id);
-    const rows = [`${icon('coin')}비용 ${b.cost}`];
-    if (b.era > G.d) rows.push(`${era(b.era).label}부터 지을 수 있어요.`);
-    if (b.techReq) rows.push(`${icon('star')}기술 ${b.techReq} 필요 (쓰면 줄지 않아요)`);
-    if (b.needPower) rows.push(`${icon('bolt')}발전소 필요`);
-    if (b.power) rows.push(`${icon('bolt')}도시에 전기 공급`);
-    if (b.coastal) rows.push(`${icon('wave')}바다 바로 위 칸에만`);
-    if (b.exp) rows.push(`${icon('chart')}수출 ${ex}${i === null ? ' (이번 시대·기본)' : ' (이 칸)'} → 10년마다 돈 약 +${Math.round(ex * D.rules.income.exportRate)}`);
-    if (b.factory) rows.push('항구·도로 옆 ×1.5 · 둘 다 ×2');
-    if (b.steelBonus) rows.push(`제철소가 있으면 기본 수출 +${b.steelBonus}`);
-    if (b.boost) rows.push('옆 공장 수출 ×1.5 · 항구+도로는 ×2');
-    if (b.money) rows.push(`${icon('coin')}10년마다 돈 +${D.rules.income.perMarket}`);
-    if (b.tech) rows.push(`${icon('star')}10년마다 기술 +${b.tech}`);
-    if (b.life) rows.push(`${icon('home')}생활 +${b.life}`);
-    if (b.env) rows.push(`${icon('tree')}환경 +${b.env}`);
-    if (b.pol) rows.push(`${icon('smog')}오염 ${b.pol} → 환경 −${5 * b.pol}${i === null ? '' : ` (지금 −${5 * E.pollutionAt(G, i)})`}`);
-    if (b.pol >= 2) rows.push('옆 주택 1채마다 생활 −4');
-    if (b.parkAdj) rows.push('옆 건물마다 오염 −1 (최소 0)');
-    if (b.fair) rows.push(`${icon('scale')}공정 +${b.fair}`);
-    if (b.unfair) rows.push(`${icon('scale')}공정 −${4 * b.unfair}`);
+    const b = B[id], row = i === null ? null : E.production(G).rows.find(r => r.i === i), l = i === null ? 1 : E.level(G.tiles[i]);
+    const rows = [`${icon('coin')}신축 ${b.cost} · 운영비 ${b.upkeep * l}/10년`];
+    if (b.era > G.d) rows.push(`${era(b.era).label}부터 가능해요.`);
+    if (b.exp) {
+      rows.push(`일자리 ${b.jobs * l} · 기술 인력 ${b.skilled * l} · 전력 ${b.energy * l}`);
+      rows.push(`기본 생산 ${b.exp[G.d] * l} · 시대 수출 기회 ${D.rules.demand[b.cat][G.d]}`);
+      if (row) rows.push(`<b>가동 ${Math.round(row.rate * 100)}% · 실제 수출 ${row.exports.toFixed(1)}</b>${row.market < .99 ? ' · 주문을 나눠 받아요' : ''}`);
+      if (b.links) rows.push(`2칸 안에서 ${b.links.map(x => B[x].name).join('·')}와 협업`);
+      rows.push(`물류 시설 가까이에서 수출 지원 · 오염 ${b.pol || 0}`);
+    }
+    if (b.homes) rows.push(`살 공간 ${b.homes * l} · 일자리가 있으면 주민이 들어와요`);
+    if (b.education) rows.push(`${b.range}칸 안의 주민 ${b.education * l} 교육 · 다음 시대부터 기술 인력 양성`);
+    if (b.supply) rows.push(`전력 ${b.supply * l} 공급 · 산업이 늘면 증축해요`);
+    if (b.logistics) rows.push(`${b.range}칸 안의 산업에 수출 지원 최대 ${b.logistics * l}`);
+    if (b.cleaning) rows.push(`${b.range}칸 안의 배출 ${b.cleaning * l}까지 처리`);
+    if (b.service) rows.push(`${b.range}칸 안의 주민 ${b.capacity * l} 생활 지원${id === 'park' ? ' · 공원이 폐수를 정화하지는 않아요' : ''}`);
+    if (b.coastal) rows.push('바다 바로 위 해안 칸에 지어요.');
     return `<div class="info-lines">${rows.map(v => `<p>${v}</p>`).join('')}</div>`;
   }
   function help(key) {
-    const p = E.production(G), t = E.gaugeDetails(G), g = E.gauges(G), sign = n => n < 0 ? `−${Math.abs(n)}` : `+${n}`;
+    const p = E.production(G), g = E.gauges(G);
     const texts = {
-      money: ['돈', `${icon('coin')}수출 공장·시장이 돈을 벌어요.`, `10년 수입 = 기본 ${p.base} + 수출 ${p.exportIncome} + 시장 ${p.marketIncome} = ${p.income}`, '수출 ×0.25를 반올림해요. 시장은 1개마다 +2. 사건으로도 돈이 바뀌어요.'],
-      tech: ['별은 기술', `${icon('star')}학교 +1 · 대학교 +2 (10년마다)`, `다음 10년 기술 +${p.techGain}`, '반도체 ★6 · IT ★9 · 콘텐츠 ★11 · 배터리 ★13 필요. 별은 쌓이고, 건설해도 줄지 않아요. 인터넷 깔기 사건은 +4.'],
-      econ: ['경제', `${icon('chart')}수출 공장 ↑ · 항구·도로 옆이면 더 ↑`, `수출 ${t.econ.exports} ÷ 목표 ${t.econ.target} ×70 → ${g.econ}`, '시대마다 수출 목표가 커져요.'],
-      life: ['생활', `${icon('home')}주택·학교·시장·복지관 ↑ · 오염 건물 옆 주택 ↓`, `기본 25 + 건물 ${t.life.gain} − 이웃 오염 ${t.life.loss} + 경제 ${t.life.economy.toFixed(1)} ${sign(t.life.bonus)}(사건) → ${g.life}`, '경제가 좋아져도 생활이 조금 올라요.'],
-      env: ['환경', `${icon('tree')}공원·정화 시설·친환경 발전 ↑ · 오염 ↓`, `기본 80 − 오염 ${t.env.loss} + 건물 ${t.env.gain} ${sign(t.env.bonus)}(사건) → ${g.env}`, '공원은 옆 건물의 오염도 1 줄여요.'],
-      fair: ['공정', `${icon('scale')}학교·복지관 ↑ · 불공정한 공장 ↓`, `기본 55 − 불공정 ${t.fair.loss} + 건물 ${t.fair.gain} ${sign(t.fair.bonus)}(사건) → ${g.fair}`, '사건에서 일하는 사람도 챙겨요.']
-    };
-    const [name, ...lines] = texts[key];
-    openLayer(`<div class="help"><h2>${name}</h2>${lines.map(v => `<p>${v}</p>`).join('')}${key === 'money' ? '<p class="help-note">사건에서 고른 것에 따라 돈이 더 늘거나 줄 수 있어요.</p>' : key === 'tech' ? '' : '<p class="help-note">게이지는 0부터 100까지예요.</p>'}${btn('close', '닫기', 'primary')}</div>`);
+      money: ['도시 투자금', `기본 지원 ${p.base} + 수출 ${p.exportIncome} + 시장 ${p.marketIncome} − 운영비 ${p.upkeep} = ${p.income}`, '횟수 제한은 없어요. 운영비도 생각하며 신축·증축·산업 전환을 골라요.'],
+      tech: ['사람과 기술 인력', `살 공간 ${p.housing} · 일할 사람 ${p.workers} / 일자리 ${p.jobs}`, `기술 인력 ${p.skilled} / 필요 ${p.skilledNeed} · 다음 시대 +${p.techGain}`, '학교·대학교를 주택 가까이 배치해요. 기술 인력은 일할 사람의 일부예요.'],
+      power: ['전력 공급', `공급 ${p.supply} / 산업에 필요 ${p.energy}`, '처음 마을 전력은 2예요. 발전소는 공급량에 한도가 있고 증축할 수 있어요.'],
+      econ: ['산업과 수출', `수출 ${p.exports} / 이번 시대 목표 ${D.rules.exportTarget[G.d]}`, '사람·기술·전력이 준비된 만큼 가동해요. 같은 산업은 수출 기회를 나눠 받아요.'],
+      life: ['주민 생활', `생활 ${g.life} · 지원 주민 ${p.service}/${p.workers}`, '일자리·시장·공원·복지관이 실제 주민에게 닿아야 해요.'],
+      env: ['환경과 피해 지역', `환경 ${g.env} · 남은 배출 ${p.pollution.toFixed(1)} · 피해 주택 ${p.exposed.length}곳`, '정화 시설은 가까운 배출을 처리해요. 환경 보기로 피해 주택을 찾아요.'],
+      fair: ['성장의 혜택', `공정 ${g.fair}`, '일자리와 생활 지원에서 소외된 주민, 오염 피해, 시대 선택을 함께 살펴요.']
+    }[key] || ['도시 도움말'];
+    openLayer(`<div class="help"><h2>${texts[0]}</h2>${texts.slice(1).map(v => `<p>${esc(v)}</p>`).join('')}${btn('close', '닫기', 'primary')}</div>`);
   }
-
-  /* ───── 지도 ───── */
   function tileHtml(i, readonly = false) {
-    const t = G.tiles[i], coastal = E.coastal(t.x, t.y), id = t.b;
-    const placedNow = G.placed.includes(i);
-    let cls = `tile t-${t.t}${coastal ? ' coast' : ''}${id ? ' built' : ''}${placedNow ? ' now' : ''}`;
-    let badge = '';
-    if (!readonly && sel) {
-      const can = E.canPlace(G, sel, i);
-      if (can.ok) {
-        cls += ' can';
-        const boost = E.boostAt(G, i, sel);
-        if (B[sel].exp) badge += `<span class="export-preview">수출 ${E.exportOf(G, i, G.d, sel)}</span>`;
-        if (boost > 1) badge += `<span class="badge boost">×${boost}</span>`;
-        const ns = E.neighbors(i).map(j => G.tiles[j].b);
-        const smoky = ((B[sel].pol || 0) >= 2 && ns.includes('house')) || (sel === 'house' && ns.some(n => n && (B[n].pol || 0) >= 2));
-        if (smoky) badge += `<span class="badge bad">${icon('mask')}</span>`;
-        if (sel === 'park' && ns.some(n => n && B[n].pol)) badge += `<span class="badge good">${icon('tree')}</span>`;
-      } else if (E.buildable(t.x, t.y) && !id) cls += ' cannot';
-    }
-    let art = '';
+    const t = G.tiles[i], id = t.b, coastal = E.coastal(t.x, t.y), row = viewPlan?.rows.find(r => r.i === i), open = !E.buildable(t.x, t.y) || E.isOpen(G, i);
+    let cls = `tile t-${t.t}${id ? ' built' : ''}${G.placed.includes(i) ? ' now' : ''}${open ? '' : ' unopened'}`, art = '', badge = '';
     if (id) {
-      const polNow = E.pollutionAt(G, i), boost = E.boostAt(G, i), ex = E.exportOf(G, i);
-      art = `<div class="b${polNow > 0 ? ' smoky' : ''}${B[id].pol && !polNow ? ' clean' : ''}" style="--smoke-opacity:${Math.min(.8, .2 + polNow * .15)}">${A.building(id, { d: G.d, pol: polNow })}</div>${placedNow && !readonly ? `<div class="scaffold" aria-hidden="true">${A.construction()}</div>` : ''}`;
-      if (boost > 1 && ex > 0) art += `<span class="badge boost on">×${boost}</span>`;
+      art = `<div class="b${row?.pollution > 0 ? ' smoky' : ''}" style="--smoke-opacity:${Math.min(.8, .2 + (row?.pollution || 0) * .15)}">${A.building(id, { d: G.d, level: E.level(t), pol: row?.pollution || 0 })}</div>`;
+      if (E.level(t) === 2) badge += '<span class="tile-level">Ⅱ</span>';
+      if (!readonly && row?.b.exp) badge += `<span class="tile-status ${row.rate < .99 ? 'short' : ''}">${Math.round(row.rate * 100)}%</span>`;
+      if (!readonly && viewPlan?.exposed.includes(i)) badge += '<span class="tile-alert" aria-label="오염 피해">😷</span>';
     }
-    if (t.t === 'S' && E.neighbors(i).some(j => G.tiles[j].b === 'port')) art += `<div class="sea-boat" aria-hidden="true">${A.boat()}</div>`;
-    const name = id ? B[id].name : t.t === 'S' ? '바다' : t.t === 'M' ? '산' : coastal ? '해안 빈 땅' : '빈 땅';
+    if (!readonly && lens === 'people' && id === 'house') { const taught = new Map(viewPlan?.educated).get(i) || 0; if (taught) cls += ' lens-good'; badge += `<span class="tile-status">👷${new Map(viewPlan?.residents).get(i) || 0} 🎓${taught}</span>`; }
+    if (!readonly && lens === 'env' && row?.pollution > 0) { cls += ' lens-bad'; badge += `<span class="tile-status short">배출 ${row.pollution.toFixed(0)}</span>`; }
+    if (sel && E.canPlace(G, sel, i).ok) cls += ' can';
+    if (sel && id && E.canConvert(G, sel, i).ok) { cls += ' can-convert'; badge += '<span class="tile-status">전환 가능</span>'; }
+    if (relocating !== null && !id && open && E.buildable(t.x, t.y) && (!B[G.tiles[relocating].b].coastal || coastal)) cls += ' can';
+    const source = pop !== null ? G.tiles[pop].b : sel;
+    const anchor = pop !== null ? pop : null;
+    if (!readonly && anchor !== null && source && B[source].range && E.distance(anchor, i) <= B[source].range) cls += ' in-range';
+    const name = id ? B[id].name : t.t === 'S' ? '바다' : t.t === 'M' ? '산' : open ? (coastal ? '해안 빈 땅' : '빈 땅') : '확장할 땅';
     const tag = readonly ? 'div' : 'button';
-    return `<${tag} ${readonly ? '' : 'type="button"'} class="${cls}" data-tile="${i}" ${readonly ? '' : `aria-label="${name}${sel && B[sel].exp && E.canPlace(G, sel, i).ok ? `, 수출 ${E.exportOf(G, i, G.d, sel)}` : ''}" tabindex="${i === cursor ? 0 : -1}"`}>${A.terrain(t.t, coastal, i, G.d)}${t.t === 'S' ? '<span class="water-haze" aria-hidden="true"></span>' : ''}${art}${badge}</${tag}>`;
+    return `<${tag} ${readonly ? '' : 'type="button"'} class="${cls}" data-tile="${i}" ${readonly ? '' : `aria-label="${name}${row?.b.exp ? `, 가동 ${Math.round(row.rate * 100)}%` : ''}${viewPlan?.exposed.includes(i) ? ', 오염 피해' : ''}" tabindex="${i === cursor ? 0 : -1}"`}>${A.terrain(t.t, coastal, i, G.d)}${art}${badge}${!open && E.buildable(t.x, t.y) ? '<span class="land-lock">🔒</span>' : ''}</${tag}>`;
   }
-  const mapHtml = (readonly = false) => `<div class="map${readonly ? ' mini' : ''}" style="--cols:${E.W};--rows:${E.H}">${G.tiles.map((_, i) => tileHtml(i, readonly)).join('')}</div>`;
+  function mapHtml(readonly = false) {
+    viewPlan = G.phase === 'events' ? G.last : E.production(G);
+    return `<div class="map${readonly ? ' mini' : ''}" style="--cols:${E.W};--rows:${E.H}">${G.tiles.map((_, i) => tileHtml(i, readonly)).join('')}</div>`;
+  }
   function fitMap() {
     const wrap = app.querySelector('.map-wrap'), map = wrap?.querySelector('.map');
     if (!wrap || !map) return;
-    const r = wrap.getBoundingClientRect(), gap = 4;
-    const size = Math.floor(Math.min((r.width - 12 - gap * (E.W - 1)) / E.W, (r.height - 12 - gap * (E.H - 1)) / E.H));
-    map.style.setProperty('--tile', `${Math.max(44, size)}px`);
+    const r = wrap.getBoundingClientRect(), gap = 4, css = getComputedStyle(wrap), padding = parseFloat(css.paddingTop) + parseFloat(css.paddingBottom);
+    const size = Math.floor(Math.min((r.width - 12 - gap * (E.W - 1)) / E.W, (r.height - padding - 12 - gap * (E.H - 1)) / E.H));
+    map.style.setProperty('--tile', `${Math.max(32, size)}px`);
   }
   addEventListener('resize', () => { fitMap(); positionPop(); });
 
@@ -201,12 +178,13 @@
     return `<div class="gauges ${cls}">${GK.map(k => `<button type="button" class="gauge${g[k] <= 25 ? ' low' : ''}" data-g="${k}" data-action="help" data-help="${k}" aria-label="${D.gauges[k].label} ${g[k]}, 도움말"><div class="g-icon">${A.gauge(k, GICON[k], g[k])}</div><span class="g-label">${D.gauges[k].label}</span><b class="g-num">${g[k]}</b></button>`).join('')}</div>`;
   }
 
+  function oldSaveExists() { try { return !!localStorage.getItem('daon-city-v1-game'); } catch (_) { return false; } }
   /* ───── 타이틀 ───── */
   function title() {
     sel = null; pop = null;
     const saved = savedGame();
     setScreen('title', `<header class="tbar"><a class="title-guide" href="../guides/daon.html">게임 설명서</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
-      <section class="title-main"><div class="skyline" aria-hidden="true">${A.skyline()}</div><h1 class="logo">다온시 <span>70년</span></h1>
+      <section class="title-main"><div class="skyline" aria-hidden="true">${A.skyline()}</div><h1 class="logo">다온시 <span>70년</span></h1><p class="v2-title-note">산업을 골라, 나만의 발전을 만들어요</p>${oldSaveExists() ? '<p class="legacy-note">새 산업 규칙으로 시작해요. 이전 버전의 저장은 보관되어 있어요.</p>' : ''}
       <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
   }
 
@@ -221,20 +199,19 @@
 
   /* ───── 건설 화면 ───── */
   function build() {
-    const d = G.d, g = E.gauges(G, d), slots = E.slotsLeft(G), total = D.rules.buildsPerDecade[d];
-    const cards = Object.keys(B).filter(id => B[id].era <= d + 1).sort((a, b) => (B[b].era === d) - (B[a].era === d) || B[a].era - B[b].era);
-    const smog = g.env < 40 ? Math.min(.55, (40 - g.env) / 60) : 0;
-    const forecast = E.production(G);
-    setScreen('build', `<section class="build era-${d}" style="--smog:${smog};--haze:${(100 - g.env) / 100}">
+    const d = G.d, g = E.gauges(G), forecast = G.phase === 'events' ? G.last : E.production(G);
+    const cards = Object.keys(B).filter(id => B[id].era <= d + 1 && (!!B[id].exp === (trayMode === 'industry'))).sort((a, b) => (B[b].era === d) - (B[a].era === d) || B[a].era - B[b].era);
+    const leaders = Object.entries(forecast.categories).sort((a, b) => b[1] - a[1]).filter(([, v]) => v > 0);
+    setScreen('build', `<section class="build era-${d} city-v2">
       <header class="topbar">${iconBtn('menu', '메뉴', 'menu')}<div class="decade"><strong>${era(d).label}</strong><div class="timeline">${D.eras.map((e, i) => `<i class="${i < d ? 'done' : i === d ? 'now' : ''}"></i>`).join('')}</div></div>
-        <div class="res"><button type="button" data-action="help" data-help="money" class="res-item" aria-label="돈 ${G.money}, 도움말">${icon('coin')}<b>${G.money}</b></button><button type="button" data-action="help" data-help="tech" class="res-item" aria-label="기술 ${G.tech}, 도움말">${icon('star')}<span class="tech-label">기술</span><b>${G.tech}</b></button><span class="res-item slots" aria-label="남은 건설 ${slots}번">${Array.from({ length: total }, (_, i) => `<span class="slot${i < slots ? '' : ' used'}">${icon('hammer')}</span>`).join('')}</span></div></header>
-      ${gaugesHtml(g)}
-      <div class="main"><div class="map-wrap"><span class="sky-haze" aria-hidden="true"></span>${mapHtml()}${smog ? `<div class="smog" aria-hidden="true"></div>` : ''}</div>
-        <aside class="tray"><div class="forecast" role="status">다음 10년 예상 ${icon('coin')}+${forecast.income} · ${icon('star')}+${forecast.techGain}</div>${sel ? `<section class="building-info" aria-label="건물 정보"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : '<div class="info-hint">카드를 누르면 자세한 숫자가 보여요.</div>'}<div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
-        <div class="tray-foot">${btn('undo', icon('undo'), 'icon-btn', `aria-label="되돌리기" ${G.placed.length ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>
-      ${pop !== null ? popHtml() : ''}</section>`);
-    fitMap(); positionPop();
-    app.querySelector('.card.sel')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        <div class="res"><button data-action="help" data-help="money" class="res-item" aria-label="투자금 도움말">${icon('coin')}<b>${G.money}</b></button><button data-action="help" data-help="tech" class="res-item" aria-label="기술 인력 도움말">${icon('star')}<b>${forecast.skilled}</b></button>${btn('expand', `땅 확장 ${G.land < 2 ? D.rules.expandCost[G.land] : '완료'}`, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
+      <div class="city-readiness"><button data-action="help" data-help="tech">👷 사람 <b>${forecast.workers}/${forecast.jobs}</b></button><button data-action="help" data-help="tech">🎓 기술 인력 <b>${forecast.skilled}/${forecast.skilledNeed}</b></button><button data-action="help" data-help="power">⚡ 전력 <b>${forecast.supply}/${forecast.energy}</b></button>${gaugesHtml(g)}</div>
+      <div class="main"><div class="map-wrap"><div class="map-toolbar">${[['industry', '산업'], ['people', '사람·교육'], ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '이전할 빈 칸을 골라요 · 비용 2' : forecast.warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
+      <aside class="tray"><div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div><div class="forecast">예상 순수입 ${forecast.income >= 0 ? '+' : ''}${forecast.income} · 교육 +${forecast.techGain}<small>수입 ${forecast.base + forecast.exportIncome + forecast.marketIncome} − 운영비 ${forecast.upkeep}</small></div>
+      <div class="tray-tabs">${btn('tray', '산업 키우기', trayMode === 'industry' ? 'active' : '', 'data-tray="industry"')}${btn('tray', '기반 준비', trayMode === 'support' ? 'active' : '', 'data-tray="support"')}</div>
+      ${sel ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : '<div class="info-hint">카드와 건물을 눌러 운영 조건을 살펴요.</div>'}<div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
+      <div class="tray-foot">${btn('undo', icon('undo'), 'icon-btn', `aria-label="계획 되돌리기" ${G.actions.length ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}</section>`);
+    fitMap(); positionPop(); if (matchMedia('(orientation: portrait)').matches) { const c = app.querySelector('.card.sel'), cards = app.querySelector('.cards'); if (c && cards) cards.scrollLeft = c.offsetLeft - cards.offsetLeft; }
     if (!progress.tutorialSeen && d === 0) tutorial(0);
   }
   function cardHtml(id) {
@@ -245,14 +222,13 @@
       <div class="c-row"><span class="cost">${icon('coin')}<b>${b.cost}</b></span>${needs(id)}</div><div class="c-fx">${effects(id)}</div>
       ${!st.ok ? `<span class="c-lock">${reasonHtml(st.reason, id)}</span>` : ''}${isNew ? '<span class="c-new">NEW</span>' : ''}</button>`;
   }
-  /* 지은 건물 누르면: 이번 시대 → 되돌리기 / 예전 → 철거 */
+  /* 지은 건물에서 증축·이전·산업 전환을 고른다. */
   function popHtml() {
-    const t = G.tiles[pop];
-    if (!t || !t.b) return '';
-    const now = G.placed.includes(pop), dem = E.canDemolish(G, pop);
-    return `<div class="pop" role="dialog" aria-label="${B[t.b].name}"><div class="pop-head">${A.building(t.b, { d: G.d })}<b>${B[t.b].name}</b></div>${buildingInfo(t.b, pop)}<div class="pop-actions">
-      ${now ? btn('pop-undo', `${icon('undo')} 되돌리기`, 'secondary') : btn('pop-demolish', `철거 ${icon('coin')}${D.rules.demolishCost}`, 'danger', dem.ok ? '' : 'disabled')}
-      ${btn('pop-close', icon('cross'), 'icon-btn', 'aria-label="닫기"')}</div></div>`;
+    const t = G.tiles[pop]; if (!t?.b) return '';
+    const up = E.canUpgrade(G, pop), conversion = sel && E.canConvert(G, sel, pop);
+    return `<div class="pop" role="dialog" aria-label="${B[t.b].name}"><div class="pop-head">${A.building(t.b, { d: G.d, level: E.level(t) })}<b>${B[t.b].name} ${E.level(t) === 2 ? '증축' : ''}</b></div>${buildingInfo(t.b, pop)}<div class="pop-actions">
+      ${conversion?.ok ? btn('pop-convert', `${B[sel].name}로 전환 ${conversion.cost}`, 'primary', `data-id="${sel}"`) : ''}
+      ${btn('pop-upgrade', `증축 ${up.cost || ''}`, 'secondary', up.ok ? '' : 'disabled')}${btn('pop-move', '이전 2', 'secondary', G.money < 2 ? 'disabled' : '')}${btn('pop-demolish', '철거 1', 'danger', E.canDemolish(G, pop).ok ? '' : 'disabled')}${btn('pop-close', icon('cross'), 'icon-btn', 'aria-label="닫기"')}</div></div>`;
   }
   function positionPop() {
     const el = app.querySelector('.pop'), tile = pop !== null && app.querySelector(`[data-tile="${pop}"]`);
@@ -274,6 +250,7 @@
   function tapTile(i) {
     if (busy) return;
     cursor = i;
+    if (relocating !== null) { const result = E.move(G, relocating, i); if (result.ok) { relocating = null; saveGame(); build(); } else toast('비어 있는 열린 땅을 골라요. 해안 조건도 확인해요.'); return; }
     const t = G.tiles[i];
     if (sel) {
       const can = E.canPlace(G, sel, i);
@@ -282,9 +259,9 @@
         if (!E.cardStatus(G, sel).ok) sel = null;
         build();
         app.querySelector(`[data-tile="${i}"]`)?.classList.add('pop-in');
-        if (E.slotsLeft(G) === 0) toast(`${icon('hammer')}<b>10년 보내기!</b>`);
+        if (E.slotsLeft(G) === 0) toast('땅이 찼어요. 증축·전환이나 도시 확장을 살펴요.');
       } else {
-        if (t.b) { pop = i; sel = null; build(); return; }
+        if (t.b) { pop = i; build(); return; }
         S.play('no');
         const el = app.querySelector(`[data-tile="${i}"]`); el?.classList.remove('shake'); void el?.offsetWidth; el?.classList.add('shake');
         if (E.buildable(t.x, t.y)) toast(reasonHtml(can.reason, sel));
@@ -293,6 +270,24 @@
     }
     if (t.b) { pop = pop === i ? null : i; S.play('tick'); build(); }
   }
+
+  function previewTile(el) {
+    if (screen !== 'build' || busy || !sel || !layer.hidden) return;
+    const i = Number(el?.dataset.tile), panel = app.querySelector('.city-warnings');
+    if (!el || !E.canPlace(G, sel, i).ok) return;
+    const p = E.preview(G, sel, i), current = E.production(G), row = p.rows.find(r => r.i === i), b = B[sel];
+    const diff = p.exports - current.exports, harm = p.exposed.length - current.exposed.length;
+    app.querySelectorAll('.tile').forEach(t => t.classList.toggle('preview-range', !!b.range && E.distance(i, Number(t.dataset.tile)) <= b.range));
+    panel.innerHTML = `<p><b>${b.name} 배치 예상</b>${b.exp ? ` · 가동 ${Math.round(row.rate * 100)}%` : ''}</p><p>도시 수출 ${diff >= 0 ? '+' : ''}${diff.toFixed(1)} · 피해 주택 ${harm >= 0 ? '+' : ''}${harm} · 순수입 ${p.income >= 0 ? '+' : ''}${p.income}</p>`;
+  }
+  app.addEventListener('pointerover', e => previewTile(e.target.closest('[data-tile]')));
+  app.addEventListener('focusin', e => previewTile(e.target.closest('[data-tile]')));
+  app.addEventListener('pointerout', e => {
+    if (!e.target.closest('.map') || e.relatedTarget?.closest('.map') || screen !== 'build' || busy) return;
+    app.querySelectorAll('.preview-range').forEach(t => t.classList.remove('preview-range'));
+    const panel = app.querySelector('.city-warnings');
+    panel.innerHTML = E.production(G).warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요.</p>';
+  });
 
   /* 끌어다 놓기 (터치·마우스) */
   function startDrag(e, id) {
@@ -332,6 +327,7 @@
   async function advance() {
     if (busy) return;
     busy = true; sel = null; pop = null; closeLayer();
+    relocating = null;
     const d = G.d, chips = G.tiles.map((t, i) => [i, E.exportOf(G, i)]).filter(([, v]) => v > 0);
     Paint.preload(era(d).event.char);
     const res = E.advance(G);
@@ -356,8 +352,8 @@
     S.play('coin');
     const moneyEl = app.querySelector('.res-item b'), techEl = app.querySelectorAll('.res-item b')[1];
     if (moneyEl) moneyEl.textContent = G.money;
-    if (techEl) techEl.textContent = G.tech;
-    year.innerHTML = `<span class="gain">${icon('coin')}+${res.income}</span>${res.techGain ? `<span class="gain">${icon('star')}+${res.techGain}</span>` : ''}`;
+    if (techEl) techEl.textContent = E.production(G).skilled;
+    year.innerHTML = `<span class="gain">${icon('coin')}${res.income >= 0 ? '+' : ''}${res.income}</span>${res.techGain ? `<span class="gain">${icon('star')}+${res.techGain}</span>` : ''}`;
     await wait(1300);
     climate.classList.remove('city-running');
     await finishDecade();
@@ -382,20 +378,20 @@
         <div class="ev-card"><div class="ev-portrait">${Paint.person(ev.char, P.portrait(ev.char))}</div><b class="ev-name">${PEOPLE[ev.char] || ''}</b></div>
         <div class="choices">${btn('choose', esc(ev.a.label), 'choice', 'data-k="a"')}${btn('choose', esc(ev.b.label), 'choice', 'data-k="b"')}</div><div class="fx-out" aria-live="polite"></div></div>`, 'event-layer');
       layer.querySelectorAll('[data-action="choose"]').forEach(b => b.addEventListener('click', async () => {
-        const k = b.dataset.k, choice = ev[k];
+        const k = b.dataset.k, choice = ev[k], fx = E.choiceEffects(G, ev, k);
         layer.querySelectorAll('.choice').forEach(x => { x.disabled = true; x.classList.toggle('picked', x === b); });
-        E.applyFx(G, choice.fx, choice.label);
+        E.applyFx(G, fx, choice.label);
         saveGame();
         const out = layer.querySelector('.fx-out');
-        out.innerHTML = Object.entries(choice.fx).map(([key, v]) => {
+        out.innerHTML = Object.entries(fx).map(([key, v]) => {
           const ic = key === 'money' ? 'coin' : key === 'tech' ? 'star' : GICON[key];
           return `<span class="fx ${v > 0 ? 'up' : 'down'}">${icon(ic)}<b>${v > 0 ? '+' : '−'}${Math.abs(v)}</b></span>`;
         }).join('') || `<span class="fx">${icon('check')}</span>`;
-        S.play(Object.values(choice.fx).some(v => v < 0) ? 'down' : 'up');
+        S.play(Object.values(fx).some(v => v < 0) ? 'down' : 'up');
         const g = E.gauges(G);
         app.querySelector('.gauges').outerHTML = gaugesHtml(g);
         app.querySelectorAll('.res-item b')[0].textContent = G.money;
-        app.querySelectorAll('.res-item b')[1].textContent = G.tech;
+        app.querySelectorAll('.res-item b')[1].textContent = E.production(G).skilled;
         await wait(1300); closeLayer(); build(); app.querySelector('.build')?.classList.add('timelapse'); resolve();
       }, { once: true }));
     });
@@ -405,8 +401,8 @@
       const rec = G.records[d], cat = era(d).real;
       openLayer(`<div class="hist"><span class="hist-tag">그때 우리나라는?</span><h3>${era(d).label}</h3>
         <div class="hist-row"><div class="hist-ico">${A.building(REPR[cat])}</div><p>${esc(era(d).realText)}</p></div>
-        <div class="hist-me ${rec.match ? 'yes' : 'no'}">${icon(rec.match ? 'check' : 'compass')}<b>${rec.match ? '나도 같은 길!' : '다온시는 다른 길로!'}</b><span class="mine">${rec.built.map(id => A.building(id, { d })).join('')}</span></div>
-        ${btn('hist-next', d < E.LAST ? `다음 10년 ${icon('play')}` : `70년사 보기 ${icon('play')}`, 'primary big')}</div>`, 'hist-layer');
+        <div class="hist-me ${rec.match ? 'yes' : 'no'}">${icon(rec.match ? 'check' : 'compass')}<b>${rec.match ? '시대 산업을 활용했어요' : '다온시는 다른 산업을 키웠어요'}</b><span class="mine">${rec.built.map(id => A.building(id, { d })).join('')}</span></div>
+        <div class="era-report"><b>내 도시의 성과</b><p>수출 ${rec.exports} · 순수입 ${rec.income >= 0 ? '+' : ''}${rec.income}</p><p>${Object.entries(rec.categories || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([id, v]) => `${D.categories[id].name} ${v.toFixed(1)}`).join(' · ') || '운영할 산업을 준비해요'}</p>${(rec.warnings || []).map(v => `<p>${esc(v)}</p>`).join('')}${rec.relief ? '<p>적자를 긴급 지원으로 메웠어요. 운영비를 줄여 봐요.</p>' : ''}</div>${btn('hist-next', d < E.LAST ? `다음 10년 ${icon('play')}` : `70년사 보기 ${icon('play')}`, 'primary big')}</div>`, 'hist-layer');
       layer.querySelector('[data-action="hist-next"]').addEventListener('click', () => { closeLayer(); resolve(); }, { once: true });
     });
   }
@@ -419,7 +415,7 @@
     if (isNew) progress.endings.push(end.id);
     const earned = [];
     const award = id => { if (!progress.badges.includes(id)) { progress.badges.push(id); earned.push(id); } };
-    if (score === D.eras.length) award('history');
+    if (G.records.length === D.eras.length) award('history');
     if (end.id === 'together') award('together');
     if (progress.endings.length === D.endings.length) award('allEndings');
     save();
@@ -427,15 +423,15 @@
     setScreen('ending', `<section class="ending-page">
       <article class="final-paper${end.legend ? ' legend' : ''}"><div class="masthead">다온일보 호외</div><div class="dateline"><span>다온시 70년사</span><span>엔딩 ${progress.endings.length}/${D.endings.length}</span></div>
         ${isNew ? '<span class="new-stamp">NEW!</span>' : ''}<h2>${end.name}</h2><p class="story">${end.story}</p>
-        <div class="final-body"><div class="final-map">${Paint.scene(`daon/end_${end.id}`, mapHtml(true), end.name, 'eager')}</div><div class="final-side">${gaugesHtml(g, 'big')}
-          <div class="hist-score">${icon('news')}<span>실제 역사와 <b>${score}/${D.eras.length}</b> 같은 길</span></div></div></div>
+        <div class="final-body"><div class="final-map">${mapHtml(true)}</div><div class="final-side">${gaugesHtml(g, 'big')}
+          <div class="hist-score">${icon('news')}<span>시대 산업 운영 <b>${score}/${D.eras.length}</b> · 나의 발전 경로</span></div></div></div>
         <div class="note">${P.icon('bulb')}<p>${end.note}${end.legend ? '' : `<br><span class="sub">${D.finalNote}</span>`}</p></div>
         ${earned.length ? `<div class="earned">${earned.map(id => `<span class="badge-chip">${icon('star')}${D.badges.find(b => b.id === id).name}</span>`).join('')}</div>` : ''}
         <div class="end-btns">${btn('new', `다시 하기 ${icon('play')}`, 'primary')}${btn('endings', '엔딩 도감', 'secondary')}${btn('title', '처음으로', 'secondary')}</div></article>
       <h3 class="papers-title">70년 신문 모음</h3>
       <div class="papers">${G.records.map(r => `<article class="mini-paper"><div class="mini-mast">다온일보 · ${era(r.d).label}</div><h4>${era(r.d).headline}</h4>
         <div class="mini-photo">${Paint.scene(`daon/era${r.d}`, `<span class="mini-built">${r.built.map(id => A.building(id, { d: r.d })).join('')}</span>`, `${era(r.d).label} 다온시 풍경`)}</div>
-        <div class="mini-built">${r.built.length ? r.built.map(id => A.building(id, { d: r.d })).join('') : '<span class="empty">—</span>'}</div>
+        <div class="mini-built"><p class="industry-record">${Object.entries(r.categories || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([id]) => D.categories[id].name).join(' + ') || '기반 준비'}</p>${r.built.length ? r.built.map(id => A.building(id, { d: r.d })).join('') : '<span class="empty">—</span>'}</div>
         <div class="mini-g">${GK.map(k => `<span class="bar" data-g="${k}"><i style="width:${r.gauges[k]}%"></i></span>`).join('')}</div>
         <div class="mini-match ${r.match ? 'yes' : 'no'}" aria-label="${r.match ? '같은 길' : '다온시는 다른 길로!'}">${icon(r.match ? 'check' : 'compass')}</div></article>`).join('')}</div>
       ${end.legend ? '<div class="confetti" aria-hidden="true">' + Array.from({ length: 40 }, (_, i) => `<i style="--x:${(i * 37) % 100};--d:${(i % 7) * .35}s;--c:${['#F5C542', '#2E9E6B', '#3B6FE0', '#E5484D', '#7B52D3'][i % 5]}"></i>`).join('') + '</div>' : ''}
@@ -447,7 +443,7 @@
     setScreen('endings', `<header class="tbar">${iconBtn('home2', '처음으로', 'title')}<h1>엔딩 도감</h1><b class="count">${progress.endings.length}/${D.endings.length}</b></header>
       <section class="ending-grid">${D.endings.map(e => {
         const got = progress.endings.includes(e.id);
-        return `<article class="end-card${got ? '' : ' locked'}${e.legend ? ' legend' : ''}"><div class="mini-mast">다온일보 호외</div>${got ? `<div class="end-photo">${Paint.scene(`daon/end_${e.id}`, icon(ENDING_ICON[e.id]), e.name)}</div><h3>${e.name}</h3><p>${e.story}</p>` : `<div class="end-ico q">?</div><p class="hint">${HINTS[e.id]}</p>`}</article>`;
+        return `<article class="end-card${got ? '' : ' locked'}${e.legend ? ' legend' : ''}"><div class="mini-mast">다온일보 호외</div>${got ? `<div class="end-photo">${A.building(({ export: 'port', tech: 'semi', creative: 'content', together: 'univ', gray: 'steel', unfair: 'welfare', stuck: 'textile', grown: 'house' })[e.id])}</div><h3>${e.name}</h3><p>${e.story}</p>` : `<div class="end-ico q">?</div><p class="hint">${HINTS[e.id]}</p>`}</article>`;
       }).join('')}</section>
       <h2 class="badge-title">배지</h2><section class="badge-row">${D.badges.map(b => {
         const got = progress.badges.includes(b.id);
@@ -458,11 +454,11 @@
   /* ───── 안내(처음 한 번) ───── */
   function tutorial(step) {
     const art = [
-      `<div class="tut-art">${A.building('house')}<span class="tut-arrow">${icon('play')}</span><div class="tut-tile">${A.terrain('F')}</div></div>`,
-      `<div class="tut-art"><div class="tut-tile">${A.terrain('F', true)}${A.building('port')}</div><div class="tut-tile">${A.terrain('F')}${A.building('textile')}<span class="badge boost on">×1.5</span></div></div>`,
-      `<div class="tut-art"><div class="tut-tile">${A.terrain('F')}<div class="b smoky">${A.building('steel')}</div></div><div class="tut-tile">${A.terrain('F')}${A.building('park')}</div></div>`
+      `<div class="tut-art">${A.building('textile')}<span class="tut-arrow">${icon('play')}</span><div class="tut-tile">${A.terrain('F')}</div></div>`,
+      `<div class="tut-art"><div class="tut-tile">${A.terrain('F', true)}${A.building('school')}</div><div class="tut-tile">${A.terrain('F')}${A.building('house')}</div></div>`,
+      `<div class="tut-art"><div class="tut-tile">${A.terrain('F')}<div class="b smoky">${A.building('steel')}</div></div><div class="tut-tile">${A.terrain('F')}${A.building('cleaner')}</div></div>`
     ];
-    const caps = ['골라서 놓기!', '항구·고속도로 옆은 수출 UP!', '공원은 오염을 줄여요!'];
+    const caps = ['시대의 산업을 골라요!', '사람·교육·전력이 있어야 돌아가요!', '환경 보기에서 피해를 확인해요!'];
     openLayer(`<div class="tut">${art[step]}<h2>${caps[step]}</h2><div class="dots">${[0, 1, 2].map(i => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>
       ${btn('tut-next', step < 2 ? '다음' : '해 볼게요!', 'primary big', `data-step="${step}"`)}${btn('tut-skip', '건너뛰기', 'text-btn')}</div>`, 'tut-layer');
   }
@@ -488,7 +484,7 @@
     if (!G) G = E.newGame();
     while (G.phase !== 'end') {
       for (const id of plan[G.d]) {
-        if (E.slotsLeft(G) <= 0) break;
+        if (E.slotsLeft(G) <= 0 && G.land < 2) E.expand(G);
         let best = -1, score = -1e9;
         G.tiles.forEach((t, i) => {
           if (!E.canPlace(G, id, i).ok) return;
@@ -501,8 +497,8 @@
         if (best >= 0) E.place(G, id, best);
       }
       const r = E.advance(G);
-      if (r.problem) E.applyFx(G, r.problem[policy].fx, r.problem[policy].label);
-      E.applyFx(G, era(G.d).event[policy].fx, era(G.d).event[policy].label);
+      if (r.problem) E.applyFx(G, E.choiceEffects(G, r.problem, policy), r.problem[policy].label);
+      E.applyFx(G, E.choiceEffects(G, era(G.d).event, policy), era(G.d).event[policy].label);
       E.nextDecade(G);
     }
     ending();
@@ -511,7 +507,7 @@
   /* ───── 조작 연결 ───── */
   async function act(a, el) {
     switch (a) {
-      case 'new': clearGame(); G = E.newGame(); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
+      case 'new': clearGame(); lens = 'industry'; trayMode = 'industry'; relocating = null; G = E.newGame(); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
       case 'continue': G = savedGame(); if (G) { build(); if (G.phase === 'events') { app.querySelector('.build').classList.add('timelapse'); finishDecade(); } } else title(); break;
       case 'start-build': build(); break;
       case 'endings': endings(); break;
@@ -524,9 +520,15 @@
       case 'close': closeLayer(); break;
       case 'help': if (G) help(el.dataset.help); break;
       case 'sound': progress.sound = !progress.sound; save(); S.setEnabled(progress.sound); S.play('tick'); if (!layer.hidden) settings(); else el.outerHTML = soundBtn(); break;
-      case 'undo': if (G.placed.length) { const r = E.undo(G, G.placed[G.placed.length - 1]); if (!r.ok) { toast(reasonHtml(r.reason)); break; } S.play('undo'); saveGame(); build(); } break;
-      case 'pop-undo': { const r = E.undo(G, pop); if (!r.ok) toast(reasonHtml(r.reason)); else { S.play('undo'); saveGame(); } pop = null; build(); break; }
+      case 'undo': if (G.actions.length) { const r = E.undo(G); if (!r.ok) { toast(reasonHtml(r.reason)); break; } S.play('undo'); saveGame(); build(); } break;
+      case 'pop-undo': { const r = E.undo(G); if (!r.ok) toast(reasonHtml(r.reason)); else { S.play('undo'); saveGame(); } pop = null; build(); break; }
       case 'pop-demolish': if (E.demolish(G, pop).ok) { S.play('thud'); saveGame(); } pop = null; build(); break;
+      case 'pop-upgrade': if (E.upgrade(G, pop).ok) { saveGame(); pop = null; build(); } break;
+      case 'pop-convert': if (E.convert(G, el.dataset.id, pop).ok) { saveGame(); pop = null; sel = null; build(); } break;
+      case 'pop-move': relocating = pop; pop = null; sel = null; build(); break;
+      case 'expand': if (E.expand(G).ok) { saveGame(); build(); } break;
+      case 'lens': lens = el.dataset.lens; pop = null; build(); break;
+      case 'tray': trayMode = el.dataset.tray; sel = null; pop = null; build(); break;
       case 'pop-close': pop = null; build(); break;
       case 'advance': advance(); break;
       case 'tut-next': { const s = Number(el.dataset.step); if (s < 2) tutorial(s + 1); else { progress.tutorialSeen = true; save(); closeLayer(); } break; }
@@ -553,7 +555,7 @@
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
-    if (e.key === 'Escape') { if (!layer.hidden && !layer.querySelector('.event,.hist')) { if (layer.querySelector('.tut')) { progress.tutorialSeen = true; save(); } closeLayer(); return; } if (sel || pop !== null) { sel = null; pop = null; build(); } return; }
+    if (e.key === 'Escape') { if (!layer.hidden && !layer.querySelector('.event,.hist')) { if (layer.querySelector('.tut')) { progress.tutorialSeen = true; save(); } closeLayer(); return; } if (sel || pop !== null || relocating !== null) { sel = null; pop = null; relocating = null; build(); } return; }
     if (screen !== 'build' || busy || !layer.hidden) return;
     const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -E.W, ArrowDown: E.W };
     const active = document.activeElement?.closest?.('[data-tile]');

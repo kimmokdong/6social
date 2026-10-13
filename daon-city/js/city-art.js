@@ -156,6 +156,7 @@ window.CityArt = (() => {
       body += cube(78, 64, 14, 22, 6, mix(color, .65)) + win(80, 68, 8, 7);
       if (d >= 4) body += p('M14 46l8-8h34l-8 8Z', '#2C4A7A') + line('M26 38l-8 8M38 38l-8 8M50 38l-8 8', C.glass, 1.5);
     }
+    if (opts.level === 2) body += cube(74, 59, 16, 28, 7, '#A9CFE0') + win(77, 65, 9, 9) + r(77, 78, 9, 3, C.gold);
     // 굴뚝이 없는 오염 건물도 실제 오염량에 맞춰 연기를 보여 준다.
     if (opts.pol > 0 && !body.includes('class="smoke"')) body += smoke(78, 18, Math.min(3, opts.pol));
     return svg(body, '0 0 100 100', `bld bld-${id}${opts.cls ? ' ' + opts.cls : ''}`);

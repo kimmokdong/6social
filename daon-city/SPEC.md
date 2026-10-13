@@ -1,3 +1,5 @@
+> **이 문서는 v1 구현 기록입니다.** 현재 산업 중심 v2의 설계·규칙·검증 결과는 [DESIGN-V2.md](DESIGN-V2.md)를 기준으로 합니다.
+
 # 다온시 70년 — Build Spec (for Codex)
 
 A turn-based city-building puzzle that teaches Korean 6th graders (age 12) **how Korea's economy grew (1960s→2020s)**,

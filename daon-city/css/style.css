@@ -366,3 +366,66 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 @media(orientation:portrait){.tray{grid-template-rows:auto auto auto auto}.building-info{max-height:110px}.cards{max-height:178px}}
 @media(max-width:700px){.building-info{max-height:150px}.forecast{font-size:18px}.res-item{min-height:48px}.gauge{min-height:48px}.tech-label{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.city-running .now .b,.city-running .park-trees{animation:none;transform:none}.city-running .scaffold{display:none}.traffic,.sea-boat{animation:none}.smoke{display:none}.sky-haze,.water-haze{transition:none!important}}
+
+/* 산업 중심 v2: 작은 건물의 상태와 준비 조건을 직접 읽는다. */
+.map{transition-property:none}
+.city-v2{width:100%;min-width:0;grid-template-columns:minmax(0,1fr)}
+.city-v2 .topbar{flex-wrap:wrap;min-width:0;width:100%}
+.city-v2 .city-readiness{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;min-width:0;width:100%}
+.city-readiness>button{min-height:44px;min-width:0;font-size:18px;padding:6px 10px;background:#FFFDF8}
+.city-readiness .gauges{flex:1;min-width:0;gap:6px;margin:0}
+.city-readiness .gauge{min-height:44px;padding:4px 8px;gap:6px}
+.city-readiness .g-icon{width:28px;height:28px}
+.city-readiness .g-label,.city-readiness .g-num{font-size:16px}
+.city-v2 .main,.city-v2 .tray{min-width:0}
+.city-v2 .tray{grid-template-rows:auto auto auto auto minmax(0,1fr) auto}
+.city-v2 .map-wrap{padding-top:52px;padding-bottom:74px;position:relative}
+.map-toolbar{display:flex;justify-content:center;gap:6px;position:absolute;top:4px;left:0;right:0;padding-bottom:8px}
+.map-toolbar button,.tray-tabs button{min-height:44px;padding:6px 10px;font-size:18px}
+.active{background:#2B7A9B;color:white}
+.city-warnings{position:absolute;bottom:4px;left:8px;right:8px;font-size:16px;line-height:1.4;text-align:center;color:#714935}
+.city-warnings p{margin:2px 0}
+.industry-opportunity{background:#E3EDF3;padding:10px;border-radius:12px;font-size:18px}
+.industry-opportunity p{font-size:16px;margin-top:4px}
+.forecast small{display:block;font-size:16px;font-weight:500}
+.tray-tabs{display:flex;gap:6px}.tray-tabs button{flex:1}
+.city-v2 .info-hint,.city-v2 .card .c-fx .fx,.city-v2 .card .c-fx b{font-size:16px}
+.tile.unopened>.ter{filter:grayscale(.7) brightness(.7)}
+.land-lock{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;pointer-events:none}
+.tile-status{position:absolute;bottom:-2px;left:2px;right:2px;font-size:clamp(12px,1.5vw,16px);font-weight:900;background:#F6FFED;border:1px solid #79985D;border-radius:6px;line-height:1.3;z-index:2;pointer-events:none}
+.tile-status.short{background:#FFF0DA;border-color:#CD7A35;color:#85421C}
+.tile-alert{position:absolute;top:-5px;left:-5px;font-size:21px;z-index:3;pointer-events:none}
+.tile-level{position:absolute;top:-3px;right:1px;font-size:16px;font-weight:900;background:#F5C542;border-radius:5px;padding:0 4px;z-index:2}
+.tile.lens-good{outline:3px solid #478FBE;outline-offset:-3px}.tile.lens-bad{outline:3px solid #E28348;outline-offset:-3px}
+.tile.in-range,.tile.preview-range{box-shadow:inset 0 0 0 4px #6B9BD9}.tile.can-convert{outline:3px dashed #9668A7}
+.tile .bld{filter:drop-shadow(0 2px 1px #24212B30)}
+.city-v2 .pop{max-height:calc(100dvh - 24px);overflow:auto}
+.city-v2 .pop-actions{display:flex;flex-wrap:wrap;gap:6px}
+.city-v2 .pop-actions button{font-size:17px;padding:8px;min-height:44px}
+.expand-btn{font-size:16px;padding:8px;min-height:44px}
+.era-report{font-size:18px;line-height:1.4;background:#EDF3E7;padding:12px;border-radius:12px;margin:10px 0}
+.industry-record{font-size:18px;text-align:center}.v2-title-note{font-size:22px}
+.legacy-note{font-size:16px;color:var(--soft);max-width:500px;text-align:center}
+.end-photo>.bld{height:140px;width:100%;padding:12px}.final-map .map{--tile:clamp(24px,4vw,60px)}
+@media(max-width:1000px){
+ .city-readiness .gauges{flex-basis:100%}.city-readiness>button{flex:1;font-size:16px}
+ .industry-opportunity{font-size:16px}.forecast{font-size:18px}.tray-tabs button{font-size:16px}
+}
+@media(orientation:portrait){
+ .city-v2{height:auto;min-height:100dvh;overflow:visible;padding-bottom:106px}
+ .city-v2 .main{grid-template-rows:auto auto}.city-v2 .map-wrap{width:100%;height:440px;min-height:440px}
+ .city-v2 .tray{grid-template-rows:auto auto auto auto auto auto}
+ .city-v2 .tray-foot{position:fixed;bottom:0;left:14px;right:14px;z-index:8;background:#F4EEE2F5;border-top:2px solid #D6C7AA;padding:10px;border-radius:16px 16px 0 0}
+}
+@media(max-width:700px){
+ .city-v2 .main{display:flex;flex-direction:column}.city-v2 .map-wrap{height:410px;min-height:410px;padding:54px 0 74px}
+ .city-v2 .city-readiness{gap:4px}.city-readiness>button{font-size:14px;white-space:nowrap;flex:1;padding:6px 4px}
+ .city-readiness .gauges{flex-wrap:nowrap}.city-readiness .gauge{flex:1;min-width:0;gap:3px;padding:4px}
+ .city-readiness .g-icon{width:22px;height:22px}.city-readiness .g-label,.city-readiness .g-num{font-size:14px;white-space:nowrap}
+ .city-v2 .decade{display:block}.city-v2 .timeline{margin-top:6px}
+ .map-toolbar button{font-size:16px}.city-v2 .res{min-width:0;gap:4px}
+ .city-v2 .res-item{padding:6px 4px;min-height:44px}.city-v2 .res-item b{font-size:20px}.expand-btn{font-size:14px;padding:6px 8px}
+ .city-v2 .cards,.city-v2 .tray{max-height:none}.tile-status{font-size:12px}
+}
+
+.city-v2 .card.locked .c-fx{visibility:hidden}
