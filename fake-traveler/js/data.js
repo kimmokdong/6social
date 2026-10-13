@@ -22,8 +22,8 @@ window.FAKE = {
     savanna:       { name: '사바나',       group: 'tropical',  img: 'sv_giraffe',  temp: '1년 내내 더워요', rain: '건기 ↔ 우기', look: '긴 풀 초원, 드문드문 나무', where: '동아프리카', confuse: ['rainforest', 'steppe'], gallery: ['sv_giraffe', 'sv_waterhole', 'sv_wetseason', 'sv_huts', 'sv_lion'] },
     desert:        { name: '사막',         group: 'dry',       img: 'ds_dunes',    temp: '낮엔 뜨겁고 밤엔 추워요', rain: '비가 거의 없어요', look: '모래 언덕 · 오아시스', where: '사하라 · 아라비아', confuse: ['steppe'], gallery: ['ds_dunes', 'ds_oasis', 'ds_house', 'ds_night'] },
     steppe:        { name: '스텝',         group: 'dry',       img: 'st_grass',    temp: '여름 덥고 겨울 매우 추워요', rain: '비가 적어요', look: '짧은 풀 초원 · 유목', where: '몽골 · 중앙아시아', confuse: ['desert', 'savanna'], gallery: ['st_grass', 'st_ger', 'st_winter', 'st_horse'] },
-    mediterranean: { name: '지중해성',     group: 'temperate', img: 'md_village',  temp: '여름 덥고 겨울 따뜻해요', rain: '여름엔 건조, 겨울에 비', look: '올리브 · 포도', where: '지중해 주변', confuse: ['marine'], gallery: ['md_village', 'md_olive', 'md_vineyard', 'md_winterrain'] },
-    marine:        { name: '서안 해양성', group: 'temperate', img: 'wm_pasture',  temp: '여름 선선, 겨울 따뜻', rain: '1년 내내 고르게 비', look: '푸른 목초지 · 젖소', where: '서유럽', confuse: ['mediterranean'], gallery: ['wm_pasture', 'wm_street', 'wm_cheese'] },
+    mediterranean: { name: '지중해 주변 지역',     group: 'temperate', img: 'md_village',  temp: '여름 덥고 겨울 따뜻해요', rain: '여름엔 건조, 겨울에 비', look: '올리브 · 포도', where: '지중해 주변', confuse: ['marine'], gallery: ['md_village', 'md_olive', 'md_vineyard', 'md_winterrain'] },
+    marine:        { name: '서부 유럽', group: 'temperate', img: 'wm_pasture',  temp: '여름 선선, 겨울 따뜻', rain: '1년 내내 고르게 비', look: '푸른 목초지 · 젖소', where: '서부 유럽', confuse: ['mediterranean'], gallery: ['wm_pasture', 'wm_street', 'wm_cheese'] },
     taiga:         { name: '타이가',       group: 'subarctic', img: 'tg_forest',   temp: '겨울 길고 매우 추움, 여름은 따뜻', rain: '보통', look: '끝없는 침엽수림', where: '러시아 · 캐나다', confuse: ['tundra'], gallery: ['tg_forest', 'tg_cabin', 'tg_snow', 'tg_summerlake', 'tg_moose'] },
     tundra:        { name: '툰드라',       group: 'polar',     img: 'td_reindeer', temp: '가장 따뜻한 달 평균도 10℃ 아래', rain: '적어요', look: '이끼 · 순록, 나무 없음', where: '북극해 주변', confuse: ['taiga', 'icecap'], gallery: ['td_reindeer', 'td_summer', 'td_winter', 'td_stilts'] },
     icecap:        { name: '빙설',         group: 'polar',     img: 'ic_icesheet', temp: '1년 내내 평균 0℃ 아래', rain: '눈이 조금 와요', look: '끝없는 얼음 · 나무도 풀도 없음', where: '남극 · 그린란드 안쪽', confuse: ['tundra'], gallery: ['ic_icesheet', 'ic_station', 'ic_penguin', 'ic_blizzard'] },
@@ -196,12 +196,12 @@ window.FAKE = {
           { type: 'quote', text: '올리브가 진짜 맛있어', v: 'ok' },
           { type: 'item', item: 'sunscreen', v: 'ok' } ] },
         { who: 'park', ev: [
-          { type: 'photo', img: 'md_winterrain', cap: '1월', v: 'trap', why: '지중해성 기후는 겨울에 비가 와요!' },
+          { type: 'photo', img: 'md_winterrain', cap: '1월', v: 'trap', why: '지중해 주변 지역의 기후는 겨울에 비가 와요!' },
           { type: 'temp', text: '12℃', cap: '1월', v: 'ok', why: '지중해의 겨울은 따뜻한 편이에요!' },
-          { type: 'quote', text: '겨울엔 비가 자주 와', v: 'trap', why: '지중해성 기후는 겨울에 비가 와요!' },
+          { type: 'quote', text: '겨울엔 비가 자주 와', v: 'trap', why: '지중해 주변 지역의 기후는 겨울에 비가 와요!' },
           { type: 'item', item: 'umbrella', v: 'trap', why: '겨울엔 비가 와서 우산이 필요해요!' } ] },
         { who: 'miso', fake: 'marine', real: 'wm_street', options: ['marine', 'rainforest', 'taiga'], ev: [
-          { type: 'photo', img: 'wm_pasture', cap: '7월', v: 'lie', why: '여름에 흐리고 푸른 목장은 서안 해양성!' },
+          { type: 'photo', img: 'wm_pasture', cap: '7월', v: 'lie', why: '여름에 흐리고 푸른 목장은 서부 유럽!' },
           { type: 'temp', text: '18℃', cap: '7월', v: 'lie', why: '지중해의 여름은 덥고 건조해요!' },
           { type: 'quote', text: '한여름에도 비가 와', v: 'lie', why: '지중해의 여름은 비가 거의 없어요!' },
           { type: 'item', item: 'raincoat', v: 'ok' } ] }

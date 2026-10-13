@@ -8,6 +8,11 @@ for(const stage of Object.keys(L.CFG.stages))for(let seed=1;seed<=40;seed++){
   let s=L.newContest({stage,seed});
   while(s.phase!=='end'){
     s=L.apply(s,{type:'start'}).state;
+    for(const x of s.seats){
+      assert.equal(x.hand.length,L.CFG.handSize,'손패 5장 유지');
+      assert.equal(new Set(x.hand.map(c=>c.id)).size,x.hand.length,'한 손패 안의 카드 중복 없음');
+      if(x.role==='liar') assert(x.hand.filter(c=>!c.neutral && L.verdict(c,s.claim).v!=='lie' && L.verdict(c,s.liarClimate).v!=='lie').length>=2,'라이어에게 두 여행지에서 통하는 실제 증거 최소 2장');
+    }
     while(s.phase==='play'||s.phase==='vote'){
       const original=JSON.stringify(s),copy=JSON.parse(original);
       assert.equal(JSON.stringify(copy),original,'상태 직렬화 일치');

@@ -34,7 +34,7 @@
   function save() { try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (_) {} }
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function particle(word, pair) { const n=word.trim().charCodeAt(word.trim().length-1)-0xAC00; return word + pair.split('/')[n>=0 && n<=11171 && n%28 ? 0 : 1]; }
-  function natural(text) { return text.replace(/([가-힣]+)(은\(는\)|이\(가\)|을\(를\)|과\(와\)|\(는\)|\(이\)|\(을\))/g,(_,word,p)=>particle(word,{'은(는)':'은/는','이(가)':'이/가','을(를)':'을/를','과(와)':'과/와','(는)':'은/는','(이)':'이/가','(을)':'을/를'}[p])); }
+  function natural(text) { return text.replace(/서안 해양성 기후/g,'서부 유럽의 기후').replace(/지중해성 기후/g,'지중해 주변 지역의 기후').replace(/서안 해양성/g,'서부 유럽').replace(/지중해성/g,'지중해 주변 지역').replace(/([가-힣]+)(은\(는\)|이\(가\)|을\(를\)|과\(와\)|\(는\)|\(이\)|\(을\))/g,(_,word,p)=>particle(word,{'은(는)':'은/는','이(가)':'이/가','을(를)':'을/를','과(와)':'과/와','(는)':'은/는','(이)':'이/가','(을)':'을/를'}[p])); }
   const paths = {
     home: '<path d="m2 11 10-8 10 8M5 9v12h14V9M9 21v-8h6v8"/>',
     bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',
