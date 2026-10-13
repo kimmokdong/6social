@@ -28,6 +28,8 @@ with sync_playwright() as pw:
           localStorage.setItem('daon-city-v2-game',JSON.stringify(s));localStorage.setItem('daon-city-v2',JSON.stringify({endings:['tech'],badges:['history'],tutorialSeen:true,sound:false}));localStorage.setItem('daon-city-v1-game','옛 기록');
         }""");p.reload();before=stores(p);click(p,'continue')
         assert '도시 돈' in p.locator('.money-res').inner_text()
+        small=p.locator('.city-v2').evaluate("""el=>[...el.querySelectorAll('*')].filter(n=>!n.closest('svg')&&n.checkVisibility()&&[...n.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())&&parseFloat(getComputedStyle(n).fontSize)<18).map(n=>({text:n.textContent,size:getComputedStyle(n).fontSize}))""")
+        assert not small,small
         assert '사용' in p.locator('[data-action="expand"]').inner_text() and '12칸 → 20칸' in p.locator('[data-action="expand"]').inner_text()
         for key in ['people','tech','power','money','econ','life','env','fair']:
             p.locator(f'[data-action="help"][data-help="{key}"]').first.click();p.wait_for_selector('.help-clear')
@@ -42,6 +44,14 @@ with sync_playwright() as pw:
         if w>=h:
             assert p.locator('.tray-foot').bounding_box()['y']+p.locator('.tray-foot').bounding_box()['height']<=h+1
         assert stores(p)==before
+        assert p.locator('.practice-numbers').count()==1 and '18' in p.locator('.practice-numbers').inner_text()
+        small=p.locator('.city-v2').evaluate("""el=>[...el.querySelectorAll('*')].filter(n=>!n.closest('svg')&&n.checkVisibility()&&[...n.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())&&parseFloat(getComputedStyle(n).fontSize)<18).map(n=>({text:n.textContent,size:getComputedStyle(n).fontSize}))""")
+        assert not small,small
+        assert p.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+        if w>=h:
+            rect=p.locator('.card').bounding_box();foot=p.locator('.tray-foot').bounding_box()
+            assert rect['y']+rect['height']<=foot['y']+1,(rect,foot)
+        shot(p,f'practice-numbers-{w}')
         # 다른 땅을 누르거나 다음 시대를 먼저 보낼 수 없다.
         assert p.locator('[data-action="advance"]').is_disabled()
         p.locator('[data-card="textile"]').click();p.locator('[data-tile="14"]').click();assert not p.locator('.practice-feedback').count()

@@ -262,9 +262,9 @@
         <div class="res"><button data-action="help" data-help="money" class="res-item money-res" aria-label="도시 돈 ${G.money}, 도움말">${icon('coin')}<span>도시 돈 <b class="money-amount">${G.money}</b></span></button>${btn('expand', expansion, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
       <div class="city-readiness">${metric('people', '👷 일할 사람', forecast.workers, forecast.jobs, '명')}${metric('tech', '🎓 기술 인력', forecast.skilled, forecast.skilledNeed, '명')}${metric('power', '⚡ 전력', forecast.supply, forecast.energy, '', '공급')}${gaugesHtml(g)}</div>${practice ? practicePanel() : ''}
       <div class="main"><div class="map-wrap"><div class="map-toolbar">${relocating !== null ? btn('cancel-move', '옮기기 취소', 'secondary') : [['industry', '산업'], ['people', '사람·교육'], ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '빈 땅을 누르면 건물이 옮겨져요 · 도시 돈 2 사용' : forecast.warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
-      <aside class="tray">${practice ? '' : `<div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div>`}<div class="forecast"><button data-action="help" data-help="money">10년 뒤 도시 돈 <b>${G.money} → ${Math.max(0, G.money + forecast.income)}</b><small>운영비를 뺀 뒤 ${forecast.income >= 0 ? '+' : ''}${forecast.income}</small></button><button data-action="help" data-help="tech">새로 기술을 배울 사람 <b>${forecast.techGain}명</b></button></div>
-      <div class="tray-tabs">${btn('tray', '산업 키우기', trayMode === 'industry' ? 'active' : '', 'data-tray="industry"')}${btn('tray', '기반 준비', trayMode === 'support' ? 'active' : '', 'data-tray="support"')}</div>
-      ${sel && !practice ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${cards.map(cardHtml).join('')}</div>
+      <aside class="tray">${practice ? '' : `<div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div>`}${practice ? '' : `<div class="forecast"><button data-action="help" data-help="money">10년 뒤 도시 돈 <b>${G.money} → ${Math.max(0, G.money + forecast.income)}</b><small>운영비를 뺀 뒤 ${forecast.income >= 0 ? '+' : ''}${forecast.income}</small></button><button data-action="help" data-help="tech">새로 기술을 배울 사람 <b>${forecast.techGain}명</b></button></div>
+      <div class="tray-tabs">${btn('tray', '산업 키우기', trayMode === 'industry' ? 'active' : '', 'data-tray="industry"')}${btn('tray', '기반 준비', trayMode === 'support' ? 'active' : '', 'data-tray="support"')}</div>`}
+      ${sel && !practice ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${practice ? practiceNumbers() : ''}${cards.map(cardHtml).join('')}</div>
       <div class="tray-foot">${btn('undo', `${icon('undo')}<small>되돌리기</small>`, 'icon-btn undo-labeled', `aria-label="계획 되돌리기, 쓴 돈 돌려받기" ${G.actions.length && !practice ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}</section>`);
     fitMap(); positionPop(); if (matchMedia('(orientation: portrait)').matches) { const c = app.querySelector('.card.sel'), cards = app.querySelector('.cards'); if (c && cards) cards.scrollLeft = c.offsetLeft - cards.offsetLeft; }
     if (practice) { app.querySelector('[data-action="expand"]').disabled ||= practice.pending || PRACTICE[practice.step].kind !== 'expand'; app.querySelector('[data-action="advance"]').disabled = practice.pending || PRACTICE[practice.step].kind !== 'advance'; checkPractice(); }
@@ -513,11 +513,11 @@
   /* ───── 기존 도시와 저장을 건드리지 않는 직접 조작 연습 ───── */
   const PRACTICE = [
     { kind: 'place', card: 'textile', tile: 21, title: '돈을 써서 첫 산업 짓기', task: '섬유 공장 카드를 고른 뒤 빛나는 땅을 눌러요. 짓는 돈 3이 무슨 뜻인지 확인해요.' },
-    { kind: 'place', card: 'school', tile: 7, title: '학교로 다음 산업 준비하기', task: '기반 준비에서 학교를 골라 주택 옆 빛나는 땅에 지어요. 기술은 배우는 시간이 필요해요.' },
+    { kind: 'place', card: 'school', tile: 7, title: '학교로 다음 산업 준비하기', task: '학교 카드를 골라 주택 옆 빛나는 땅에 지어요. 기술은 배우는 시간이 필요해요.' },
     { kind: 'upgrade', tile: 8, title: '같은 땅에서 집 키우기', task: '빛나는 주택을 누르고 건물 키우기를 골라요. 쓸 돈과 늘어나는 인원은 서로 다른 숫자예요.' },
     { kind: 'advance', title: '10년 운영한 결과 보기', task: '10년 보내기를 눌러요. 산업이 돈을 벌고, 학교의 주민이 기술을 배워요.' },
     { kind: 'place', card: 'steel', tile: 22, title: '새 산업에 필요한 전력 읽기', task: '1970년대의 제철소를 빛나는 땅에 지어요. 가능한 사람과 필요한 전력을 비교해요.' },
-    { kind: 'place', card: 'power', tile: 28, title: '부족한 전력 채우기', task: '기반 준비에서 화력 발전소를 골라 빛나는 땅에 지어요. 공장이 얼마나 돌아가는지 다시 확인해요.' },
+    { kind: 'place', card: 'power', tile: 28, title: '부족한 전력 채우기', task: '화력 발전소 카드를 골라 빛나는 땅에 지어요. 공장이 얼마나 돌아가는지 다시 확인해요.' },
     { kind: 'move', tile: 22, to: 30, title: '오염 피해 주택 지키기', task: '😷 주택 가까이 있는 빛나는 제철소를 누르고 다른 땅으로 옮기기를 골라요. 새로 빛나는 빈 땅으로 옮겨요.' },
     { kind: 'expand', title: '돈과 땅의 칸 수 구분하기', task: '땅 넓히기를 눌러요. 도시 돈 5를 쓰면 땅이 5칸 늘어나는 것인지 확인해요.' }
   ];
@@ -534,7 +534,21 @@
   }
   function practicePanel() {
     const step = PRACTICE[practice.step];
-    return `<section class="practice-panel" aria-label="연습 안내"><div class="practice-heading"><b>연습 ${practice.step + 1}/${PRACTICE.length}</b>${btn('practice-exit', '연습 나가기', 'text-btn')}</div><strong>${step.title}</strong><p>${step.task}</p><small>연습용 도시예요. 내 도시 저장과 엔딩 도감은 그대로예요.</small>${practice.pending ? btn('practice-next', '다음 연습으로', 'primary') : ''}</section>`;
+    return `<section class="practice-panel" aria-label="연습 안내"><div class="practice-heading"><b>연습 ${practice.step + 1}/${PRACTICE.length}</b>${btn('practice-exit', '연습 나가기', 'text-btn')}</div><strong>${step.title}</strong><small>연습용 도시예요. 내 도시 저장과 엔딩 도감은 그대로예요.</small>${practice.pending ? btn('practice-next', '다음 연습으로', 'primary') : ''}</section>`;
+  }
+  function practiceNumbers() {
+    const p = E.production(G), steel = p.industries.find(r => r.id === 'steel');
+    const focus = [
+      [['지금 가진 도시 돈', G.money], ['공장 짓는 비용', `${B.textile.cost} 사용`], '돈은 건물을 짓는 비용이에요. 일자리 2개는 공장에서 일할 사람 수예요.'],
+      [['지금 기술을 배운 사람', `${p.skilled}명`], ['학교의 교육 자리', `${B.school.education}명`], '학교를 지은 뒤 10년을 보내야 주민이 기술을 배워요.'],
+      [['이 주택의 살 곳', `${B.house.homes * E.level(G.tiles[8])}명`], ['집 키우는 비용', `${B.house.cost} 사용`], '살 곳을 늘리면 더 많은 주민이 살 수 있어요. 일자리도 함께 준비해요.'],
+      [['10년 뒤 받을 도시 돈', `${p.income >= 0 ? '+' : ''}${p.income}`], ['새로 기술을 배울 사람', `${p.techGain}명`], '산업이 번 돈에서 운영비를 뺀 결과예요. 배운 기술은 다음 산업의 준비가 돼요.'],
+      [['공급하는 전력', p.supply], ['공장이 쓰는 전력', p.energy], '제철소를 지은 뒤 두 숫자를 비교해요. 전력이 부족하면 생산량이 줄어요.'],
+      [['제철소가 돌아가는 정도', `${Math.round((steel?.rate || 0) * 100)}%`], ['오염 피해 주택', `${p.exposed.length}곳`], '발전소로 생산량을 늘려요. 😷 표시가 뜨는 주택의 피해도 함께 확인해요.'],
+      [['오염 피해 주택', `${p.exposed.length}곳`], ['공장을 옮기는 비용', '2 사용'], '공장을 주택에서 멀리 옮겨요. 피해 주택 수가 어떻게 바뀌는지 살펴요.'],
+      [['지금 건설 가능한 땅', `${landCount(G.land)}칸`], ['땅을 넓히는 비용', `${D.rules.expandCost[0]} 사용`], '5는 쓸 돈이에요. 땅의 넓이는 칸으로 읽어요. 비용과 효과를 구분해요.']
+    ][practice.step];
+    return `<section class="practice-numbers" role="listitem" aria-label="지금 볼 숫자"><h3>지금 볼 숫자</h3><div>${focus.slice(0, 2).map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`).join('')}</div><p>${PRACTICE[practice.step].task}</p><details><summary>이 숫자의 뜻</summary><p>${focus[2]}</p></details></section>`;
   }
   function checkPractice() {
     if (practice.pending) return;
