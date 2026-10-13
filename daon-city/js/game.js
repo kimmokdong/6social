@@ -182,7 +182,7 @@
   function title() {
     sel = null; pop = null;
     const saved = savedGame();
-    setScreen('title', `<header class="tbar"><a class="title-guide" href="../guides/daon.html">게임 설명서</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
+    setScreen('title', `<header class="tbar"><span class="title-left"><a class="title-guide" href="../guides/daon.html">게임 설명서</a><span class="title-credit">만든이 현승쌤</span></span><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
       <section class="title-main"><div class="skyline" aria-hidden="true">${A.skyline()}</div><h1 class="logo">다온시 <span>70년</span></h1><p class="v2-title-note">산업을 골라, 나만의 발전을 만들어요</p>${oldSaveExists() ? '<p class="legacy-note">새 산업 규칙으로 시작해요. 이전 버전의 저장은 보관되어 있어요.</p>' : ''}
       <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
   }

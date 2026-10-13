@@ -81,7 +81,7 @@
   /* ───── 타이틀 ───── */
   function title() {
     const saved = savedGame();
-    setScreen('title', `<header class="tbar"><a class="title-guide" href="../guides/tteok.html">게임 설명서</a><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
+    setScreen('title', `<header class="tbar"><span class="title-left"><a class="title-guide" href="../guides/tteok.html">게임 설명서</a><span class="title-credit">만든이 현승쌤</span></span><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
       <section class="title-main"><div class="title-scene">${Paint.scene('tteok/title', A.scene({ chairs: true }), '학교 앞 떡볶이 가게', 'eager')}</div><h1 class="logo">떡볶이 <span>타이쿤</span></h1>
       <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${T.endings.length}</b>`, 'secondary')}</div></section>`);
   }

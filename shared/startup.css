@@ -28,3 +28,11 @@ body.game-preparing #app{visibility:hidden}
 .prep-failed progress,.prep-failed .prep-count{display:none}
 button[data-startup-blocked]{opacity:.6;cursor:wait}
 @media(prefers-reduced-motion:reduce){.prep-art,.prep-art span,.prep-art:after{animation:none!important}}
+
+/* 제목 화면: 게임 설명서 버튼 옆 만든이 표시 (모든 게임 공통) */
+.title-left{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.title-credit{font-size:18px;font-weight:700;color:#5B5566;white-space:nowrap;background:#FFFDF8cc;border-radius:999px;padding:4px 12px}
+/* 삼권 스와이프처럼 설명서 버튼이 화면 모서리에 떠 있는 경우: 묶음째로 띄운다 */
+.title-left:has(.title-home){position:absolute;top:max(24px,env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));z-index:2}
+.title-left .title-home{position:static}
+@media(max-width:600px){.title-left:has(.title-home){top:max(16px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left))}}
