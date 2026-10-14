@@ -20,10 +20,16 @@ FIXTURE = """seed => {
 def fit(page):
     dialog = page.locator('dialog[open]')
     dialog.evaluate("e=>Promise.all([...e.querySelectorAll('img')].map(i=>i.decode().catch(()=>{})))")
-    if not dialog.evaluate('e=>e.scrollHeight<=e.clientHeight+1'):
-        page.screenshot(path=str(OUT/'overflow.png'))
-        raise AssertionError('결과 창 세로 스크롤')
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), '가로 넘침'
+    assert dialog.locator('h2').evaluate('e=>e.getBoundingClientRect().top>=e.closest("dialog").getBoundingClientRect().top'), '결과 제목 잘림'
+    if not dialog.evaluate('e=>e.scrollHeight<=e.clientHeight+1'):
+        # 낮은 화면에서는 결과 창 안을 스크롤해 마지막 버튼까지 볼 수 있어야 한다.
+        assert page.viewport_size['height'] < 650, '일반 화면 결과 창 세로 넘침'
+        assert dialog.evaluate('e=>["auto","scroll"].includes(getComputedStyle(e).overflowY)'), '결과 창 내부 스크롤 가능'
+        last=dialog.locator('button').last
+        last.scroll_into_view_if_needed()
+        assert last.evaluate('e=>{const r=e.getBoundingClientRect(),d=e.closest("dialog").getBoundingClientRect();return r.top>=d.top&&r.bottom<=d.bottom;}'), '마지막 버튼 접근 가능'
+        dialog.evaluate('e=>e.scrollTop=0')
 
 with sync_playwright() as p:
     browser=p.chromium.launch(channel='chrome',headless=True)
@@ -33,6 +39,7 @@ with sync_playwright() as p:
         page.on('pageerror',lambda e:errors.append(str(e)))
         for seed in [7,17,27]:
             page.goto(URL,wait_until='networkidle')
+            page.wait_for_function('window.Liar && window.FT && (!window.GameAssets || GameAssets.finished)')
             state=page.evaluate(FIXTURE,seed)
             page.get_by_role('button',name='라이어 여행단',exact=False).click()
             page.locator('[data-action="liar-resume"]').click()
@@ -76,6 +83,7 @@ with sync_playwright() as p:
         page.close()
     page=browser.new_page(viewport={'width':1280,'height':800})
     page.goto(URL,wait_until='networkidle')
+    page.wait_for_function('window.Liar && window.FT && (!window.GameAssets || GameAssets.finished)')
     card=page.evaluate("""() => {
       let s;
       for(let seed=1;seed<100;seed++) {

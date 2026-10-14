@@ -1,5 +1,7 @@
 # 가짜 여행자 검증 보고서
 
+> 현재 검사는 `node fake-traveler/tests/verify-engine.js`, `node fake-traveler/js/liar-check.js`, `python fake-traveler/tests/verify-climate-book.py`, `python fake-traveler/tests/verify-liar-interactions.py`로 실행합니다. 아래는 탐정 연습 제거 전의 검증 기록입니다. 구형 코드·검사는 `output/fake-traveler-detective-backup.zip`에 보관했습니다.
+
 검증 완료: 2026-10-11, Chrome / Windows. 루트 `VERIFY.md`를 끝까지 읽고, 지난 작업의 `tests/verify*`, 실패 기록, 코드 수정 및 스크린샷을 확인한 뒤 이어서 검증했다.
 
 **결과: 요청한 검증을 완료했다.** 본편 라이어 여행단, 탐정 연습 사건 10개, 추가로 존재하는 무한 수사까지 확인했다. 최종 Playwright 15회 실행의 확인 항목 894개가 통과했고, 콘솔 오류·페이지 오류·네트워크 실패 진단은 모두 0개다. 게임 내용과 기능의 제약은 아래 제안에 별도로 남겼다.

@@ -1,4 +1,4 @@
-/* 가짜 여행자를 찾아라 — 2단계(무한 수사) 증거 은행
+/* 가짜 여행자를 찾아라 — 라이어 여행단 증거 은행
  * 증거는 '태그'를 갖고, 각 기후는 허용 태그(allowed)를 가진다.
  *   증거의 태그가 모두 기후 C의 allowed 안에 있으면 → C에서 '진짜'
  *   하나라도 벗어나면 → C에서 '거짓'. 이유(why)는 아래 규칙으로 만든다.
@@ -239,35 +239,16 @@ window.FAKE_BANK = {
     tshirt:      { tags: ['hotwear'] }
   },
 
-  // 무한 수사 규칙
-  endless: {
-    travelers: { min: 3, max: 4, fourFrom: 3 },     // 연속 해결 3건부터 4명이 더 자주
-    fakeWeights: { 0: 20, 1: 55, 2: 25 },           // 가짜 0~2명 (2명은 4명일 때만)
-    forceTrapChance: 0.6                             // 진짜 여행자 중 함정 1개 이상 넣을 확률
-  },
-
   ranks: [
-    { stars: 0, name: '수습 탐정' },
-    { stars: 10, name: '탐정' },
-    { stars: 25, name: '베테랑 탐정' },
-    { stars: 45, name: '명탐정' },
-    { stars: 80, name: '전설의 기후 탐정' }
-  ],
-
-  badges: [
-    { id: 'first',   name: '첫 사건 해결',  goal: '사건 1개 해결' },
-    { id: 'perfect', name: '완벽한 수사',   goal: '별 3개로 5번 해결' },
-    { id: 'trap',    name: '함정 탐지기',   goal: '함정을 하나도 의심하지 않고 5번 해결' },
-    { id: 'speed',   name: '번개 수사',     goal: '30초 안에 해결' },
-    { id: 'nofake',  name: '모두 진짜!',    goal: '가짜가 없는 사건을 맞히기' },
-    { id: 'twin',    name: '쌍둥이 가짜',   goal: '무한 수사에서 가짜 2명 잡기' },
-    { id: 'streak',  name: '연속 10건',     goal: '무한 수사 10연속 해결' },
-    { id: 'dex',     name: '기후 박사',     goal: '기후 도감 완성' },
-    { id: 'photo',   name: '여행 사진가',   goal: '사진 모두 모으기' }
+    { name: '수습 탐정' },
+    { name: '탐정' },
+    { name: '베테랑 탐정' },
+    { name: '명탐정' },
+    { name: '전설의 기후 탐정' }
   ]
 };
 
-// 기존 태그 허용 여부와 사건 데이터는 그대로 두고 새 관찰 태그·도감 사진만 확장한다.
+// 관찰 태그와 두 기후에서 통하는 도감 사진을 등록한다.
 for (const [climate, rule] of Object.entries(window.FAKE_BANK.rules)) {
   if (climate !== 'icecap') rule.allowed.push('localplants');
 }

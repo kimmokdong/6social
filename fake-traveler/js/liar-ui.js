@@ -112,6 +112,7 @@
       ? `<span class="role-tag">라이어</span><figure class="polaroid lri-photo small">${f.image(C(Lc).img, 'scenes', C(Lc).name)}</figure><h2>사실은 ${C(Lc).name}!</h2>${facts(Lc)}<p>${C(X).name}에 다녀온 척, <b>들키지 마세요!</b></p>`
       : `<span class="role-tag">진짜 여행자</span><h2>나도 ${C(X).name}!</h2><p>증거로 <b>진짜</b>임을 보여 주고<br>라이어를 찾아요!</p>`}</div>
       <p class="ll-perk">${perkOf(seat.who).icon} <b>내 능력 · ${perkOf(seat.who).name}</b> ${perkOf(seat.who).text}</p>
+      ${S.round === 0 && !prog().played ? '<p class="book-help">내 차례에 카드 한 장을 골라 내요. 3바퀴 뒤 라이어를 지목해요. 두 기후에서 통하는 카드만으로는 정체를 단정할 수 없어요.</p>' : ''}
       ${f.button('liar-go', `시작! ${f.icon('arrow')}`, 'primary')}</div>`, 'liar-modal liar-lock');
   }
   function facts(id) {
