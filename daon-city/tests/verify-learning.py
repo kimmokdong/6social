@@ -16,7 +16,8 @@ def shot(p,name):
     elif p.locator('#layer:not([hidden]) .sheet').count():p.locator('#layer .sheet').screenshot(path=str(OUT/(name+'.png')),animations='disabled')
     else:p.screenshot(path=str(OUT/(name+'.png')),full_page=True,animations='disabled')
 def stores(p):return p.evaluate("Object.fromEntries(['daon-city-v2-game','daon-city-v2','daon-city-v1-game'].map(k=>[k,localStorage.getItem(k)]))")
-def feedback(p):p.wait_for_selector('.practice-feedback');click(p,'practice-next')
+# 연습 결과는 팝업이 아니라 연습 안내 칸에 나오고, 화면을 가리지 않는다.
+def feedback(p):p.wait_for_selector('.practice-panel.done');assert p.locator('#layer:not([hidden])').count()==0;click(p,'practice-next')
 
 with sync_playwright() as pw:
     b=pw.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe',headless=True)
@@ -54,21 +55,31 @@ with sync_playwright() as pw:
         shot(p,f'practice-numbers-{w}')
         # 다른 땅을 누르거나 다음 시대를 먼저 보낼 수 없다.
         assert p.locator('[data-action="advance"]').is_disabled()
-        p.locator('[data-card="textile"]').click();p.locator('[data-tile="14"]').click();assert not p.locator('.practice-feedback').count()
-        p.locator('[data-tile="21"]').click();assert '18 → 15' in p.locator('.practice-feedback').inner_text();assert stores(p)==before
+        # 카드를 먼저 빛내고, 카드를 고른 뒤에 지을 땅을 빛낸다. 숫자의 뜻은 펼쳐 둔다.
+        assert p.locator('[data-card="textile"].lesson-target').count()==1 and p.locator('.tile.lesson-target').count()==0
+        assert p.locator('.practice-numbers details[open]').count()==1
+        p.locator('[data-tile="21"]').click();assert '카드' in p.locator('.toast').last.inner_text()
+        p.locator('[data-card="textile"]').click();assert p.locator('[data-tile="21"].lesson-target').count()==1
+        p.locator('[data-tile="14"]').click();assert not p.locator('.practice-panel.done').count()
+        p.locator('[data-tile="21"]').click();assert '18 → 15' in p.locator('.practice-panel.done').inner_text();assert stores(p)==before
+        # 바뀐 숫자가 화면에서 직접 보인다.
+        assert p.locator('#layer:not([hidden])').count()==0 and '−3' in p.locator('.money-res .delta').inner_text() and p.locator('[data-tile="21"].changed').count()==1
+        if w==1280:p.screenshot(path=str(OUT/'practice-changed-1280.png'),animations='disabled')
         # 설명을 닫아도 다음 연습 버튼이 남아 막히지 않는다.
         p.keyboard.press('Escape');assert p.locator('.practice-panel [data-action="practice-next"]').count()==1;click(p,'practice-next')
         p.locator('[data-card="school"]').click();p.locator('[data-tile="7"]').click();feedback(p)
-        p.locator('[data-tile="8"]').click();assert '2명 → 4명' in p.locator('[data-action="pop-upgrade"]').inner_text();assert '도시 돈 2 사용' in p.locator('[data-action="pop-upgrade"]').inner_text();shot(p,f'upgrade-{w}');click(p,'pop-upgrade');feedback(p)
-        click(p,'advance');assert '기술을 배운 사람 2명' in p.locator('.practice-feedback').inner_text();feedback(p)
+        assert p.locator('[data-tile="8"].lesson-target').count()==1
+        p.locator('[data-tile="8"]').click();assert p.locator('[data-action="pop-upgrade"].lesson-target').count()==1;assert '2명 → 4명' in p.locator('[data-action="pop-upgrade"]').inner_text();assert '도시 돈 2 사용' in p.locator('[data-action="pop-upgrade"]').inner_text();shot(p,f'upgrade-{w}');click(p,'pop-upgrade');feedback(p)
+        assert p.locator('[data-action="advance"].lesson-target').count()==1
+        click(p,'advance');assert '기술을 배운 사람 2명' in p.locator('.practice-panel.done').inner_text();feedback(p)
         p.locator('[data-card="steel"]').click()
         if w>=h:
             rect=p.locator('.tray-foot').bounding_box();assert rect['y']+rect['height']<=h+1
-        p.locator('[data-tile="22"]').click();assert '50%' in p.locator('.practice-feedback').inner_text();feedback(p)
-        p.locator('[data-card="power"]').click();p.locator('[data-tile="28"]').click();assert '100%' in p.locator('.practice-feedback').inner_text();feedback(p)
+        p.locator('[data-tile="22"]').click();assert '50%' in p.locator('.practice-panel.done').inner_text();feedback(p)
+        p.locator('[data-card="power"]').click();p.locator('[data-tile="28"]').click();assert '100%' in p.locator('.practice-panel.done').inner_text();feedback(p)
         assert p.locator('.tile-alert').count()==1;shot(p,f'practice-pollution-{w}')
-        p.locator('[data-tile="22"]').click();click(p,'pop-move');p.locator('[data-tile="30"]').click();assert '1곳 → 0곳' in p.locator('.practice-feedback').inner_text();feedback(p)
-        click(p,'expand');assert '12칸 → 20칸' in p.locator('.practice-feedback').inner_text();assert '5는 비용' in p.locator('.practice-feedback').inner_text();feedback(p)
+        p.locator('[data-tile="22"]').click();click(p,'pop-move');p.locator('[data-tile="30"]').click();assert '1곳 → 0곳' in p.locator('.practice-panel.done').inner_text();feedback(p)
+        click(p,'expand');assert '12칸 → 20칸' in p.locator('.practice-panel.done').inner_text();assert '5는 비용' in p.locator('.practice-panel.done').inner_text();feedback(p)
         assert p.locator('.practice-complete').count()==1;assert stores(p)==before
         click(p,'practice-finish');assert p.locator('.practice-city').count()==0;assert stores(p)==before
         # 중도 종료도 저장을 건드리지 않는다.
@@ -77,8 +88,13 @@ with sync_playwright() as pw:
         assert p.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
         print(f'PASS: {w}×{h} 도움말·비용과 효과·8단계 연습·저장 보존',flush=True);p.close()
     # 새 사용자의 시작 안내와 연습 뒤 본 게임 시작.
-    p=b.new_page(viewport={'width':1280,'height':800},reduced_motion='reduce');p.on('pageerror',lambda e:errors.append(str(e)));p.goto(BASE);click(p,'new');click(p,'start-build');assert p.locator('.welcome').count()==1;click(p,'tut-skip');assert p.locator('.welcome').count()==0
+    p=b.new_page(viewport={'width':1280,'height':800},reduced_motion='reduce');p.on('pageerror',lambda e:errors.append(str(e)));p.goto(BASE);click(p,'new');assert p.locator('.paper [data-action="to-title"]').count()==1;click(p,'start-build');assert p.locator('.welcome').count()==1;click(p,'tut-skip');assert p.locator('.welcome').count()==0
     click(p,'menu');click(p,'practice');click(p,'practice-exit');assert p.locator('[data-action="continue"]').count()==1
+    # 저장된 도시가 있으면 새로 시작 전에 확인하고, 시대 신문에서 처음으로 돌아갈 수 있다.
+    saved_before=stores(p)['daon-city-v2-game'];click(p,'new');assert p.locator('.confirm-note').count()==1;click(p,'close')
+    assert stores(p)['daon-city-v2-game']==saved_before and p.locator('[data-action="continue"]').count()==1
+    click(p,'new');click(p,'new-confirm');assert p.locator('.paper').count()==1;click(p,'to-title');assert p.locator('[data-action="continue"]').count()==1
+    print('PASS: 새로 시작 확인 · 시대 신문에서 처음으로',flush=True)
     # 저장이 없는 사용자가 연습을 끝내면 연습 도시 대신 새 본 게임을 만든다.
     p=b.new_page(viewport={'width':1280,'height':800},reduced_motion='reduce');p.on('pageerror',lambda e:errors.append(str(e)));p.goto(BASE);click(p,'practice')
     for card,tile in [('textile',21),('school',7)]:

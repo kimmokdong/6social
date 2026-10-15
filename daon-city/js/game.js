@@ -199,7 +199,7 @@
       if (!readonly && row?.b.exp) badge += `<span class="tile-status ${row.rate < .99 ? 'short' : ''}">${Math.round(row.rate * 100)}%</span>`;
       if (!readonly && viewPlan?.exposed.includes(i)) badge += '<span class="tile-alert" aria-label="오염 피해">😷</span>';
     }
-    if (practice && !practice.pending && i === (relocating !== null ? PRACTICE[practice.step].to : PRACTICE[practice.step].tile)) cls += ' lesson-target';
+    if (practice && i === lessonTile()) cls += ' lesson-target';
     if (!readonly && lens === 'people' && id === 'house') { const taught = new Map(viewPlan?.educated).get(i) || 0; if (taught) cls += ' lens-good'; badge += `<span class="tile-status">👷${new Map(viewPlan?.residents).get(i) || 0} 🎓${taught}</span>`; }
     if (!readonly && lens === 'env' && row?.pollution > 0) { cls += ' lens-bad'; badge += `<span class="tile-status short">배출 ${row.pollution.toFixed(0)}</span>`; }
     if (sel && E.canPlace(G, sel, i).ok) cls += ' can';
@@ -246,7 +246,7 @@
     S.play('paper');
     setScreen('paper', `<section class="paper-stage"><article class="paper"><div class="masthead">다온일보</div><div class="dateline"><span>${era(d).label}</span><span>${d + 1} / ${D.eras.length}</span></div><h2>${era(d).headline}</h2>
       <div class="paper-body"><div class="paper-map">${Paint.scene(`daon/era${d}`, mapHtml(true), `${era(d).label} 다온시 풍경`)}</div><div class="paper-news">${news.length ? `<span class="new-tag">NEW</span><div class="new-list">${news.map(([id, b]) => `<div class="new-item">${A.building(id, { d })}<b>${b.name}</b></div>`).join('')}</div>` : ''}</div></div>
-      ${btn('start-build', `건설 시작 ${icon('play')}`, 'primary big')}</article></section>`);
+      <div class="paper-buttons">${btn('to-title', '← 처음으로', 'secondary')}${btn('start-build', `건설 시작 ${icon('play')}`, 'primary big')}</div></article></section>`);
   }
 
   /* ───── 건설 화면 ───── */
@@ -267,7 +267,7 @@
       ${sel && !practice ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${practice ? practiceNumbers() : ''}${cards.map(cardHtml).join('')}</div>
       <div class="tray-foot">${btn('undo', `${icon('undo')}<small>되돌리기</small>`, 'icon-btn undo-labeled', `aria-label="계획 되돌리기, 쓴 돈 돌려받기" ${G.actions.length && !practice ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}</section>`);
     fitMap(); positionPop(); if (matchMedia('(orientation: portrait)').matches) { const c = app.querySelector('.card.sel'), cards = app.querySelector('.cards'); if (c && cards) cards.scrollLeft = c.offsetLeft - cards.offsetLeft; }
-    if (practice) { app.querySelector('[data-action="expand"]').disabled ||= practice.pending || PRACTICE[practice.step].kind !== 'expand'; app.querySelector('[data-action="advance"]').disabled = practice.pending || PRACTICE[practice.step].kind !== 'advance'; checkPractice(); }
+    if (practice) { app.querySelector('[data-action="expand"]').disabled ||= practice.pending || PRACTICE[practice.step].kind !== 'expand'; app.querySelector('[data-action="advance"]').disabled = practice.pending || PRACTICE[practice.step].kind !== 'advance'; const target = lessonControl(); if (target) app.querySelector(target)?.classList.add('lesson-target'); checkPractice(); }
     else if (!progress.tutorialSeen && d === 0) tutorial();
   }
   function cardHtml(id) {
@@ -310,7 +310,7 @@
   function tapTile(i) {
     if (busy) return;
     cursor = i;
-    if (practice && (practice.pending || i !== (relocating !== null ? PRACTICE[practice.step].to : PRACTICE[practice.step].tile))) { toast('연습에서는 빛나는 땅을 눌러 보세요.'); return; }
+    if (practice && (practice.pending || i !== lessonTile())) { toast(!practice.pending && PRACTICE[practice.step].kind === 'place' && sel !== PRACTICE[practice.step].card ? '먼저 빛나는 카드를 골라요.' : '연습에서는 빛나는 곳을 눌러 보세요.'); return; }
     if (relocating !== null) { const result = E.move(G, relocating, i); if (result.ok) { relocating = null; saveGame(); build(); } else toast('비어 있는 열린 땅을 골라요. 해안 조건도 확인해요.'); return; }
     const t = G.tiles[i];
     if (sel) {
@@ -532,9 +532,44 @@
   function endPractice() {
     closeLayer(); G = practice.returnGame; practice = null; sel = null; pop = null; relocating = null; busy = false; title();
   }
+  /* 연습에서 지금 눌러야 할 땅 (카드를 먼저 골라야 하는 단계에서는 카드를 고른 뒤에만) */
+  function lessonTile() {
+    if (!practice || practice.pending) return null;
+    const step = PRACTICE[practice.step];
+    if (relocating !== null) return step.to ?? null;
+    if (step.kind === 'place') return sel === step.card ? step.tile : null;
+    if (step.kind === 'upgrade' || step.kind === 'move') return pop === null ? step.tile : null;
+    return null;
+  }
+  /* 연습에서 지금 눌러야 할 카드·버튼 */
+  function lessonControl() {
+    if (!practice || practice.pending) return null;
+    const step = PRACTICE[practice.step];
+    if (step.kind === 'place' && sel !== step.card) return `[data-card="${step.card}"]`;
+    if (step.kind === 'upgrade' && pop === step.tile) return '[data-action="pop-upgrade"]';
+    if (step.kind === 'move' && pop === step.tile && relocating === null) return '[data-action="pop-move"]';
+    if (step.kind === 'advance') return '[data-action="advance"]';
+    if (step.kind === 'expand') return '[data-action="expand"]';
+    return null;
+  }
+  /* 방금 한 행동으로 바뀐 숫자를 화면에서 반짝이며 보여 준다 */
+  function markChanges(before, p) {
+    const delta = (el, n, unit = '') => { if (!el || !n) return; el.classList.add('changed'); el.insertAdjacentHTML('beforeend', `<span class="delta ${n < 0 ? 'down' : ''}">${n > 0 ? '+' : '−'}${Math.abs(num(n))}${unit}</span>`); };
+    delta(app.querySelector('.money-res'), G.money - before.money);
+    const b = before.plan;
+    for (const [key, pairs] of [['people', [['workers', '명'], ['jobs', '명']]], ['tech', [['skilled', '명'], ['skilledNeed', '명']]], ['power', [['supply', ''], ['energy', '']]]]) {
+      const card = app.querySelector(`.readiness-card[data-help="${key}"]`), nums = card?.querySelectorAll('.metric-numbers b') || [];
+      pairs.forEach(([k, unit], idx) => { const n = Math.round((p[k] - b[k]) * 10) / 10; if (n) { card.classList.add('changed'); nums[idx]?.insertAdjacentHTML('afterend', `<span class="delta ${n < 0 ? 'down' : ''}">${n > 0 ? '+' : '−'}${Math.abs(num(n))}${unit}</span>`); } });
+    }
+    delta(app.querySelector('.expand-btn'), landCount(G.land) - before.land, '칸');
+    const step = PRACTICE[practice.step], tile = step.kind === 'move' ? step.to : step.tile;
+    if (tile !== undefined) app.querySelector(`[data-tile="${tile}"]`)?.classList.add('changed');
+    if (p.exposed.length !== b.exposed.length) app.querySelectorAll('.tile-alert').forEach(el => el.closest('.tile')?.classList.add('changed'));
+  }
   function practicePanel() {
     const step = PRACTICE[practice.step];
-    return `<section class="practice-panel" aria-label="연습 안내"><div class="practice-heading"><b>연습 ${practice.step + 1}/${PRACTICE.length}</b>${btn('practice-exit', '연습 나가기', 'text-btn')}</div><strong>${step.title}</strong><small>연습용 도시예요. 내 도시 저장과 엔딩 도감은 그대로예요.</small>${practice.pending ? btn('practice-next', '다음 연습으로', 'primary') : ''}</section>`;
+    const done = practice.pending && practice.lesson, last = practice.step === PRACTICE.length - 1;
+    return `<section class="practice-panel${done ? ' done' : ''}" aria-label="연습 안내" aria-live="polite"><div class="practice-heading"><b>연습 ${practice.step + 1}/${PRACTICE.length}</b>${btn('practice-exit', '연습 나가기', 'text-btn')}</div>${done ? `<strong>✓ ${practice.lesson[0]}</strong><small>${practice.lesson[1]} <b>반짝이는 숫자를 확인해 보세요.</b></small>${btn('practice-next', last ? '연습 마치기' : '다음 연습 →', 'primary')}` : `<strong>${step.title}</strong><small>${step.task}</small>`}</section>`;
   }
   function practiceNumbers() {
     const p = E.production(G), steel = p.industries.find(r => r.id === 'steel');
@@ -548,7 +583,7 @@
       [['오염 피해 주택', `${p.exposed.length}곳`], ['공장을 옮기는 비용', '2 사용'], '공장을 주택에서 멀리 옮겨요. 피해 주택 수가 어떻게 바뀌는지 살펴요.'],
       [['지금 건설 가능한 땅', `${landCount(G.land)}칸`], ['땅을 넓히는 비용', `${D.rules.expandCost[0]} 사용`], '5는 쓸 돈이에요. 땅의 넓이는 칸으로 읽어요. 비용과 효과를 구분해요.']
     ][practice.step];
-    return `<section class="practice-numbers" role="listitem" aria-label="지금 볼 숫자"><h3>지금 볼 숫자</h3><div>${focus.slice(0, 2).map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`).join('')}</div><p>${PRACTICE[practice.step].task}</p><details><summary>이 숫자의 뜻</summary><p>${focus[2]}</p></details></section>`;
+    return `<section class="practice-numbers" role="listitem" aria-label="지금 볼 숫자"><h3>지금 볼 숫자</h3><div>${focus.slice(0, 2).map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`).join('')}</div><details open><summary>이 숫자의 뜻</summary><p>${focus[2]}</p></details></section>`;
   }
   function checkPractice() {
     if (practice.pending) return;
@@ -566,17 +601,17 @@
       [`피해 주택 ${before.plan.exposed.length}곳 → ${p.exposed.length}곳`, '도시 돈 2를 써서 공장을 옮겼어요. 주민의 피해는 피했지만 공장이 내보내는 오염 자체가 사라진 것은 아니에요.'],
       [`도시 돈 5 사용 · 땅 ${before.land}칸 → ${landCount(G.land)}칸`, '5는 비용이에요. 이번에는 건설 가능한 땅이 8칸 늘었어요. 비용과 효과를 따로 읽으면 선택하기 쉬워요.']
     ];
-    pop = null; sel = null;
-    app.querySelector('.practice-panel').outerHTML = practicePanel();
-    app.querySelector('[data-action="advance"]').disabled = true; app.querySelector('[data-action="expand"]').disabled = true; fitMap();
-    openLayer(`<div class="help practice-feedback"><span class="lesson-success">✓ 직접 해 봤어요</span><h2>${lessons[practice.step][0]}</h2><p>${lessons[practice.step][1]}</p><div class="help-buttons">${btn('practice-next', practice.step === PRACTICE.length - 1 ? '연습 마치기' : '다음 연습', 'primary')}${btn('practice-exit', '연습 나가기', 'secondary')}</div></div>`);
+    // 팝업으로 화면을 가리지 않고, 도시 화면에서 바뀐 숫자를 직접 보게 한다.
+    pop = null; sel = null; relocating = null; practice.lesson = lessons[practice.step];
+    build(); markChanges(before, p); S.play('place');
+    app.querySelector('.practice-panel [data-action="practice-next"]')?.focus({ preventScroll: true });
   }
   function nextPractice() {
     closeLayer();
     if (practice.step === PRACTICE.length - 1) {
       openLayer(`<div class="help practice-complete"><h2>이제 나만의 도시를 만들어요!</h2><p>돈은 비용, 명은 사람 수, 칸은 땅의 넓이예요. 건물을 고르기 전에 비용과 바뀔 모습을 함께 살펴요.</p><p>모르는 숫자는 누르면 뜻과 해결 방법이 나와요. 연습은 언제든 다시 할 수 있어요.</p>${btn('practice-finish', savedGame() ? '내 도시 이어하기' : '본 게임 시작하기', 'primary')}${btn('practice-exit', '게임 홈으로', 'secondary')}</div>`); return;
     }
-    practice.step++; practice.pending = false; sel = null; pop = null; relocating = null;
+    practice.step++; practice.pending = false; practice.lesson = null; sel = null; pop = null; relocating = null;
     const step = PRACTICE[practice.step]; trayMode = step.card && !B[step.card].exp ? 'support' : 'industry';
     lens = step.kind === 'move' ? 'env' : 'industry';
     practice.before = { money: G.money, plan: E.production(G), land: landCount(G.land) }; build();
@@ -630,9 +665,11 @@
 
   /* ───── 조작 연결 ───── */
   async function act(a, el) {
-    if (!practiceAllows(a)) { toast('이번 연습의 빛나는 버튼·땅을 눌러 보세요.'); return; }
+    if (!practiceAllows(a)) { toast('이번 연습에서는 빛나는 곳을 눌러 보세요.'); return; }
     switch (a) {
-      case 'new': clearGame(); lens = 'industry'; trayMode = 'industry'; relocating = null; G = E.newGame(); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
+      case 'new': if (savedGame()) { openLayer(`<div class="menu"><h2>새로 시작할까요?</h2><p class="confirm-note">지금 만들던 도시는 지워져요.</p>${btn('new-confirm', '새로 시작', 'primary big')}${btn('close', '취소', 'secondary')}</div>`); break; }
+      // falls through
+      case 'new-confirm': closeLayer(); clearGame(); lens = 'industry'; trayMode = 'industry'; relocating = null; G = E.newGame(); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
       case 'continue': G = savedGame(); if (G) { build(); if (G.phase === 'events') { app.querySelector('.build').classList.add('timelapse'); finishDecade(); } } else title(); break;
       case 'start-build': build(); break;
       case 'endings': endings(); break;

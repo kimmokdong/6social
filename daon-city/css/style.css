@@ -479,3 +479,24 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 
 /* 연습은 사람·기술·전력에 집중하고 도시의 종합 평가는 본 게임에서 본다. */
 .practice-city .city-readiness .gauges{display:none}.practice-city .readiness-card{padding:6px 10px;gap:2px}.practice-numbers{gap:6px}
+
+/* 시대 신문: 처음으로 돌아가기 + 건설 시작 */
+.paper-buttons{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap}
+.paper-buttons .secondary{min-height:56px;font-size:20px;padding:10px 20px}
+.confirm-note{font-size:20px;margin:6px 0 14px;color:var(--soft,#5B5566)}
+/* 연습: 지금 눌러야 할 카드·버튼도 빛나게 */
+.card.lesson-target,.operation.lesson-target,.go.lesson-target,.expand-btn.lesson-target{outline:4px solid #F5C542;outline-offset:3px;position:relative;z-index:3;animation:lesson-glow 1.3s ease-in-out infinite}
+/* 연습: 방금 바뀐 숫자 */
+.changed{animation:change-flash 1s ease-in-out 3;outline:3px solid #F5C542;outline-offset:2px;border-radius:12px}
+@keyframes change-flash{50%{background:#FFF1B8;box-shadow:0 0 0 6px #F5C54266}}
+.delta{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;background:#E3F5EA;color:#1F7A47;font-size:18px;font-weight:800;animation:delta-pop .5s cubic-bezier(.2,1.6,.4,1)}
+.delta.down{background:#FCE6E2;color:#B23A26}
+@keyframes delta-pop{from{transform:scale(.3);opacity:0}}
+.practice-panel.done{background:#E3F5EA;border-color:#2E9A5E}
+.practice-panel.done>strong{color:#1F7A47}
+@media(prefers-reduced-motion:reduce){.changed,.delta,.card.lesson-target,.operation.lesson-target,.go.lesson-target,.expand-btn.lesson-target{animation:none}}
+/* 연습: 할 일은 위 안내 칸에, 숫자 상자는 작게 해서 카드가 가려지지 않게 */
+.practice-numbers{padding:10px 12px;gap:8px}
+.practice-numbers h3{font-size:22px}
+.practice-numbers>div>div{padding:8px 10px;gap:2px}
+.practice-numbers strong{font-size:28px}
