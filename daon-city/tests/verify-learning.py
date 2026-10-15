@@ -75,8 +75,8 @@ with sync_playwright() as pw:
         p.locator('[data-card="steel"]').click()
         if w>=h:
             rect=p.locator('.tray-foot').bounding_box();assert rect['y']+rect['height']<=h+1
-        p.locator('[data-tile="22"]').click();assert '50%' in p.locator('.practice-panel.done').inner_text();feedback(p)
-        p.locator('[data-card="power"]').click();p.locator('[data-tile="28"]').click();assert '100%' in p.locator('.practice-panel.done').inner_text();feedback(p)
+        p.locator('[data-tile="22"]').click();assert '절반쯤' in p.locator('.practice-panel.done').inner_text();feedback(p)
+        p.locator('[data-card="power"]').click();p.locator('[data-tile="28"]').click();assert '제대로' in p.locator('.practice-panel.done').inner_text();feedback(p)
         assert p.locator('.tile-alert').count()==1;shot(p,f'practice-pollution-{w}')
         p.locator('[data-tile="22"]').click();click(p,'pop-move');p.locator('[data-tile="30"]').click();assert '1곳 → 0곳' in p.locator('.practice-panel.done').inner_text();feedback(p)
         click(p,'expand');assert '12칸 → 20칸' in p.locator('.practice-panel.done').inner_text();assert '5는 비용' in p.locator('.practice-panel.done').inner_text();feedback(p)

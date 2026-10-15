@@ -1,4 +1,4 @@
-/* 다온시 v2 — 산업, 주민, 교육, 전력과 입지를 한 번에 계산하는 규칙 엔진. */
+/* 다온시 v2 — 산업, 주민, 교육, 전기와 입지를 한 번에 계산하는 규칙 엔진. */
 (function (root) {
   'use strict';
   const D = root.DAON_CITY, B = D.buildings, R = D.rules;
@@ -166,7 +166,7 @@
     industries.forEach(r => { categories[r.b.cat] = (categories[r.b.cat] || 0) + r.exports; });
     const warnings = [];
     if (jobs > workers) warnings.push(`집이 부족해요 · 일할 사람 ${Math.ceil(jobs - workers)} 부족`);
-    if (energy > supply) warnings.push(`전력이 ${energy - supply} 부족해요`);
+    if (energy > supply) warnings.push(`전기가 ${energy - supply} 부족해요`);
     if (skilledNeed > skilled) warnings.push(`기술 인력 ${skilledNeed - skilled} 부족 · 교육을 준비해요`);
     if (exposed.length) warnings.push(`주택 ${exposed.length}곳에 오염이 닿아요`);
     if (industries.some(r => r.market < .99)) warnings.push('수출 기회를 나눠 받아요 · 다른 산업이나 기반을 살펴봐요');
@@ -197,9 +197,9 @@
     const g = gauges(s), match = (p.categories[D.eras[d].real] || 0) > 0;
     const problem = D.problems.find(x => (x.id !== 'housing' || p.jobs > p.housing) && g[x.gauge] < x.below && (s.problemsSeen[x.id] || 0) < 2) || null;
     if (problem) s.problemsSeen[problem.id] = (s.problemsSeen[problem.id] || 0) + 1;
-    const relief = Math.max(0, -(s.money + p.income)); s.money = Math.max(0, s.money + p.income); s.people = p.workers; s.tech += p.techGain;
+    const moneyBefore = s.money, relief = Math.max(0, -(s.money + p.income)); s.money = Math.max(0, s.money + p.income); s.people = p.workers; s.tech += p.techGain;
     s.last = { d, ...p, gauges: g, built, match, problem, relief };
-    s.records[d] = { d, built, exports: p.exports, income: p.income, gauges: g, match, categories: p.categories, warnings: p.warnings, choices: [], relief };
+    s.records[d] = { d, built, exports: p.exports, income: p.income, gauges: g, match, categories: p.categories, warnings: p.warnings, choices: [], relief, moneyBefore };
     s.phase = 'events'; return s.last;
   }
   function choiceEffects(s, ev, key) {
