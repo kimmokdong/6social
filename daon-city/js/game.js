@@ -47,7 +47,7 @@
 
   let practice = null;
   let lens = 'industry', trayMode = 'industry', relocating = null, viewPlan = null;
-  let G = null, sel = null, busy = false, pop = null, screen = '', cursor = 0, drag = null, toastTimer = 0, layerFocus = null;
+  let G = null, sel = null, tipHidden = false, busy = false, pop = null, screen = '', cursor = 0, drag = null, toastTimer = 0, layerFocus = null;
 
   /* ───── 작은 부품 ───── */
   const icon = (name, cls = '') => name === 'gear' ? P.icon(name) : A.icon(name, cls);
@@ -248,7 +248,7 @@
     const size = Math.floor(Math.min((r.width - 12 - gap * (E.W - 1)) / E.W, (r.height - padding - 12 - gap * (E.H - 1)) / E.H));
     map.style.setProperty('--tile', `${Math.max(32, size)}px`);
   }
-  addEventListener('resize', () => { fitMap(); positionPop(); });
+  addEventListener('resize', () => { fitMap(); positionPop(); positionTip(); });
 
   /* ───── 게이지 ───── */
   function startGauges() {
@@ -300,7 +300,7 @@
     /* 카드를 고르면, 아무 빈 땅에 지었다고 보고 4칸이 어떻게 바뀔지 미리 보여 준다 */
     const spot = sel && relocating === null && E.cardStatus(G, sel).ok ? G.tiles.findIndex((_, i) => E.canPlace(G, sel, i).ok) : -1;
     const pv = spot >= 0 ? E.preview(G, sel, spot) : null;
-    const nextOf = (key, now, then) => pv && then[1] !== now[1] ? `<span class="metric-next ${then[0]}">지으면 ${then[1]}</span>` : '';
+    const nextOf = (key, now, then) => pv && then[1] !== now[1] ? `<span class="metric-next ${then[0]}" title="지으면 ${then[1]}"><span class="nx-word">지으면 </span><span class="nx-arrow">→ </span>${then[1]}</span>` : '';
     const states = q => ({
       home: q.housing > q.workers ? ['good', `빈 자리 +${q.housing - q.workers}명`] : q.jobs > q.workers ? ['bad', `집 부족 −${Math.ceil(q.jobs - q.workers)}명`] : ['calm', '꽉 찼어요'],
       people: q.jobs === 0 ? ['calm', '아직 일자리 없음'] : q.workers > q.jobs ? ['warn', `일 없는 주민 ${q.workers - q.jobs}명`] : q.workers < q.jobs ? ['bad', `일손 부족 −${Math.ceil(q.jobs - q.workers)}명`] : ['good', '모두 일해요'],
@@ -315,14 +315,14 @@
       + metric('power', '⚡ 전기', ['만드는 양', f.supply], ['쓰는 양', f.energy], '', surplus(f.supply, f.energy, '', '남음', '부족'));
     setScreen('build', `<section class="build era-${d} city-v2${practice ? ' practice-city' : ''}" ${practice ? `data-lesson-kind="${PRACTICE[practice.step].kind}"` : ''}>
       <header class="topbar">${iconBtn('menu', '메뉴', 'menu')}<div class="decade"><strong>${era(d).label}</strong><div class="timeline">${D.eras.map((e, i) => `<i class="${i < d ? 'done' : i === d ? 'now' : ''}"></i>`).join('')}</div></div>
-        <div class="res"><button data-action="help" data-help="money" class="res-item money-res" aria-label="도시 돈 ${G.money}, 도움말">${icon('coin')}<span>도시 돈 <b class="money-amount">${G.money}</b></span>${pv ? `<span class="metric-next ${G.money - B[sel].cost < 3 ? 'bad' : 'calm'}">지으면 ${G.money - B[sel].cost}</span>` : ''}</button>${btn('expand', expansion, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
+        <div class="res"><button data-action="help" data-help="money" class="res-item money-res" aria-label="도시 돈 ${G.money}, 도움말">${icon('coin')}<span>도시 돈 <b class="money-amount">${G.money}</b></span>${pv ? `<span class="metric-next ${G.money - B[sel].cost < 3 ? 'bad' : 'calm'}" title="지으면 ${G.money - B[sel].cost}"><span class="nx-word">지으면 </span><span class="nx-arrow">→ </span>${G.money - B[sel].cost}</span>` : ''}</button>${btn('expand', expansion, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
       <div class="city-readiness">${readiness}${gaugesHtml(g)}</div>${practice ? practicePanel() : ''}
       <div class="main"><div class="map-wrap"><div class="map-toolbar">${relocating !== null ? btn('cancel-move', '옮기기 취소', 'secondary') : [['industry', '산업'], ['people', '사람·교육'], ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '빈 땅을 누르면 건물이 옮겨져요 · 도시 돈 2 사용' : lens === 'people' ? '<p class="lens-legend">👷 사는 주민 · 🎓 기술을 배운 주민</p><p class="lens-legend">초록 칸은 교육이 닿는 집이에요</p>' : lens === 'env' ? '<p class="lens-legend">배출 = 공장이 내보내는 오염</p><p class="lens-legend">😷 = 오염 피해를 받는 집</p>' : forecast.warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
       <aside class="tray">${practice ? '' : `<div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div>`}${practice ? '' : `<div class="forecast"><button data-action="help" data-help="money">10년 뒤 도시 돈 <b>${G.money} → ${Math.max(0, G.money + forecast.income)}</b><small>운영비를 뺀 뒤 ${forecast.income >= 0 ? '+' : ''}${forecast.income}</small></button><button data-action="help" data-help="tech">새로 기술을 배울 사람 <b>${forecast.techGain}명</b></button></div>
       <div class="tray-tabs">${btn('tray', '산업 키우기', trayMode === 'industry' ? 'active' : '', 'data-tray="industry"')}${btn('tray', '기반 준비', trayMode === 'support' ? 'active' : '', 'data-tray="support"')}</div>`}
-      ${sel && !practice ? `<section class="building-info"><strong>${B[sel].name}</strong>${buildingInfo(sel)}</section>` : practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${practice ? practiceNumbers() : ''}${cards.map(cardHtml).join('')}</div>
-      <div class="tray-foot">${btn('undo', `${icon('undo')}<small>되돌리기</small>`, 'icon-btn undo-labeled', `aria-label="계획 되돌리기, 쓴 돈 돌려받기" ${G.actions.length && !practice ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}</section>`);
-    fitMap(); positionPop(); if (matchMedia('(orientation: portrait)').matches) { const c = app.querySelector('.card.sel'), cards = app.querySelector('.cards'); if (c && cards) cards.scrollLeft = c.offsetLeft - cards.offsetLeft; }
+      ${practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${practice ? practiceNumbers() : ''}${cards.map(cardHtml).join('')}</div>
+      <div class="tray-foot">${btn('undo', `${icon('undo')}<small>되돌리기</small>`, 'icon-btn undo-labeled', `aria-label="계획 되돌리기, 쓴 돈 돌려받기" ${G.actions.length && !practice ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}${sel && !practice && pop === null && !tipHidden ? tipHtml() : ''}</section>`);
+    fitMap(); positionPop(); requestAnimationFrame(positionTip); if (matchMedia('(orientation: portrait)').matches) { const c = app.querySelector('.card.sel'), cards = app.querySelector('.cards'); if (c && cards) cards.scrollLeft = c.offsetLeft - cards.offsetLeft; }
     if (practice) { app.querySelector('[data-action="expand"]').disabled ||= practice.pending || PRACTICE[practice.step].kind !== 'expand'; app.querySelector('[data-action="advance"]').disabled = practice.pending || PRACTICE[practice.step].kind !== 'advance'; const target = lessonControl(); if (target) app.querySelector(target)?.classList.add('lesson-target'); checkPractice(); }
     else if (!progress.tutorialSeen && d === 0) tutorial();
   }
@@ -345,6 +345,22 @@
       ${action('pop-move', '다른 땅으로 옮기기', 2, '다음에 누르는 빈 땅으로 옮겨요', G.money >= 2)}
       ${action('pop-demolish', '건물 없애기 (철거)', D.rules.demolishCost, '이 땅을 비워요 · 돈을 돌려받지는 않아요', E.canDemolish(G, pop).ok)}</div><p class="operation-note">이번 건설 시간의 변경은 되돌리기로 취소할 수 있어요.</p></div>`;
   }
+  /* 카드를 고르면 그 카드 위에 떠 있는 안내 카드(화면을 밀지 않음) */
+  function tipHtml() {
+    return `<div class="card-tip" role="dialog" aria-label="${B[sel].name} 안내"><div class="tip-head">${A.building(sel, { d: G.d })}<b>${B[sel].name}</b>${btn('tip-close', icon('cross'), 'icon-btn', 'aria-label="안내 닫기"')}</div>${buildingInfo(sel)}<p class="tip-hint">${E.cardStatus(G, sel).ok ? '지도에서 지을 땅을 눌러요' : reasonHtml(E.cardStatus(G, sel).reason, sel)}</p></div>`;
+  }
+  function positionTip() {
+    const el = app.querySelector('.card-tip'), card = app.querySelector('.card.sel');
+    if (!el) return;
+    if (!card) { el.remove(); return; }
+    const r = card.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+    let x = r.left + r.width / 2 - w / 2, y = r.top - h - 10;
+    if (y < 8) y = Math.min(innerHeight - h - 8, r.bottom + 10);
+    x = Math.max(8, Math.min(innerWidth - w - 8, x)); y = Math.max(8, y);
+    // 페이지가 스크롤되는 폰에서도 카드에 붙어 있도록 문서 기준(absolute)으로 놓는다
+    const base = (el.offsetParent || document.body).getBoundingClientRect();
+    el.style.left = `${x - base.left}px`; el.style.top = `${y - base.top}px`;
+  }
   function positionPop() {
     const el = app.querySelector('.pop'), tile = pop !== null && app.querySelector(`[data-tile="${pop}"]`);
     if (!el || !tile) return;
@@ -359,6 +375,7 @@
     if (practice && (practice.pending || PRACTICE[practice.step].card !== id)) return;
     const st = E.cardStatus(G, id);
     pop = null;
+    tipHidden = false;
     if (sel === id) sel = null;
     else { sel = id; if (!st.ok) { S.play('no'); toast(`${A.building(id, { d: G.d })}${reasonHtml(st.reason, id)}`); } }
     S.play('tick'); build();
@@ -372,7 +389,8 @@
     if (sel) {
       const can = E.canPlace(G, sel, i);
       if (can.ok) {
-        withChanges(i, () => { E.place(G, sel, i); S.play('place'); saveGame(); if (!E.cardStatus(G, sel).ok) sel = null; });
+        // 지은 직후에는 안내 카드를 접어 지도와 숫자 변화를 먼저 보게 한다
+        withChanges(i, () => { E.place(G, sel, i); S.play('place'); saveGame(); tipHidden = true; if (!E.cardStatus(G, sel).ok) sel = null; });
         app.querySelector(`[data-tile="${i}"]`)?.classList.add('pop-in');
         if (E.slotsLeft(G) === 0) toast('땅이 찼어요. 증축·전환이나 도시 확장을 살펴요.');
       } else {
@@ -766,6 +784,7 @@
       case 'lens': lens = el.dataset.lens; pop = null; build(); break;
       case 'tray': trayMode = el.dataset.tray; sel = null; pop = null; build(); break;
       case 'pop-close': pop = null; build(); break;
+      case 'tip-close': tipHidden = true; build(); break;
       case 'advance': if (practice) withChanges(null, () => { E.advance(G); E.nextDecade(G); }); else advance(); break;
       case 'practice': beginPractice(); break;
       case 'practice-next': nextPractice(); break;
