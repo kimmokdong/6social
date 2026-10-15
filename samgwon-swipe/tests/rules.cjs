@@ -102,4 +102,41 @@ for (let trial = 0; trial < 30000; trial++) {
 assert.equal(seenCards.size, D.cards.length, '모든 카드 자연 등장');
 assert.equal(seenEndings.size, 24, `누락 엔딩: ${Object.keys(D.endings).filter(id => !seenEndings.has(id))}`);
 assert.equal(seenPowers.size, 18, '모든 권한 자연 획득');
+// 임기 미션: 도장·권한 기록, 저장 복원, 판정
+{
+  assert.equal(R.missions.length, 7);
+  const run = R.createRun('president', 'clean'); R.selectCard(run);
+  assert.equal(run.mission, 'clean');
+  const stampCard = D.cards.find(c => c.role === 'president' && !c.first && !c.chain && (c.left.stamp || c.right.stamp));
+  const firstSeen = run.seen.size;
+  run.card = stampCard; const res = R.resolve(run, stampCard.left.stamp ? 'left' : 'right');
+  assert.equal(run.stamps, 1, '도장 수 기록');
+  assert.ok(res.powers.every(id => run.seen.has(id)) && run.seen.size >= firstSeen, '만난 권한 기록');
+  R.selectCard(run);
+  const restored = R.restoreRun(JSON.parse(JSON.stringify(R.snapshot(run))));
+  assert.equal(restored.mission, 'clean'); assert.equal(restored.stamps, 1); assert.equal(restored.seen.size, run.seen.size);
+  const old = JSON.parse(JSON.stringify(R.snapshot(run))); delete old.mission; delete old.stamps; delete old.seen;
+  const legacy = R.restoreRun(old);
+  assert.ok(legacy && legacy.mission === null && legacy.stamps === 0, '미션 없던 저장본도 이어하기');
+  const done = (mission, gauges, ending, extra = {}) => R.missionDone({ ...R.createRun('court', mission), gauges, ended: ending, ...extra });
+  assert.ok(done('people', { p: 70, m: 50, l: 50, w: 50 }, 'court_complete'));
+  assert.ok(!done('people', { p: 70, m: 50, l: 50, w: 50 }, 'court_people0'), '도중 실패면 미션 실패');
+  assert.ok(done('balance', { p: 50, m: 50, l: 50, w: 40 }, 'court_complete'));
+  assert.ok(!done('clean', { p: 50, m: 50, l: 50, w: 50 }, 'court_complete', { stamps: 1 }));
+  assert.ok(done('powers', { p: 50, m: 50, l: 50, w: 50 }, 'court_people0', { seen: new Set(['C1', 'C2', 'C3', 'C4']) }));
+  assert.ok(done('legend', { p: 60, m: 60, l: 60, w: 50 }, 'court_legend'));
+  // 모든 역할에서 모든 미션이 실제 임기에서 달성 가능한지 (게이지를 보는 플레이)
+  for (const role of Object.keys(D.roles)) for (const m of R.missions) {
+    let ok = 0;
+    for (let i = 0; i < 400 && !ok; i++) {
+      const r = R.createRun(role, m.id);
+      while (!r.ended) {
+        const c = R.selectCard(r), score = s => c[s].ending ? -999 : Math.min(...['p', 'm', 'l'].map(k => r.gauges[k] + (c[s].fx?.[k] || 0)), 100 - Math.abs(r.gauges.w + (c[s].fx?.w || 0) - 50) * 2) - (m.id === 'clean' && c[s].stamp ? 999 : 0) + (Math.random() * 20 - 10);
+        R.resolve(r, score('left') >= score('right') ? 'left' : 'right');
+      }
+      if (R.missionDone(r)) ok++;
+    }
+    assert.ok(ok, `${role} ${m.id} 미션 달성 가능`);
+  }
+}
 console.log(`통과: ${D.cards.length}개 카드의 양쪽 선택, 연결·조건·가중치·우선순위, 30,000회 임기, 엔딩 24/24, 권한 18/18`);

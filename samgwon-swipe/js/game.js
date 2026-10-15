@@ -2,9 +2,21 @@
 window.SamgwonRules = (() => {
   const data = window.SAMGWON;
   const clamp = value => Math.max(0, Math.min(100, value));
-  function createRun(role) {
-    return { role, turn: 1, resolved: 0, gauges: { p: 50, m: 50, l: 50, w: 50 }, used: new Set(), queue: [], flags: new Set(), previous: null, card: null, ended: null };
+  /* 임기마다 하나씩 받는 미션. 엔딩 직후 run 의 기록으로 성공을 판정합니다. */
+  const finished = run => ['complete', 'legend'].includes(data.endings[run.ended]?.type);
+  const missions = [
+    { id: 'clean', name: '도장 없는 임기', goal: '월권·견제 실패 도장 없이 임기를 끝까지 마쳐요.', check: run => finished(run) && run.stamps === 0 },
+    { id: 'people', name: '국민의 박수', goal: '국민 게이지 70 이상으로 임기를 마쳐요.', check: run => finished(run) && run.gauges.p >= 70 },
+    { id: 'money', name: '든든한 살림', goal: '살림 게이지 70 이상으로 임기를 마쳐요.', check: run => finished(run) && run.gauges.m >= 70 },
+    { id: 'law', name: '법대로 나라', goal: '법 게이지 70 이상으로 임기를 마쳐요.', check: run => finished(run) && run.gauges.l >= 70 },
+    { id: 'balance', name: '균형 잡힌 권력', goal: '권력 게이지를 40~60 사이에 두고 임기를 마쳐요.', check: run => finished(run) && run.gauges.w >= 40 && run.gauges.w <= 60 },
+    { id: 'powers', name: '권한 탐험가', goal: '한 임기에 권한 카드를 4장 이상 만나요.', check: run => run.seen.size >= 4 },
+    { id: 'legend', name: '전설의 대표', goal: '모든 게이지를 지켜 최고 엔딩을 받아요.', check: run => data.endings[run.ended]?.type === 'legend' }
+  ];
+  function createRun(role, mission = null) {
+    return { role, turn: 1, resolved: 0, gauges: { p: 50, m: 50, l: 50, w: 50 }, used: new Set(), queue: [], flags: new Set(), previous: null, card: null, ended: null, mission, stamps: 0, seen: new Set() };
   }
+  const missionDone = run => !!missions.find(m => m.id === run.mission)?.check(run);
   function eligible(run) {
     return data.cards.filter(card => card.role === run.role && !card.first && !card.chain && !run.used.has(card.id) && Object.entries(card.when || {}).every(([key, [min, max]]) => run.gauges[key] >= min && run.gauges[key] <= max));
   }
@@ -48,6 +60,7 @@ window.SamgwonRules = (() => {
     const card = run.card, choice = card[side];
     for (const key of Object.keys(run.gauges)) run.gauges[key] = clamp(run.gauges[key] + (choice.fx?.[key] || 0));
     if (choice.flag) run.flags.add(choice.flag);
+    if (choice.stamp) run.stamps++;
     if (choice.next) run.queue.push({ id: choice.next.id, turn: run.turn + choice.next.in });
     run.resolved++;
     const death = gaugeEnding(run.gauges);
@@ -58,12 +71,13 @@ window.SamgwonRules = (() => {
     }
     run.ended = ending || null;
     const powers = [...new Set([card.power, choice.power, ...(ending ? data.endings[ending].powers || [] : [])].filter(Boolean))];
+    powers.forEach(id => run.seen.add(id));
     run.card = null;
     if (!ending) run.turn++;
     return { ending: ending || null, death: choice.ending ? null : death, powers, stamp: choice.stamp || null, fx: choice.fx || {} };
   }
   function snapshot(run) {
-    return { ...run, card: run.card.id, used: [...run.used], flags: [...run.flags] };
+    return { ...run, card: run.card.id, used: [...run.used], flags: [...run.flags], seen: [...run.seen] };
   }
   function restoreRun(saved) {
     if (!saved || !Object.hasOwn(data.roles, saved.role) || saved.ended) return null;
@@ -74,9 +88,13 @@ window.SamgwonRules = (() => {
     if (!Array.isArray(saved.used) || !saved.used.every(validCard) || !saved.used.includes(card.id) || saved.previous !== card.char) return null;
     if (!Array.isArray(saved.queue) || !saved.queue.every(q => q && validCard(q.id) && data.cards.find(c => c.id === q.id).chain && Number.isInteger(q.turn) && q.turn > 0)) return null;
     if (!Array.isArray(saved.flags) || !saved.flags.every(flag => typeof flag === 'string')) return null;
-    return { ...createRun(saved.role), turn: saved.turn, resolved: saved.resolved, gauges: Object.fromEntries(Object.keys(data.gauges).map(k => [k, saved.gauges[k]])), used: new Set(saved.used), queue: saved.queue.map(q => ({ id: q.id, turn: q.turn })), flags: new Set(saved.flags), previous: card.char, card };
+    // 미션 기록이 없던 예전 저장본도 미션 없이 이어서 할 수 있게 합니다.
+    const mission = missions.some(m => m.id === saved.mission) ? saved.mission : null;
+    const stamps = Number.isInteger(saved.stamps) && saved.stamps >= 0 ? saved.stamps : 0;
+    const seen = Array.isArray(saved.seen) ? saved.seen.filter(id => Object.hasOwn(data.powers, id)) : [];
+    return { ...createRun(saved.role, mission), stamps, seen: new Set(seen), turn: saved.turn, resolved: saved.resolved, gauges: Object.fromEntries(Object.keys(data.gauges).map(k => [k, saved.gauges[k]])), used: new Set(saved.used), queue: saved.queue.map(q => ({ id: q.id, turn: q.turn })), flags: new Set(saved.flags), previous: card.char, card };
   }
-  return { createRun, eligible, selectCard, resolve, gaugeEnding, endingFor, clamp, snapshot, restoreRun };
+  return { createRun, eligible, selectCard, resolve, gaugeEnding, endingFor, clamp, snapshot, restoreRun, missions, missionDone };
 })();
 
 (() => {
@@ -86,7 +104,7 @@ window.SamgwonRules = (() => {
   const storageKey = 'samgwon-swipe-v1';
   const roleIds = Object.keys(D.roles), gaugeIds = Object.keys(D.gauges);
   const debug = new URLSearchParams(location.search).get('debug') === '1';
-  const defaults = () => ({ name: '', face: 0, profileSeen: false, sound: false, music: true, tutorialSeen: false, endings: [], powers: [], stamps: [], activeRun: null });
+  const defaults = () => ({ name: '', face: 0, profileSeen: false, sound: false, music: true, tutorialSeen: false, endings: [], powers: [], stamps: [], missions: [], activeRun: null });
   let storageAvailable = true;
   function readProgress() {
     const clean = defaults();
@@ -98,6 +116,8 @@ window.SamgwonRules = (() => {
       for (const key of ['profileSeen', 'sound', 'tutorialSeen']) clean[key] = saved[key] === true;
       clean.music = saved.music !== false;
       for (const [key, source] of [['endings', D.endings], ['powers', D.powers], ['stamps', D.stamps]]) clean[key] = Array.isArray(saved[key]) ? [...new Set(saved[key].filter(id => Object.hasOwn(source, id)))] : [];
+      const missionIds = roleIds.flatMap(role => R.missions.map(m => `${role}:${m.id}`));
+      clean.missions = Array.isArray(saved.missions) ? [...new Set(saved.missions.filter(id => missionIds.includes(id)))] : [];
       const active = R.restoreRun(saved.activeRun);
       if (active) clean.activeRun = R.snapshot(active);
     } catch (_) { storageAvailable = false; }
@@ -113,6 +133,25 @@ window.SamgwonRules = (() => {
     try { localStorage.setItem(storageKey, JSON.stringify(progress)); storageAvailable = true; } catch (_) { storageAvailable = false; }
   }
   const name = () => progress.name || '새봄';
+  /* 카드에 나오는 어려운 말을 한 줄로 풀어 줍니다. 카드 문구(data.js)는 그대로 둡니다. */
+  const GLOSSARY = [
+    ['위헌 심판 제청', '법원이 헌법재판소에 이 법이 헌법에 맞는지 판단해 달라고 요청하는 것'],
+    ['탄핵 소추', '국회가 헌법재판소에 높은 공무원을 파면할지 심판해 달라고 요구하는 것'],
+    ['국정 감사', '국회가 정부가 일을 잘했는지, 나랏돈을 바르게 썼는지 조사하는 것'],
+    ['무역 협정', '나라끼리 물건을 사고팔 때의 규칙을 정한 약속'],
+    ['예산안', '정부가 짠 내년 나랏돈 사용 계획. 국회가 심의해서 확정해요'],
+    ['거부권', '대통령이 국회가 통과시킨 법을 다시 논의하라고 돌려보내는 권한'],
+    ['위헌', '법이 헌법에 어긋난다는 뜻'],
+    ['탄핵', '높은 공무원이 헌법이나 법을 크게 어겼을 때 파면하는 절차'],
+    ['항소', '1심 판결이 억울할 때 더 높은 법원에 다시 재판해 달라고 하는 것'],
+    ['1심', '처음 받는 재판. 억울하면 더 높은 법원에 다시 재판을 청할 수 있어요'],
+    ['심리', '재판에서 사실과 법을 꼼꼼히 살펴보는 것'],
+    ['비공개', '재판을 다른 사람이 보지 못하게 하는 것. 재판은 원칙적으로 공개해요'],
+    ['중립', '어느 편도 들지 않는 것']
+  ];
+  const glossFor = (...texts) => GLOSSARY.find(([word]) => texts.some(text => text.includes(word)));
+  const missionOf = id => R.missions.find(m => m.id === id);
+  const missionCount = role => R.missions.filter(m => progress.missions.includes(`${role}:${m.id}`)).length;
   const e = A.esc;
   const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
   const player = (role, mood = 'happy', options = {}) => Paint.person(`p${options.face ?? progress.face}_${role}_${['happy', 'proud'].includes(mood) ? 'happy' : 'worried'}`, A.portrait('player', { role, mood, face: progress.face, ...options }));
@@ -164,14 +203,16 @@ window.SamgwonRules = (() => {
     run = null; locked = false;
     setScreen('roles', `<section class="screen roles-screen">${header('어떤 역할을 맡을까요?')}<div class="role-grid">${roleIds.map(role => {
       const r = D.roles[role];
-      return `<button class="role-card" data-role="${role}" style="--role:${A.colors[role]}">${A.building(role)}<h2>${r.title}</h2><p>${r.does}</p><span class="term">임기 ${r.years}년</span><span class="ending-dots" aria-label="엔딩 ${progress.endings.filter(id => D.endings[id].role === role).length}개 수집">${Object.entries(D.endings).filter(([, ending]) => ending.role === role).map(([id]) => `<i class="${progress.endings.includes(id) ? 'found' : ''}"></i>`).join('')}</span></button>`;
+      return `<button class="role-card" data-role="${role}" style="--role:${A.colors[role]}">${A.building(role)}<h2>${r.title}</h2><p>${r.does}</p><span class="term">임기 ${r.years}년 · 미션 ${missionCount(role)}/${R.missions.length}</span><span class="ending-dots" aria-label="엔딩 ${progress.endings.filter(id => D.endings[id].role === role).length}개 수집">${Object.entries(D.endings).filter(([, ending]) => ending.role === role).map(([id]) => `<i class="${progress.endings.includes(id) ? 'found' : ''}"></i>`).join('')}</span></button>`;
     }).join('')}</div></section>`);
   }
   function intro(role) {
-    run = R.createRun(role); locked = false; S.play('select');
+    const left = R.missions.filter(m => !progress.missions.includes(`${role}:${m.id}`));
+    const pick = (left.length ? left : R.missions)[Math.floor(Math.random() * (left.length || R.missions.length))];
+    run = R.createRun(role, pick.id); locked = false; S.play('select');
     const r = D.roles[role];
     Paint.preload(D.cards.find(card => card.role === role && card.first).char);
-    setScreen('intro', `<section class="screen newspaper-screen"><article class="newspaper intro-paper"><div class="masthead">다온일보</div><div class="paper-date"><span>다온 공화국 · ${r.branch}</span><span>새로운 임기의 시작</span></div><h1>${e(r.headline.replace('{name}', name()))}</h1><div class="paper-scene">${paperScene(role, 'happy')}</div><p>${r.does} · 임기 ${r.years}년</p><div class="button-row"><button data-action="change-role">← 역할 바꾸기</button><button class="primary" data-action="begin">임기 시작!</button></div></article></section>`, role);
+    setScreen('intro', `<section class="screen newspaper-screen"><article class="newspaper intro-paper"><div class="masthead">다온일보</div><div class="paper-date"><span>다온 공화국 · ${r.branch}</span><span>새로운 임기의 시작</span></div><h1>${e(r.headline.replace('{name}', name()))}</h1><div class="paper-scene">${paperScene(role, 'happy')}</div><p>${r.does} · 임기 ${r.years}년</p><div class="mission-box"><b>🎯 이번 임기 미션 · ${pick.name}</b><p>${pick.goal}</p></div><div class="button-row"><button data-action="change-role">← 역할 바꾸기</button><button class="primary" data-action="begin">임기 시작!</button></div></article></section>`, role);
   }
   function begin() {
     S.play('begin');
@@ -181,11 +222,11 @@ window.SamgwonRules = (() => {
   function game() {
     save();
     const card = run.card, character = D.characters[card.char];
-    const term = `임기 ${year()}년 차`;
-    setScreen('game', `<section class="screen game-screen"><div class="gauges" aria-label="나라의 상태">${gaugeIds.map(key => {
+    const term = `임기 ${year()}년 차`, gloss = glossFor(card.text, card.left.label, card.right.label), mission = missionOf(run.mission);
+    setScreen('game', `<section class="screen game-screen${gloss ? ' has-gloss' : ''}"><div class="gauges" aria-label="나라의 상태">${gaugeIds.map(key => {
       const g = D.gauges[key], value = run.gauges[key];
       return `<div class="gauge" data-gauge="${key}" role="meter" aria-label="${g.label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}" ${key === 'w' ? 'aria-valuetext="권력은 가운데가 안전해요"' : ''}><span class="gauge-dot"></span>${key === 'w' ? `<div class="power-meter" style="--value:${value}"><span class="power-marker"></span></div>` : A.gauge(g.icon, key, value)}<span class="gauge-label">${g.label}</span></div>`;
-    }).join('')}</div><div class="speech"><span>${e(card.text)}</span></div><div class="arena"><button class="choice choice-left" data-choice="left"><span class="choice-arrow" aria-hidden="true">◀</span><span>${e(card.left.label)}</span></button><div class="character-card card-enter" id="character-card" tabindex="0" role="group" aria-label="${character.name}, 카드를 좌우로 밀거나 방향키로 결정하세요"><div class="card-choice"></div>${Paint.person(card.char, A.portrait(card.char))}<div class="nameplate"><span class="character-name">${character.name}</span><span class="group-chip" style="--group:${A.colors[character.group]}">${A.groups[character.group]}</span></div></div><button class="choice choice-right" data-choice="right"><span>${e(card.right.label)}</span><span class="choice-arrow" aria-hidden="true">▶</span></button></div><footer class="game-footer"><div class="term-progress"><span class="term-label">${term}</span><div class="ticks" aria-label="${run.resolved} / 20 결정 완료">${Array.from({ length: D.turnsPerTerm }, (_, i) => `<i class="${i < run.resolved ? 'done' : i === run.resolved ? 'current' : ''}"></i>`).join('')}</div></div><div class="footer-buttons">${iconButton('notebook', '권한 수첩', 'notebook')}${iconButton('pause', '잠깐 쉬기', 'pause')}</div></footer></section>`, run.role);
+    }).join('')}</div><div class="speech"><span>${e(card.text)}</span>${gloss ? `<button class="gloss-chip" data-action="gloss" data-word="${gloss[0]}" aria-label="${gloss[0]} 뜻 보기">📖 ${gloss[0]}?</button>` : ''}</div><div class="arena"><button class="choice choice-left" data-choice="left"><span class="choice-arrow" aria-hidden="true">◀</span><span>${e(card.left.label)}</span></button><div class="character-card card-enter" id="character-card" tabindex="0" role="group" aria-label="${character.name}, 카드를 좌우로 밀거나 방향키로 결정하세요"><div class="card-choice"></div>${Paint.person(card.char, A.portrait(card.char))}<div class="nameplate"><span class="character-name">${character.name}</span><span class="group-chip" style="--group:${A.colors[character.group]}">${A.groups[character.group]}</span></div></div><button class="choice choice-right" data-choice="right"><span>${e(card.right.label)}</span><span class="choice-arrow" aria-hidden="true">▶</span></button></div><footer class="game-footer"><div class="term-progress"><span class="term-label">${term}${mission ? ` <span class="mission-chip" title="${mission.goal}">🎯 ${mission.name}</span>` : ''}</span><div class="ticks" aria-label="${run.resolved} / 20 결정 완료">${Array.from({ length: D.turnsPerTerm }, (_, i) => `<i class="${i < run.resolved ? 'done' : i === run.resolved ? 'current' : ''}"></i>`).join('')}</div></div><div class="footer-buttons">${iconButton('notebook', '권한 수첩', 'notebook')}${iconButton('pause', '잠깐 쉬기', 'pause')}</div></footer></section>`, run.role);
     locked = false;
     updateGauges(); updateBadge(); bindDrag();
     const cardElement = document.getElementById('character-card');
@@ -196,7 +237,7 @@ window.SamgwonRules = (() => {
       button.addEventListener('focus', () => preview(button.dataset.choice));
       button.addEventListener('blur', () => preview(null));
     });
-    announce(`${term}. ${character.name}: ${card.text}. 왼쪽 ${card.left.label}, 오른쪽 ${card.right.label}`);
+    announce(`${term}. ${character.name}: ${card.text}. 왼쪽 ${card.left.label}, 오른쪽 ${card.right.label}${gloss ? `. 낱말 풀이: ${gloss[0]}, ${gloss[1]}` : ''}`);
   }
   function updateGauges(fx = {}) {
     for (const key of gaugeIds) {
@@ -262,6 +303,9 @@ window.SamgwonRules = (() => {
     if (result.ending) {
       isNew = !progress.endings.includes(result.ending);
       if (isNew) progress.endings.push(result.ending);
+      const key = `${run.role}:${run.mission}`;
+      run.missionResult = run.mission ? { done: R.missionDone(run), first: R.missionDone(run) && !progress.missions.includes(key) } : null;
+      if (run.missionResult?.first) progress.missions.push(key);
       save();
     }
     updateGauges(result.fx);
@@ -378,7 +422,12 @@ window.SamgwonRules = (() => {
   function paperMarkup(id, isNew = false, detail = false) {
     const ending = D.endings[id], role = ending.role;
     const date = ['complete', 'legend'].includes(ending.type) ? '임기 완주!' : detail ? D.roles[role].title : `임기 ${year()}년 차`;
-    return `<article class="newspaper ${ending.type === 'legend' ? 'legend' : ''}"><div class="masthead">다온일보 호외</div><div class="paper-date"><span>${date}</span><span>엔딩 ${progress.endings.length}/24</span></div>${isNew ? '<div class="new-badge">NEW!</div>' : ''}<h1>${ending.headline}</h1><div class="paper-scene">${paperScene(role, ending.art.mood, ending.art.prop)}</div><p class="paper-story">${ending.story}</p><div class="learning-note">${A.icon('bulb')}<strong>삼권분립 노트</strong><p>${ending.note}</p></div>${detail ? '<button data-action="close-modal" data-confirm>도감으로</button>' : `<div class="button-row"><button class="primary" data-action="retry" data-confirm>다시 하기</button><button data-action="roles">역할 바꾸기</button><button data-action="endings">엔딩 도감</button></div>`}</article>`;
+    return `<article class="newspaper ${ending.type === 'legend' ? 'legend' : ''}"><div class="masthead">다온일보 호외</div><div class="paper-date"><span>${date}</span><span>엔딩 ${progress.endings.length}/24</span></div>${isNew ? '<div class="new-badge">NEW!</div>' : ''}<h1>${ending.headline}</h1><div class="paper-scene">${paperScene(role, ending.art.mood, ending.art.prop)}</div><p class="paper-story">${ending.story}</p><div class="learning-note">${A.icon('bulb')}<strong>삼권분립 노트</strong><p>${ending.note}</p></div>${!detail && run ? termRecord() : ''}${detail ? '<button data-action="close-modal" data-confirm>도감으로</button>' : `<div class="button-row"><button class="primary" data-action="retry" data-confirm>다시 하기</button><button data-action="roles">역할 바꾸기</button><button data-action="endings">엔딩 도감</button></div>`}</article>`;
+  }
+  function termRecord() {
+    const mission = missionOf(run.mission), res = run.missionResult;
+    const result = !mission ? '' : res?.done ? `<b class="ok">🎯 ${mission.name} 성공!${res.first ? ' 새 도장' : ''}</b>` : `<span title="${mission.goal}">🎯 ${mission.name} 실패</span>`;
+    return `<p class="term-record"><span>📅 ${run.resolved}/20 결정</span><span>🔴 도장 ${run.stamps}개</span><span>🃏 권한 ${run.seen.size}장</span>${result}${mission ? `<span class="counter">미션 ${missionCount(run.role)}/${R.missions.length}</span>` : ''}</p>`;
   }
   function endingPaper(id, isNew) {
     locked = false;
@@ -411,12 +460,13 @@ window.SamgwonRules = (() => {
     openModal(`<h2>설정</h2><div class="setting-row"><span>소리</span><button data-action="sound" aria-pressed="${progress.sound}">${A.icon(progress.sound ? 'sound' : 'mute')} ${progress.sound ? '켜짐' : '꺼짐'}</button></div><div class="setting-row"><span>배경 음악</span><button data-action="music" aria-pressed="${progress.music}" ${progress.sound ? '' : 'disabled'}>${A.icon(progress.music && progress.sound ? 'sound' : 'mute')} ${progress.music && progress.sound ? '켜짐' : '꺼짐'}</button></div><div class="setting-row"><span>${e(name())}</span><button data-action="edit-profile">이름 · 모습 바꾸기</button></div>${!storageAvailable ? '<p class="muted">이 환경에서는 기록을 저장할 수 없어요.</p>' : ''}<button class="reset-button" data-action="reset">모든 기록 초기화</button>`, { label: '설정', className: 'settings with-close', closable: true, settings: true });
   }
   function reset() {
-    openModal('<h2>정말 지울까요?</h2><p>이름, 엔딩, 권한 수첩이 모두 지워져요.</p><div class="button-row"><button data-action="reset-cancel" data-confirm>취소</button><button class="danger-button" data-action="reset-confirm">모두 지우기</button></div>', { label: '모든 기록 초기화 확인', closable: true, className: 'with-close' });
+    openModal('<h2>정말 지울까요?</h2><p>이름, 엔딩, 권한 수첩, 미션 도장이 모두 지워져요.</p><div class="button-row"><button data-action="reset-cancel" data-confirm>취소</button><button class="danger-button" data-action="reset-confirm">모두 지우기</button></div>', { label: '모든 기록 초기화 확인', closable: true, className: 'with-close' });
   }
   function pause() {
     if (locked) return;
     preview(null);
-    openModal('<h2>잠깐 쉬어 가요</h2><div class="button-row"><button class="primary" data-action="close-modal" data-confirm>계속하기</button><button data-action="pause-settings">설정</button><button data-action="leave">처음으로</button></div>', { label: '일시정지', closable: true, className: 'with-close' });
+    const mission = missionOf(run?.mission);
+    openModal(`<h2>잠깐 쉬어 가요</h2>${mission ? `<div class="mission-box"><b>🎯 이번 임기 미션 · ${mission.name}</b><p>${mission.goal}</p></div>` : ''}<div class="button-row"><button class="primary" data-action="close-modal" data-confirm>계속하기</button><button data-action="pause-settings">설정</button><button data-action="leave">처음으로</button></div>`, { label: '일시정지', closable: true, className: 'with-close' });
   }
   function updateDebug() {
     if (!debug) return;
@@ -469,6 +519,7 @@ window.SamgwonRules = (() => {
       'collection-back': () => collectionReturn(), sound, settings,
       music: () => { progress.music = !progress.music; save(); syncMusic(); S.play('tick'); settings(); }, 'edit-profile': () => profile(true),
       'close-modal': () => closeModal(), 'collect-power': collectPower,
+      gloss: () => { const item = GLOSSARY.find(([word]) => word === button.dataset.word); if (item && !locked) { preview(null); openModal(`<h2>📖 ${item[0]}</h2><p class="gloss-text">${item[1]}</p><button class="primary" data-action="close-modal" data-confirm>알겠어요</button>`, { label: `${item[0]} 뜻`, className: 'gloss-modal with-close', closable: true }); } },
       'tutorial-next': () => { const step = Number(button.dataset.step); closeModal(); if (step === 2) finishTutorial(); else tutorial(step + 1); },
       'tutorial-skip': finishTutorial, reset, 'reset-cancel': settings,
       'reset-confirm': () => { closeModal(); progress = defaults(); freshPowers = []; save(); S.setEnabled(false); title(); },

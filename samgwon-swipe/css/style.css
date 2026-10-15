@@ -134,3 +134,27 @@ h1[tabindex="-1"]:focus{outline:none}
 
 .tutorial-art .tut-gauge .gauge-art{width:104px;height:104px}.tutorial-art .tut-gauge.danger{animation:danger-pulse 1s 1.6s infinite}
 .title-guide{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink);background:#FFFDF8;border:2px solid currentColor;border-radius:14px;text-decoration:none;touch-action:manipulation}.title-guide:hover{filter:brightness(.96)}.title-guide:focus-visible{outline:3px solid currentColor;outline-offset:4px}
+
+/* 임기 미션 · 임기 기록 · 낱말 풀이 */
+.mission-box{background:color-mix(in srgb,var(--role) 10%,var(--white));border:2px dashed var(--role);border-radius:16px;padding:10px 16px;margin:12px auto;max-width:620px;text-align:left}
+.mission-box b{display:block;font-size:20px;color:var(--ink)}
+.mission-box p{font-size:20px;margin-top:4px;color:var(--soft)}
+.mission-chip{display:inline-block;font-size:18px;font-weight:800;color:var(--role);background:var(--white);border-radius:999px;padding:2px 12px;margin-left:8px;max-width:14em;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.term-record{border:2px solid var(--line,#E3D8C4);border-radius:14px;padding:12px 16px;margin:0 0 20px;text-align:left;background:#FBF6EC}
+.speech{position:relative}
+.gloss-chip{position:absolute;right:18px;bottom:-22px;z-index:3;min-height:44px;padding:6px 14px;border-radius:999px;background:var(--ink);color:#fff;font-size:18px;font-weight:800;letter-spacing:0;box-shadow:0 4px 10px #24212B30;touch-action:manipulation}
+.gloss-chip:focus-visible{outline:3px solid var(--role);outline-offset:3px}
+.gloss-modal h2{font-size:32px}.gloss-text{font-size:24px;line-height:1.5;margin:12px 0 20px}
+@media(max-width:600px){.gloss-chip{right:10px;bottom:-24px;font-size:18px;padding:5px 12px}.game-screen.has-gloss .arena{padding-top:30px}.mission-chip{display:block;margin:4px 0 0;max-width:100%}}
+/* 세로가 짧은 작은 폰(예: 320×568): 위·아래 줄을 줄여 인물 카드 자리를 확보하고 가로 넘침을 막는다 */
+@media(max-width:600px) and (max-height:700px) and (orientation:portrait){
+  .game-screen{grid-template-columns:minmax(0,1fr);grid-template-rows:70px 84px minmax(0,1fr) 62px;gap:8px;padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:calc(6px + env(safe-area-inset-bottom))}
+  .gauges{gap:14px}.gauge{width:52px;height:70px;gap:2px}.gauge-art{height:44px;width:44px}.gauge .power-meter{height:44px}
+  .speech{font-size:20px;padding:8px 10px}
+  .arena{grid-template-rows:minmax(0,1fr) 64px;gap:10px 8px}.choice{min-height:60px;font-size:20px;padding:8px}
+  .character-card{max-height:100%}.nameplate{min-height:52px}
+  .term-label{font-size:16px}
+}
+.term-record{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 16px;font-size:20px;font-weight:700;padding:8px 14px;margin:-8px 0 14px}
+.term-record .ok{color:#1F9A5A}.term-record .counter{font-size:18px;color:var(--soft)}
+@media(max-width:600px){.term-record{font-size:18px;gap:2px 12px}}
