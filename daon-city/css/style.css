@@ -622,3 +622,17 @@ a.icon-btn{background:var(--white);box-shadow:0 4px 0 #24212B18}
 @media(max-width:1100px){.metric-next .nx-word{display:none!important}}
 .money-res .metric-next{display:inline-block;white-space:nowrap;line-height:1.1;padding:0 8px}
 @media(max-width:700px){.money-res .metric-next{display:none!important}}
+/* 2단계: 짧은 판·시대 미션·단계적 공개 */
+.title-buttons .short-entry small{display:block;font-size:18px;font-weight:600;opacity:.8}
+.industry-opportunity b{display:block;font-size:20px}
+.industry-opportunity small{display:block;margin-top:4px;font-size:18px;color:var(--soft,#5B5566)}
+.industry-opportunity.mission-ok{background:#E3F5EA;border:2px solid #2E9A5E}.industry-opportunity.mission-ok p{color:#1F7A47;font-weight:800}
+.era-mission{margin:10px auto 14px;max-width:560px}
+.c-note{position:absolute;left:8px;top:8px;font-size:18px;font-weight:800;background:#FFF1B8;color:#5A4300;border-radius:999px;padding:1px 8px}
+.card{position:relative}
+.rc-mission{font-size:20px;padding:8px 12px;border-radius:12px;background:#FCEDE9;color:#8A2E22}.rc-mission.ok{background:#E3F5EA;color:#1F7A47}
+.mission-stamps{background:#FFF8E1;border:2px dashed #F5C542;border-radius:16px;padding:10px 14px;font-size:20px}
+.mission-stamps>div{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mission-stamps span{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:#EEE7DA;color:var(--soft,#5B5566);font-weight:800;font-size:18px}
+.mission-stamps span.ok{background:#F5C542;color:#3A2E00}.mission-stamps i{font-style:normal}
+@media(min-width:1101px){.city-readiness .gauges{max-width:640px;margin-left:auto}}

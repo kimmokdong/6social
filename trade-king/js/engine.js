@@ -4,7 +4,7 @@
   const T = root.TRADE, W = root.TradeWorld, goods = { ...T.goods, ...T.products };
   const clone = s => JSON.parse(JSON.stringify(s)), clamp = n => Math.max(0, Math.min(5, n));
   const country = (s, id) => Object.entries(s.world.countries).find(([, c]) => c.id === id);
-  const needs = s => T.needs.filter(n => n.from <= s.year).at(-1);
+  const needs = s => T.needs.filter(n => n.from <= s.year).at(-1) || { grain: 0, oil: 0 };
   const active = (s, key) => s.mods.filter(m => m.key === key && m.left > 0);
   const mult = (s, key, id) => active(s, key).filter(m => m.value[0] === id || m.value[0] === 'all').reduce((n, m) => n * m.value[1], 1);
   function path(s, slot, explore = false) {
@@ -22,7 +22,7 @@
     return plan;
   }
   function fresh(seed = 1) {
-    const world = W.create(seed), s = { seed, world, year: 1, money: T.start.money, ships: T.start.ships, factory: T.start.factory, tech: false, gauges: { ...T.start.gauges }, stock: Object.fromEntries(Object.keys(goods).map(g => [g, g === 'chip' ? T.home.chipPerYear : 0])), known: world.known.slice(), trust: {}, deals: {}, sold: {}, supply: {}, demand: {}, voyages: [], contracts: [], mods: [], swaps: {}, fta: [], pending: [], trail: [], found: [], events: [], newsPlan: schedule(world, seed), stats: { unfair: 0, deals: 0, made: 0, products: { phone: 0, car: 0, ev: 0 }, soldYear: 0 }, history: [], actions: T.actionsPerYear, assembled: 0, jobMade: 0, freePart: 0, attempts: {}, ended: null, allMetYear: null };
+    const world = W.create(seed), s = { seed, world, year: 1, money: T.start.money, ships: T.start.ships, factory: T.start.factory, tech: false, gauges: { ...T.start.gauges }, stock: Object.fromEntries(Object.keys(goods).map(g => [g, g === 'chip' ? T.home.chipPerYear : 0])), known: world.known.slice(), trust: {}, deals: {}, sold: {}, supply: {}, demand: {}, voyages: [], contracts: [], mods: [], swaps: {}, fta: [], pending: [], trail: [], found: [], events: [], newsPlan: schedule(world, seed), stats: { unfair: 0, deals: 0, made: 0, products: { phone: 0, car: 0, ev: 0 }, soldYear: 0, orders: 0, partsFrom: [] }, orders: [], history: [], actions: T.actionsPerYear, assembled: 0, jobMade: 0, freePart: 0, attempts: {}, ended: null, allMetYear: null };
     for (const [slot, c] of Object.entries(world.countries)) { s.trust[c.id] = s.known.includes(slot) ? T.start.trustMet : T.start.trustNew; s.deals[c.id] = 0; s.sold[c.id] = 0; }
     begin(s); return s;
   }
@@ -54,6 +54,31 @@
     const due = s.pending.filter(p => p.year <= s.year); s.pending = s.pending.filter(p => p.year > s.year);
     due.forEach(p => queue(s, p.id, p.root));
     if (s.newsPlan[s.year - 1]) queue(s, s.newsPlan[s.year - 1]);
+    spawnOrders(s);
+  }
+  /* 주문서: 사 주는 나라가 완성품을 주문한다. 판에서 부품을 다 구할 수 있는 완성품만, 만난 나라 우선 */
+  function spawnOrders(s) {
+    const r = W.rng(s.seed * 13 + s.year * 101 + 5);
+    s.orders = (s.orders || []).filter(o => !o.done && o.until >= s.year);
+    const sells = g => g === 'chip' || Object.values(s.world.countries).some(c => T.countries[c.id].sells[g] || T.countries[c.id].sells.any);
+    const makeable = Object.keys(T.products).filter(id => T.products[id].parts.every(sells));
+    while (s.orders.length < T.orders.max) {
+      const options = [];
+      for (const [slot, c] of Object.entries(s.world.countries)) for (const g of makeable) {
+        const d = T.countries[c.id]; if (!(d.buys.any || d.buys[g])) continue;
+        if (s.orders.some(o => o.id === c.id && o.product === g)) continue;
+        options.push({ slot, id: c.id, product: g, known: s.known.includes(slot) });
+      }
+      if (!options.length) break;
+      const known = options.filter(o => o.known), pool = known.length && (r() < .75 || known.length === options.length) ? known : options;
+      const pick = W.pick(pool, r), qty = s.year <= 3 ? 1 : 1 + Math.floor(r() * 2);
+      s.orders.push({ id: pick.id, slot: pick.slot, product: pick.product, qty, left: qty, bonus: Math.round(T.products[pick.product].price * T.orders.bonus * qty), until: Math.min(T.years, s.year + T.orders.years - 1), year: s.year, done: false });
+    }
+  }
+  /* 흥정 규칙(공개): 믿음이 성격별 기준 이상이면 '깎기'가 통한다. 변덕쟁이는 홀수 해에만 */
+  function haggle(s, id) {
+    const [, c] = country(s, id), p = T.personalities[c.personality], moody = c.personality === 'fickle' && s.year % 2 === 0;
+    return { ok: !moody && s.trust[id] >= p.haggle, need: p.haggle, moody };
   }
   function effects(s, o, ev = {}) {
     if (o.fx?.money) s.money = Math.max(0, s.money + o.fx.money);
@@ -89,9 +114,9 @@
     return base * d.market * values[1] * (1 + trust) * mult(s, 'buy', g) * tariff * (s.fta.includes(id) ? 1.15 : 1);
   }
   function quote(s, id, basket, offer = 'fair') {
-    const tier = T.offers[offer]; let cost = 0, revenue = 0, accepts = true;
-    for (const [g, n] of Object.entries(basket.buy || {})) if (n) { const offered = price(s, id, g, true); const base = goods[g].price * mult(s, 'price', g) * (T.countries[id].sells.any ? T.countries[id].anyMarkup : 1) * (g === 'grain' && s.fta.includes(id) ? .8 : 1); cost += base * tier * n; if (base * tier + .001 < offered) accepts = false; }
-    for (const [g, n] of Object.entries(basket.sell || {})) if (n) { const base = (goods[g].price + (g === s.world.specialty ? T.specialties[g].bonus : 0)) * T.countries[id].market * mult(s, 'buy', g) * (s.fta.includes(id) ? 1.15 : active(s, 'tariff').filter(m => m.value[0] === id && m.value[1].includes(g)).reduce((v, m) => v * m.value[2], 1)); revenue += base / tier * n; if (base / tier > price(s, id, g, false) + .001) accepts = false; }
+    const tier = T.offers[offer]; let cost = 0, revenue = 0, accepts = offer !== 'low' || haggle(s, id).ok;
+    for (const [g, n] of Object.entries(basket.buy || {})) if (n) { const offered = price(s, id, g, true); const base = goods[g].price * mult(s, 'price', g) * (T.countries[id].sells.any ? T.countries[id].anyMarkup : 1) * (g === 'grain' && s.fta.includes(id) ? .8 : 1); cost += base * tier * n; }
+    for (const [g, n] of Object.entries(basket.sell || {})) if (n) { const base = (goods[g].price + (g === s.world.specialty ? T.specialties[g].bonus : 0)) * T.countries[id].market * mult(s, 'buy', g) * (s.fta.includes(id) ? 1.15 : active(s, 'tariff').filter(m => m.value[0] === id && m.value[1].includes(g)).reduce((v, m) => v * m.value[2], 1)); revenue += base / tier * n; }
     return { cost: Math.ceil(cost), revenue: Math.floor(revenue), accepts };
   }
   function available(s, id) {
@@ -103,6 +128,11 @@
   const emptyShip = s => s.voyages.filter(v => !v.contract).length < s.ships;
   const contractYears = s => Math.max(0, ...active(s, 'noContract').map(m => m.left));
   const contractRefusal = (s, id) => available(s, id) || (contractYears(s) ? `장기 계약 거절 ${contractYears(s)}년` : s.trust[id] === 1 ? '장기 계약 거절' : null);
+  function fillOrder(s, id, g, n, result) {
+    const o = s.orders.find(o => !o.done && o.id === id && o.product === g && o.left > 0); if (!o) return;
+    o.left -= Math.min(n, o.left);
+    if (!o.left) { o.done = true; o.doneYear = s.year; s.money += o.bonus; s.gauges.jobs = clamp(s.gauges.jobs + T.orders.jobs); s.stats.orders++; result.orderDone = { ...o }; }
+  }
   function dealHeart(s, id) { s.stats.deals++; s.deals[id]++; if (s.deals[id] % T.trust.dealsPerHeart === 0) s.trust[id] = Math.min(T.trust.max, s.trust[id] + 1); }
   function recipe(s, id) {
     let parts = T.products[id].parts.slice(); if (s.swaps[id]) parts = parts.map(g => g === s.swaps[id][0] ? s.swaps[id][1] : g);
@@ -111,8 +141,8 @@
   }
   function canMake(s, id) { if (!T.products[id] || s.assembled >= s.factory || s.ended) return false; const count = {}; recipe(s, id).forEach(g => count[g] = (count[g] || 0) + 1); return Object.entries(count).every(([g, n]) => s.stock[g] >= n); }
   function metrics(s) { const partners = Object.values(s.deals).filter(n => n >= 2).length, allGauges = Math.min(...Object.values(s.gauges)), avgGauge = Object.values(s.gauges).reduce((a, b) => a + b, 0) / 3; return { partners, allGauges, avgGauge }; }
-  function ending(s) { const m = metrics(s); return T.endings.find(e => ({ king: m.allGauges >= 4 && m.partners >= 3, war: s.stats.tradeWar && m.avgGauge < 3.5, richAlone: s.money >= 250 && (m.avgGauge < 3 || m.partners <= 2), island: s.stats.deals <= 4, rawOnly: s.stats.made <= 2, normal: true })[e.id]); }
-  function dream(s) { return ({ phones: s.stats.products.phone >= 6, friends: Object.values(s.trust).filter(n => n >= 3).length >= 4, fullFood: s.gauges.food === 5, explorer: s.allMetYear !== null && s.allMetYear <= 6, partners: metrics(s).partners >= 5, evs: s.stats.products.ev >= 4 })[s.world.dream]; }
+  function ending(s) { const m = metrics(s); return T.endings.find(e => ({ king: m.allGauges >= 4 && m.partners >= 2, war: s.stats.tradeWar && m.avgGauge < 3.5, richAlone: s.money >= 200 && (m.avgGauge < 3 || m.partners <= 1), island: s.stats.deals <= 3, rawOnly: s.stats.made <= 1, normal: true })[e.id]); }
+  function dream(s) { return ({ phones: s.stats.products.phone >= 4, friends: Object.values(s.trust).filter(n => n >= 3).length >= 3, fullFood: s.gauges.food === 5, explorer: s.allMetYear !== null && s.allMetYear <= 5, partners: metrics(s).partners >= 4, evs: s.stats.products.ev >= 3 })[s.world.dream]; }
   function badges(s, p = {}) { return T.badges.filter(b => ({ king: s.ended === 'king', explorer: Object.keys(s.world.countries).every(slot => s.known.includes(slot)), allMaps: (p.maps || []).length === 4, allLands: Object.keys(p.countries || {}).length === 10, honest: !s.stats.unfair, chain: Object.values(s.stats.products).every(n => n > 0), dream: dream(s), allEndings: (p.endings || []).length === 6 })[b.id]).map(b => b.id); }
   function discover(s, slot) { if (!s.known.includes(slot)) s.known.push(slot); if (Object.keys(s.world.countries).every(k => s.known.includes(k)) && s.allMetYear === null) s.allMetYear = s.year; }
   function settle(s) {
@@ -121,8 +151,9 @@
     for (const v of s.voyages.filter(v => v.left <= 0)) { if (v.explore) { discover(s, v.slot); found.push(v.slot); } else { for (const [g, n] of Object.entries(v.buy || {})) s.stock[g] += n; s.money += v.revenue || 0; } arrivals.push(v); }
     s.voyages = s.voyages.filter(v => v.left > 0);
     const use = {}, n = needs(s);
-    for (const [g, gauge] of [['grain', 'food'], ['oil', 'energy']]) { use[g] = Math.min(s.stock[g], n[g]); s.stock[g] -= use[g]; const rule = use[g] >= n[g] ? 'full' : use[g] >= n[g] / 2 ? 'half' : use[g] > 0 ? 'little' : 'none'; s.gauges[gauge] = clamp(s.gauges[gauge] + T.gaugeRules.need[rule]); }
-    s.gauges.jobs = clamp(s.gauges.jobs + T.gaugeRules.jobs.find(r => s.jobMade >= r.made).d);
+    const prep = n.grain === 0 && n.oil === 0;
+    for (const [g, gauge] of [['grain', 'food'], ['oil', 'energy']]) { use[g] = Math.min(s.stock[g], n[g]); s.stock[g] -= use[g]; if (prep) continue; const rule = use[g] >= n[g] ? 'full' : use[g] >= n[g] / 2 ? 'half' : use[g] > 0 ? 'little' : 'none'; s.gauges[gauge] = clamp(s.gauges[gauge] + T.gaugeRules.need[rule]); }
+    if (!prep) s.gauges.jobs = clamp(s.gauges.jobs + T.gaugeRules.jobs.find(r => s.jobMade >= r.made).d);
     s.stock.chip += T.home.chipPerYear + (s.tech ? T.tech.chipPerYear : 0);
     const deliveries = [];
     for (const c of s.contracts.filter(c => c.left > 0)) {
@@ -133,7 +164,7 @@
     }
     s.contracts = s.contracts.filter(c => c.left > 0);
     s.mods.forEach(m => m.left--); s.mods = s.mods.filter(m => m.left > 0);
-    const receipt = { year: s.year, before, after: { ...s.gauges }, use, required: n, arrivals, found, made: s.assembled, money: s.money, deliveries };
+    const receipt = { year: s.year, before, after: { ...s.gauges }, use, required: n, prep, arrivals, found, made: s.assembled, money: s.money, deliveries, ordersDone: s.orders.filter(o => o.done && o.doneYear === s.year).map(o => ({ ...o })), ordersMissed: s.orders.filter(o => !o.done && o.until <= s.year).map(o => ({ ...o })) };
     s.history.push(receipt);
     if (s.year === T.years) s.ended = ending(s).id;
     else { s.year++; s.actions = T.actionsPerYear; s.assembled = 0; s.jobMade = 0; s.freePart = 0; s.attempts = {}; s.stats.soldYear = 0; begin(s); }
@@ -172,7 +203,7 @@
           if ((s.attempts[a.id] || 0) >= 2) return fail('이 나라와 올해 협상은 끝났어요');
           const q = quote(s, a.id, b, a.offer); if (s.money < q.cost + route.toll) return fail('돈이 모자라요');
           if (!q.accepts) { s.attempts[a.id] = (s.attempts[a.id] || 0) + 1; if (s.attempts[a.id] === 2) s.actions--; result = { accepted: false, retry: s.attempts[a.id] < 2, mood: a.offer === 'low' ? 'angry' : 'thinking' }; }
-          else { s.money -= q.cost + route.toll; for (const [g, n] of Object.entries(b.buy || {})) s.supply[a.id][g] -= n; for (const [g, n] of Object.entries(b.sell || {})) { s.stock[g] -= n; s.demand[a.id][g] -= n; s.sold[a.id] += n; if (T.products[g]) s.stats.soldYear += n; } s.voyages.push({ id: a.id, slot, buy: b.buy || {}, sell: b.sell || {}, revenue: q.revenue, left: route.years, total: route.years, path: route.path }); dealHeart(s, a.id); s.actions--; s.attempts[a.id] = 2; result.accepted = true; }
+          else { s.money -= q.cost + route.toll; for (const [g, n] of Object.entries(b.buy || {})) s.supply[a.id][g] -= n; for (const [g, n] of Object.entries(b.sell || {})) { s.stock[g] -= n; s.demand[a.id][g] -= n; s.sold[a.id] += n; if (T.products[g]) { s.stats.soldYear += n; fillOrder(s, a.id, g, n, result); } } for (const [g, n] of Object.entries(b.buy || {})) if (n && !['grain', 'oil'].includes(g) && !s.stats.partsFrom.includes(a.id)) s.stats.partsFrom.push(a.id); s.voyages.push({ id: a.id, slot, buy: b.buy || {}, sell: b.sell || {}, revenue: q.revenue, left: route.years, total: route.years, path: route.path }); dealHeart(s, a.id); if (a.offer === 'high') s.trust[a.id] = Math.min(T.trust.max, s.trust[a.id] + 1); s.actions--; s.attempts[a.id] = 2; result.accepted = true; result.firstDeal = s.stats.deals === 1; }
         }
       } else if (a.type === 'explore') {
         if (!s.world.slots[a.slot] || s.known.includes(a.slot) || !W.neighbors(s.world, a.slot).some(n => s.known.includes(n))) return fail('만난 곳 옆의 안개를 골라 주세요');
@@ -190,5 +221,5 @@
     }
     return { state: s, result: { ok: true, ...result } };
   }
-  root.TradeEngine = { fresh, command, path, price, quote, available, contractYears, contractRefusal, canMake, recipe, needs, metrics, ending, dream, badges, matches, goods };
+  root.TradeEngine = { fresh, command, path, price, quote, available, contractYears, contractRefusal, canMake, recipe, needs, metrics, ending, dream, badges, matches, goods, haggle };
 })(typeof window === 'undefined' ? globalThis : window);

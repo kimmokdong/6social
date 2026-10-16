@@ -22,3 +22,37 @@
 /* 제목과 큰 숫자는 시리즈 공통 글꼴을 씁니다. */
 h1,h2,.logo,.year,.money span,.stock-item b,.stepper strong,.offers b,.boat-marker b{font-family:'Black Han Sans','Pretendard Variable','Malgun Gothic',sans-serif}
 .title-guide{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink);background:#FFFDF8;border:2px solid currentColor;border-radius:14px;text-decoration:none;touch-action:manipulation}.title-guide:hover{filter:brightness(.96)}.title-guide:focus-visible{outline:3px solid currentColor;outline-offset:4px}
+
+/* ───── 주문서 중심 개편 ───── */
+.orders{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin:10px 0 4px}
+.orders>strong{align-self:center;font-size:22px;margin-right:4px}
+.order-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:230px;padding:10px 14px;background:var(--white);border:3px solid #E5DCC9;border-radius:20px;text-align:left;box-shadow:0 4px 0 #DAD0BE}
+.order-card .order-head{display:flex;align-items:center;gap:8px;font-size:18px;color:var(--soft)}.order-card .order-head svg,.order-card .order-head .ico{width:26px;height:26px}
+.order-card .order-body{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:900}.order-card .order-body .ico,.order-card .order-body svg{width:34px;height:34px}
+.order-card .order-foot{font-size:18px;color:var(--soft)}.order-card .order-foot em{font-style:normal;font-weight:900;color:#1F7A47;font-size:20px}
+.order-card.selected{border-color:var(--gold);background:#FFF8E1;box-shadow:0 0 0 4px #F5C54255}
+.order-card.done{opacity:.7;border-style:dashed}.order-card.done .order-foot{color:#1F7A47;font-weight:900}
+.chain-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.chain-lines line{stroke-dasharray:24 14}
+.chain-text{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:8px 4px 0;padding:10px 14px;background:#FFF8E1;border:2px dashed var(--gold);border-radius:18px;font-size:19px}
+.chain-text>b{font-size:21px}.chain-text i{font-style:normal;font-weight:900;color:var(--soft)}
+.chain-part{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--white);border-radius:12px;font-weight:800}
+.chain-part small{font-weight:600;color:var(--soft);font-size:18px}.chain-part.have{outline:2px solid #2E9E6B}
+.chain-part .ico,.chain-part svg{width:26px;height:26px}
+.chain-buyer{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#F5C54244;border-radius:12px;font-weight:900}.chain-buyer svg,.chain-buyer .ico{width:26px;height:26px}
+.chain-close{margin-left:auto;min-height:40px;padding:6px 14px;font-size:18px;background:var(--white)}
+.goods-chip.need{outline:3px solid var(--gold);background:#FFF8E1;animation:glow 1.8s ease-in-out infinite}
+.penalties{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0}.penalties .chip{background:#FCEDE9;color:#8A2E22;font-size:18px}
+.checklist{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:8px 0 0;padding:10px 16px;background:#E6F2F3;border:2px solid var(--role);border-radius:18px;font-size:19px;font-weight:700}
+.checklist>strong{font-size:21px;margin-right:4px}.checklist .done{color:#1F7A47}.checklist .now{color:var(--role-dark);background:var(--white);padding:2px 10px;border-radius:999px;outline:3px solid var(--gold)}
+.lesson-target{outline:4px solid var(--gold)!important;outline-offset:3px;animation:glow 1.3s ease-in-out infinite;z-index:5}
+.map-pin.lesson-target{border-radius:50%}
+.offers small{font-size:18px;font-weight:800}.offers small.ok{color:#1F7A47}.offers small.no{color:#B23A26}.offers button:disabled{opacity:.55}
+.receipt-note{background:#E6F2F3;border-radius:14px;padding:10px 14px;font-size:20px;font-weight:700}
+.receipt-good{color:#1F7A47;font-weight:800;font-size:20px}.receipt-bad{color:#8A2E22;font-weight:800;font-size:20px}
+.why{display:grid;gap:4px;font-size:20px;font-weight:700}.why span{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.why small{font-size:18px;font-weight:600;color:var(--soft)}.why .bad{color:#B23A26}.why .good{color:#1F7A47}
+.event.celebrate h2{font-size:36px}.event.celebrate .bubble{background:#FFF4CE;border:3px solid var(--gold)}
+.learn-card{text-align:left;background:#E6F2F3;border:3px solid var(--role);border-radius:20px;padding:14px 18px;display:grid;gap:8px}
+.learn-card h3{font-size:24px;margin:0}.learn-card ul{margin:0;padding-left:1.2em;font-size:20px;line-height:1.5}.learn-card li{margin:2px 0}
+.learn-q{margin:0;padding:10px 14px;background:var(--white);border-radius:14px;font-size:20px;line-height:1.5}.learn-q b{color:var(--role-dark);margin-right:6px}
+@media(max-width:700px){.order-card{min-width:0;flex:1 1 100%}.chain-text{font-size:18px}.checklist{font-size:18px}.orders>strong{width:100%}}

@@ -7,8 +7,9 @@ let out = E.command(s, { type: 'trade', id, basket: { buy: { grain: -1 }, sell: 
 out = E.command(s, { type: 'trade', id, basket: { buy: { grain: 5 }, sell: {} }, offer: 'high' }); assert.equal(out.result.ok, false);
 out = E.command(s, { type: 'trade', id, basket: { buy: { grain: 2, oil: 2 }, sell: {} }, offer: 'high' }); assert(out.result.accepted); assert.equal(JSON.stringify(s), first); s = out.state;
 assert.equal(s.stock.grain, 0); assert.equal(s.actions, 2); assert.equal(s.voyages.length, 1);
-s = E.command(s, { type: 'end' }).state; assert.equal(s.history[0].use.grain, 2); assert.equal(s.history[0].use.oil, 2); assert.equal(s.history[0].arrivals.length, 1);
-let t = E.fresh(7); const trust = t.trust[id];
+s = E.command(s, { type: 'end' }).state; assert(s.history[0].prep); assert.equal(s.history[0].use.grain, 0); assert.equal(s.history[0].arrivals.length, 1); assert.equal(JSON.stringify(s.gauges), JSON.stringify(T.start.gauges), '1년째는 별이 움직이지 않음');
+s.events = []; s = E.command(s, { type: 'end' }).state; assert.equal(s.history[1].use.grain, 2); assert.equal(s.history[1].use.oil, 2);
+let t = E.fresh(7); t.trust[id] = 1; const trust = t.trust[id]; assert(!E.haggle(t, id).ok);
 out = E.command(t, { type: 'trade', id, basket: { buy: { grain: 1 }, sell: {} }, offer: 'low' }); assert.equal(out.result.accepted, false); assert(out.result.retry); t = out.state; assert.equal(t.actions, 3); assert.equal(t.trust[id], trust);
 out = E.command(t, { type: 'trade', id, basket: { buy: { grain: 1 }, sell: {} }, offer: 'low' }); assert.equal(out.result.retry, false); t = out.state; assert.equal(t.actions, 2); assert.equal(t.trust[id], trust);
 assert.equal(E.command(t, { type: 'trade', id, basket: { buy: { grain: 1 } }, offer: 'high' }).result.ok, false);
@@ -65,10 +66,10 @@ assert.equal(severed.trust[id], 0); assert.equal(severed.contracts.length, 0);
 assert(severed.voyages.some(v => v.id === id));
 for (const sold of [0, 1, 3]) {
   let recall = E.fresh(7); recall.money = 10000; recall.stats.soldYear = sold;
-  recall.events = [{ id: 'recall', root: 'defect', char: 'reporter' }];
+  recall.events = [{ id: 'recall', root: 'defect', char: 'reporter' }]; recall.gauges.jobs += (T.nodes.recall.gauge?.jobs || 0);
   recall = E.command(recall, { type: 'event', key: 'a' }).state;
   assert.equal(recall.money, 10000 - Math.max(2, sold) * T.nodes.recall.options[0].recall);
-  assert.equal(recall.gauges.jobs, Math.max(0, T.start.gauges.jobs + T.nodes.recall.options[0].gauge.jobs));
+  assert.equal(recall.gauges.jobs, Math.max(0, T.start.gauges.jobs + (T.nodes.recall.gauge?.jobs || 0) + (T.nodes.recall.options[0].gauge?.jobs || 0)));
 }
 assert(require('./bots').play(54).money + Object.values(require('./bots').play(54).gauges).reduce((a, b) => a + b, 0) * 40 > 0, '통행료를 못 내는 판매처에서 봇이 멈추지 않음');
 // 관세는 큰 시장국의 완성품에만 3년, 시장 위축은 모든 수출에 명시된 기간만 적용됩니다.
@@ -82,7 +83,7 @@ for (const c of Object.values(tariff.world.countries)) for (const good of ['car'
   assert.equal(E.price(tariff, c.id, good, true), E.price(plain, c.id, good, true));
 }
 let peace = E.command(tariff, { type: 'event', key: 'a' }).state;
-while (peace.year < 6) { while (peace.events.length) peace = E.command(peace, { type: 'event' }).state; peace = E.command(peace, { type: 'end' }).state; }
+while (peace.year < 5) { while (peace.events.length) peace = E.command(peace, { type: 'event' }).state; peace = E.command(peace, { type: 'end' }).state; }
 assert(peace.events.some(ev => ev.id === 'warEnd'));
 assert(!peace.mods.some(m => (m.key === 'tariff' || m.key === 'closed') && m.value[0] === 'bigMarket'));
 assert(peace.mods.some(m => m.key === 'buy' && m.value[1] === T.nodes.tradeWar.buy[1]));
@@ -90,7 +91,7 @@ let expire = E.command(tariff, { type: 'event', key: 'c' }).state;
 for (let i = 0; i < 3; i++) expire = E.command(expire, { type: 'end' }).state;
 assert(!expire.mods.some(m => m.key === 'tariff'));
 while (!expire.ended) expire = E.command(expire, { type: 'end' }).state;
-assert.equal(expire.mods.find(m => m.key === 'buy' && m.value[0] === 'all')?.left || 0, Math.max(0, T.nodes.tariff2.buy[2] - 11));
+assert.equal(expire.mods.find(m => m.key === 'buy' && m.value[0] === 'all')?.left || 0, Math.max(0, T.nodes.tariff2.buy[2] - (T.years - 1)));
 // 무료 부품은 두 번의 부품 절약이며 공장의 연간 상한은 늘리지 않습니다.
 let parts = E.fresh(7); parts.newsPlan = Array(12).fill(null); parts.factory = 4;
 parts.stock.chip = 4; parts.stock.iron = 4; parts.stock.rubber = 0;
@@ -104,10 +105,17 @@ assert.equal(E.command(parts, { type: 'make', id: 'car' }).result.ok, false);
 parts.stock.rubber = 1; assert(E.command(parts, { type: 'make', id: 'car' }).result.ok);
 parts = E.command(parts, { type: 'end' }).state; assert.equal(parts.freePart, 0);
 // 밥상 별이 높아도 함께 거래한 나라 수에 따라 고립된 부자가 됩니다.
-let rich = E.fresh(7); rich.money = 250; rich.gauges = { food: 5, energy: 5, jobs: 5 };
+let rich = E.fresh(7); rich.money = 200; rich.gauges = { food: 5, energy: 5, jobs: 5 };
 rich.deals = Object.fromEntries(Object.keys(rich.deals).map(id => [id, 0]));
 assert.equal(E.ending(rich).id, 'richAlone');
 rich.gauges = { food: 5, energy: 0, jobs: 0 };
 Object.keys(rich.deals).slice(0, 3).forEach(id => rich.deals[id] = 2);
 assert.equal(E.ending(rich).id, 'richAlone');
+// 주문서: 사 주는 나라에 완성품을 팔면 주문이 채워지고 보너스·일자리 별
+let ord = E.fresh(7); assert(ord.orders.length >= 1 && ord.orders.length <= T.orders.max); const o = ord.orders[0];
+ord.known = Object.keys(ord.world.slots); ord.stock[o.product] = o.qty; const jobsBefore = ord.gauges.jobs, moneyBefore = ord.money;
+const sale = E.command(ord, { type: 'trade', id: o.id, basket: { buy: {}, sell: { [o.product]: o.qty } }, offer: 'fair' }); assert(sale.result.ok, '주문 상대에게 판매'); assert(sale.result.orderDone, '주문 완료 결과');
+assert.equal(sale.state.money, moneyBefore + o.bonus); assert.equal(sale.state.gauges.jobs, Math.min(5, jobsBefore + T.orders.jobs)); assert.equal(sale.state.stats.orders, 1);
+// 흥정 규칙: 믿음이 기준 이상이면 깎기가 통한다 (변덕쟁이는 홀수 해만)
+let hg = E.fresh(7); const [, hc] = Object.entries(hg.world.countries).find(([, c]) => c.id === id); hg.trust[id] = 5; hg.year = 1; assert(E.haggle(hg, id).ok); hg.year = 2; assert.equal(E.haggle(hg, id).ok, hc.personality !== 'fickle');
 console.log('규칙 검사 통과: 기존 규칙·관세 대상/기간/휴전·무료 부품 2회/공장 상한·고립된 부자 조건');

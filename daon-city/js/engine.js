@@ -12,10 +12,12 @@
   const neighbors = i => Array.from({ length: W * H }, (_, j) => j).filter(j => distance(i, j) === 1);
   const level = t => t.level || 1;
   const isOpen = (s, i) => s.land >= 2 || (s.land === 1 ? i % W <= 4 && Math.floor(i / W) >= 1 : i % W <= 2 && Math.floor(i / W) >= 1);
-  function newGame() {
+  /* eras: 이번 판에서 도는 시대 수. 7이면 1960~2020년대 전체, 4면 1960~1990년대 짧은 판 */
+  const lastEra = s => (s.eras || D.eras.length) - 1;
+  function newGame(eras = D.eras.length) {
     const tiles = [];
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ x, y, t: terrain(x, y), b: terrain(x, y) === 'V' ? 'house' : null, at: -1, level: 1 });
-    return { v: 2, d: 0, money: R.startMoney, tech: 0, people: 4, land: 0, bonus: { env: 0, life: 0, fair: 0 }, tiles, placed: [], actions: [], problemsSeen: {}, records: [], phase: 'build', last: null };
+    return { v: 2, d: 0, money: R.startMoney, tech: 0, people: 4, land: 0, bonus: { env: 0, life: 0, fair: 0 }, tiles, placed: [], actions: [], problemsSeen: {}, records: [], phase: 'build', last: null, eras };
   }
   const hasPower = s => s.tiles.some(t => t.b && B[t.b].supply);
   const slotsLeft = s => s.tiles.filter((t, i) => buildable(t.x, t.y) && isOpen(s, i) && !t.b).length;
@@ -27,6 +29,7 @@
       && [1, 2].includes(t.level) && Number.isInteger(t.at) && t.at >= -1 && t.at <= s.d;
     const gaugesOk = g => g && ['econ', 'life', 'env', 'fair'].every(k => finite(g[k], 100) && g[k] >= 0);
     if (!s || s.v !== 2 || !Number.isInteger(s.d) || s.d < 0 || s.d > LAST || !['build', 'events', 'end'].includes(s.phase)) return false;
+    if (s.eras !== undefined && !(Number.isInteger(s.eras) && s.eras >= 2 && s.eras <= D.eras.length && s.d <= s.eras - 1)) return false;
     if (!['money', 'tech', 'people'].every(k => finite(s[k]) && s[k] >= 0) || ![0, 1, 2].includes(s.land) || !Array.isArray(s.tiles) || s.tiles.length !== W * H || !s.tiles.every((t, i) => tile(t, i, s.land))) return false;
     if (!s.bonus || !['env', 'life', 'fair'].every(k => finite(s.bonus[k])) || !indices(s.placed) || !s.placed.every(i => s.tiles[i].b)) return false;
     if (!Array.isArray(s.actions) || !s.actions.every(a => a && finite(a.cost) && a.cost >= 0 && [0, 1, 2].includes(a.land) && indices(a.placed)
@@ -212,11 +215,11 @@
   }
   function nextDecade(s) {
     if (s.phase !== 'events') return false;
-    if (s.d >= LAST) { s.phase = 'end'; return false; }
+    if (s.d >= lastEra(s)) { s.phase = 'end'; return false; }
     s.d++; s.placed = []; s.actions = []; s.phase = 'build'; return true;
   }
   function ending(s) {
-    const g = gauges(s, LAST), p = production(s, LAST), total = p.exports || 1;
+    const g = gauges(s, lastEra(s)), p = production(s, lastEra(s)), total = p.exports || 1;
     let id = 'grown';
     if (g.econ < 35) id = 'stuck';
     else if (g.env < 40) id = 'gray';
@@ -228,5 +231,5 @@
     return D.endings.find(e => e.id === id);
   }
   const historyScore = s => s.records.filter(r => r && r.match).length;
-  root.DaonEngine = { W, H, LAST, terrain, buildable, coastal, neighbors, distance, level, isOpen, newGame, valid, cardStatus, canPlace, place, canUpgrade, upgrade, canConvert, convert, move, canDemolish, demolish, expand, undo, preview, production, boostAt, exportOf, exportsTotal, pollutionAt, smokyHouses, gaugeDetails, gauges, advance, choiceEffects, applyFx, nextDecade, ending, historyScore, slotsLeft, hasPower };
+  root.DaonEngine = { W, H, LAST, lastEra, terrain, buildable, coastal, neighbors, distance, level, isOpen, newGame, valid, cardStatus, canPlace, place, canUpgrade, upgrade, canConvert, convert, move, canDemolish, demolish, expand, undo, preview, production, boostAt, exportOf, exportsTotal, pollutionAt, smokyHouses, gaugeDetails, gauges, advance, choiceEffects, applyFx, nextDecade, ending, historyScore, slotsLeft, hasPower };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -53,11 +53,11 @@ function plan(s, mode, r) {
   }
   // 운영자금이 부족하면 수입 계약에 앞서 재고를 팔아 배송 대금을 마련합니다.
   if (best && s.money < 140 && s.voyages.filter(v => !v.contract).length < s.ships) return best;
-  const nextNeeds = T.needs.filter(v => v.from <= Math.min(12, s.year + 1)).at(-1);
+  const nextNeeds = (T.needs.filter(v => v.from <= Math.min(T.years, s.year + 1)).at(-1) || { grain: 0, oil: 0 });
   const ranked = desired.map(g => ({ g, target: g === 'grain' || g === 'oil' ? nextNeeds[g] : 1, value: g === 'grain' || g === 'oil' ? (s.gauges[g === 'grain' ? 'food' : 'energy'] < 4 ? 5 : 3) : 2 })).sort((a, b) => b.value - a.value);
   for (const { g, target } of ranked) {
     if (s.mods.some(m => m.key === 'embargo' && m.value[0] === g)) continue;
-    if (g !== 'grain' && g !== 'oil' && s.year < 8 && ['grain', 'oil'].some(k => !known.some(([, c]) => s.supply[c.id][k] > 0))) { const a = explore(); if (a) return a; }
+    if (g !== 'grain' && g !== 'oil' && s.year < T.years - 4 && ['grain', 'oil'].some(k => !known.some(([, c]) => s.supply[c.id][k] > 0))) { const a = explore(); if (a) return a; }
     if (g !== 'grain' && g !== 'oil' && s.money < 90 && (s.stock.chip > 2 || Object.keys(T.products).some(p => s.stock[p]))) continue;
     if (renewable(g) >= target || s.stock[g] + pipeline(g) > target * 5) continue;
     const suppliers = known.filter(([, c]) => s.supply[c.id][g] > 0 && !s.contracts.some(k => k.id === c.id && k.good === g)).sort((a, b) => E.path(s, a[0]).years - E.path(s, b[0]).years || T.countries[a[1].id].sells.any - T.countries[b[1].id].sells.any);
@@ -75,7 +75,7 @@ function plan(s, mode, r) {
   // 판매할 완성품부터 싣고, 여유 반도체로 초기 자금을 마련합니다.
   if (best && s.voyages.filter(v => !v.contract).length < s.ships) return best;
   if (E.command(s, { type: 'invest', id: 'ship' }).result.ok && s.ships < 3 && s.money > 130) return { type: 'invest', id: 'ship' };
-  if (s.year < 10) { const a = explore(); if (a) return a; }
+  if (s.year < T.years - 2) { const a = explore(); if (a) return a; }
   if (s.money > 180 && s.ships < T.maxShips) return { type: 'invest', id: 'ship' };
   return null;
 }

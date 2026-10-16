@@ -45,7 +45,7 @@
   }
   S.setEnabled(progress.sound);
 
-  let practice = null;
+  let practice = null, newEras = D.eras.length;
   let lens = 'industry', trayMode = 'industry', relocating = null, viewPlan = null;
   let G = null, sel = null, tipHidden = false, busy = false, pop = null, screen = '', cursor = 0, drag = null, toastTimer = 0, layerFocus = null;
 
@@ -55,6 +55,20 @@
   const iconBtn = (name, label, action) => `<button type="button" class="icon-btn" data-action="${action}" aria-label="${label}">${icon(name)}</button>`;
   const soundBtn = () => `<button type="button" class="icon-btn" data-action="sound" aria-label="소리 ${progress.sound ? '끄기' : '켜기'}" aria-pressed="${progress.sound}">${P.icon(progress.sound ? 'sound' : 'mute')}</button>`;
   const era = d => D.eras[d];
+  const erasOf = () => G?.eras || D.eras.length;
+  /* 시대 미션: 그 시대의 학습 내용을 하나의 분명한 목표로. 10년 보내기 결과(res)로 판정 */
+  const running = (p, cat) => p.industries.some(r => r.b.cat === cat && r.rate >= .99);
+  const MISSIONS = [
+    { title: '첫 수출 공장 돌리기', task: '섬유 공장을 지어 제대로 돌아가게 해요.', check: p => running(p, 'light') },
+    { title: '중화학 공업 시작', task: '제철소·조선소·석유 화학 중 하나를 제대로 돌려요. 전기가 많이 필요해요.', check: p => running(p, 'heavy') },
+    { title: '기술 인력으로 자동차·전자', task: '학교로 기술 인력을 길러 자동차나 전자 공장을 제대로 돌려요.', check: p => running(p, 'carElec') },
+    { title: '반도체 시대', task: '기술 인력 2명이 필요한 반도체 공장을 제대로 돌려요.', check: p => running(p, 'semi') },
+    { title: '깨끗한 정보 통신 도시', task: '정보 통신 산업을 돌리면서 오염 피해 집을 0으로 만들어요.', check: p => running(p, 'it') && p.exposed.length === 0 },
+    { title: '이야기를 파는 도시', task: '문화 콘텐츠 산업을 제대로 돌려요.', check: p => running(p, 'content') },
+    { title: '첨단과 환경을 함께', task: '첨단 산업을 돌리면서 환경 70점 이상을 지켜요.', check: (p, g) => running(p, 'battery') && g.env >= 70 }
+  ];
+  const missionOk = (d, p, g) => !!MISSIONS[d]?.check(p, g);
+  const missionStamps = () => G.records.filter(r => r && r.mission !== undefined);
   function focusSelector(el) {
     const key = ['action', 'card', 'tile'].find(k => el?.dataset?.[k] !== undefined);
     const qualifier = ['lens', 'tray', 'help'].find(k => el?.dataset?.[k]);
@@ -272,14 +286,14 @@
     const saved = savedGame();
     setScreen('title', `<header class="tbar"><span class="title-left"><a class="title-guide" href="../guides/daon.html">게임 설명서</a><span class="title-credit">만든이 현승쌤</span></span><div class="tools">${soundBtn()}${iconBtn('gear', '설정', 'settings')}</div></header>
       <section class="title-main"><div class="skyline" aria-hidden="true">${A.skyline()}</div><h1 class="logo">다온시 <span>70년</span></h1><p class="v2-title-note">산업을 골라, 나만의 발전을 만들어요</p>${oldSaveExists() ? '<p class="legacy-note">새 산업 규칙으로 시작해요. 이전 버전의 저장은 보관되어 있어요.</p>' : ''}
-      <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작', 'secondary') : btn('new', `시작 ${icon('play')}`, 'primary big')}${btn('practice', '연습 도시로 배우기', 'secondary practice-entry')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
+      <div class="title-buttons">${saved ? btn('continue', `이어하기 ${icon('play')}`, 'primary big') + btn('new', '새로 시작 · 70년', 'secondary') : btn('new', `시작 · 70년 ${icon('play')}`, 'primary big')}${btn('new', '짧은 판 · 40년 <small>1960~1990년대</small>', 'secondary short-entry', 'data-eras="4"')}${btn('practice', '연습 도시로 배우기', 'secondary practice-entry')}${btn('endings', `엔딩 도감 <b class="count">${progress.endings.length}/${D.endings.length}</b>`, 'secondary')}</div></section>`);
   }
 
   /* ───── 시대 신문 ───── */
   function eraPaper() {
     const d = G.d, news = Object.entries(B).filter(([, b]) => b.era === d);
     S.play('paper');
-    setScreen('paper', `<section class="paper-stage"><article class="paper"><div class="masthead">다온일보</div><div class="dateline"><span>${era(d).label}</span><span>${d + 1} / ${D.eras.length}</span></div><h2>${era(d).headline}</h2>
+    setScreen('paper', `<section class="paper-stage"><article class="paper"><div class="masthead">다온일보</div><div class="dateline"><span>${era(d).label}</span><span>${d + 1} / ${erasOf()}</span></div><h2>${era(d).headline}</h2><div class="mission-box era-mission"><b>🎯 이번 시대 미션 · ${MISSIONS[d].title}</b><p>${MISSIONS[d].task}</p></div>
       <div class="paper-body"><div class="paper-map">${Paint.scene(`daon/era${d}`, mapHtml(true), `${era(d).label} 다온시 풍경`)}</div><div class="paper-news">${news.length ? `<span class="new-tag">NEW</span><div class="new-list">${news.map(([id, b]) => `<div class="new-item">${A.building(id, { d })}<b>${b.name}</b></div>`).join('')}</div>` : ''}</div></div>
       <div class="paper-buttons">${btn('to-title', '← 처음으로', 'secondary')}${btn('start-build', `건설 시작 ${icon('play')}`, 'primary big')}</div></article></section>`);
   }
@@ -309,16 +323,19 @@
     });
     const nowS = states(f), pvS = pv ? states(pv) : null;
     preview = key => pvS ? nextOf(key, nowS[key], pvS[key]) : '';
+    // 단계적 공개: 기술 인력은 1980년대(자동차·전자)부터, 또는 학교를 지었거나 필요한 산업이 생기면 보여 준다
+    const showTech = !!practice || d >= 2 || f.skilledNeed > 0 || f.skilled > 0 || G.tiles.some(t => ['school', 'univ'].includes(t.b));
+    const missionNow = missionOk(d, forecast, g);
     const readiness = metric('home', '🏠 집', ['주민', f.workers], ['살 곳', f.housing], '명', homeState)
       + metric('people', '💼 일자리', ['일자리', f.jobs], ['주민', f.workers], '', jobState)
-      + metric('tech', '🎓 기술 인력', ['있음', f.skilled], ['필요', f.skilledNeed], '명', surplus(f.skilled, f.skilledNeed, '명', '여유', '부족', '필요한 산업 없음'))
+      + (showTech ? metric('tech', '🎓 기술 인력', ['있음', f.skilled], ['필요', f.skilledNeed], '명', surplus(f.skilled, f.skilledNeed, '명', '여유', '부족', '필요한 산업 없음')) : '')
       + metric('power', '⚡ 전기', ['만드는 양', f.supply], ['쓰는 양', f.energy], '', surplus(f.supply, f.energy, '', '남음', '부족'));
     setScreen('build', `<section class="build era-${d} city-v2${practice ? ' practice-city' : ''}" ${practice ? `data-lesson-kind="${PRACTICE[practice.step].kind}"` : ''}>
-      <header class="topbar">${iconBtn('menu', '메뉴', 'menu')}<div class="decade"><strong>${era(d).label}</strong><div class="timeline">${D.eras.map((e, i) => `<i class="${i < d ? 'done' : i === d ? 'now' : ''}"></i>`).join('')}</div></div>
+      <header class="topbar">${iconBtn('menu', '메뉴', 'menu')}<div class="decade"><strong>${era(d).label}</strong><div class="timeline">${D.eras.slice(0, erasOf()).map((e, i) => `<i class="${i < d ? 'done' : i === d ? 'now' : ''}"></i>`).join('')}</div></div>
         <div class="res"><button data-action="help" data-help="money" class="res-item money-res" aria-label="도시 돈 ${G.money}, 도움말">${icon('coin')}<span>도시 돈 <b class="money-amount">${G.money}</b></span>${pv ? `<span class="metric-next ${G.money - B[sel].cost < 3 ? 'bad' : 'calm'}" title="지으면 ${G.money - B[sel].cost}"><span class="nx-word">지으면 </span><span class="nx-arrow">→ </span>${G.money - B[sel].cost}</span>` : ''}</button>${btn('expand', expansion, 'expand-btn', G.land >= 2 || d < (G.land === 0 ? 1 : 3) || G.money < D.rules.expandCost[G.land] ? 'disabled' : '')}</div></header>
       <div class="city-readiness">${readiness}${gaugesHtml(g)}</div>${practice ? practicePanel() : ''}
-      <div class="main"><div class="map-wrap"><div class="map-toolbar">${relocating !== null ? btn('cancel-move', '옮기기 취소', 'secondary') : [['industry', '산업'], ['people', '사람·교육'], ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '빈 땅을 누르면 건물이 옮겨져요 · 도시 돈 2 사용' : lens === 'people' ? '<p class="lens-legend">👷 사는 주민 · 🎓 기술을 배운 주민</p><p class="lens-legend">초록 칸은 교육이 닿는 집이에요</p>' : lens === 'env' ? '<p class="lens-legend">배출 = 공장이 내보내는 오염</p><p class="lens-legend">😷 = 오염 피해를 받는 집</p>' : forecast.warnings.map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
-      <aside class="tray">${practice ? '' : `<div class="industry-opportunity"><b>이번 시대: ${D.categories[era(d).real].name}</b><p>내 주력: ${leaders.length ? D.categories[leaders[0][0]].name : '첫 산업을 준비해요'}</p></div>`}${practice ? '' : `<div class="forecast"><button data-action="help" data-help="money">10년 뒤 도시 돈 <b>${G.money} → ${Math.max(0, G.money + forecast.income)}</b><small>운영비를 뺀 뒤 ${forecast.income >= 0 ? '+' : ''}${forecast.income}</small></button><button data-action="help" data-help="tech">새로 기술을 배울 사람 <b>${forecast.techGain}명</b></button></div>
+      <div class="main"><div class="map-wrap"><div class="map-toolbar">${relocating !== null ? btn('cancel-move', '옮기기 취소', 'secondary') : [['industry', '산업'], ...(showTech ? [['people', '사람·교육']] : []), ['env', '환경']].map(([id, label]) => btn('lens', label, lens === id ? 'active' : '', `data-lens="${id}" aria-pressed="${lens === id}"`)).join('')}</div>${mapHtml()}<div class="city-warnings" role="status">${relocating !== null ? '빈 땅을 누르면 건물이 옮겨져요 · 도시 돈 2 사용' : lens === 'people' ? '<p class="lens-legend">👷 사는 주민 · 🎓 기술을 배운 주민</p><p class="lens-legend">초록 칸은 교육이 닿는 집이에요</p>' : lens === 'env' ? '<p class="lens-legend">배출 = 공장이 내보내는 오염</p><p class="lens-legend">😷 = 오염 피해를 받는 집</p>' : forecast.warnings.filter(v => d >= 2 || !v.includes('수출 기회')).map(v => `<p>${esc(v)}</p>`).join('') || '<p>도시의 기반이 준비됐어요. 산업의 기회를 살펴봐요.</p>'}</div></div>
+      <aside class="tray">${practice ? '' : `<div class="industry-opportunity ${missionNow ? 'mission-ok' : ''}"><b>🎯 ${MISSIONS[d].title}</b><p>${missionNow ? '✓ 지금 이대로 10년을 보내면 성공!' : MISSIONS[d].task}</p><small>이번 시대: ${D.categories[era(d).real].name}${leaders.length ? ` · 내 주력: ${D.categories[leaders[0][0]].name}` : ''}</small></div>`}${practice ? '' : `<div class="forecast"><button data-action="help" data-help="money">10년 뒤 도시 돈 <b>${G.money} → ${Math.max(0, G.money + forecast.income)}</b><small>운영비를 뺀 뒤 ${forecast.income >= 0 ? '+' : ''}${forecast.income}</small></button>${showTech ? `<button data-action="help" data-help="tech">새로 기술을 배울 사람 <b>${forecast.techGain}명</b></button>` : ''}</div>
       <div class="tray-tabs">${btn('tray', '산업 키우기', trayMode === 'industry' ? 'active' : '', 'data-tray="industry"')}${btn('tray', '기반 준비', trayMode === 'support' ? 'active' : '', 'data-tray="support"')}</div>`}
       ${practice ? '' : '<div class="info-hint">카드·건물·숫자를 누르면 뜻과 할 일을 알려 줘요.</div>'}<div class="cards" role="list">${practice ? practiceNumbers() : ''}${cards.map(cardHtml).join('')}</div>
       <div class="tray-foot">${btn('undo', `${icon('undo')}<small>되돌리기</small>`, 'icon-btn undo-labeled', `aria-label="계획 되돌리기, 쓴 돈 돌려받기" ${G.actions.length && !practice ? '' : 'disabled'}`)}${btn('advance', `10년 보내기 ${icon('play')}`, 'primary go')}</div></aside></div>${pop !== null ? popHtml() : ''}${sel && !practice && pop === null && !tipHidden ? tipHtml() : ''}</section>`);
@@ -332,7 +349,7 @@
     return `<button type="button" role="listitem" class="card${sel === id ? ' sel' : ''}${st.ok ? '' : ' locked'}${future ? ' future' : ''}" data-card="${id}" aria-label="${b.name}, 짓는 비용 도시 돈 ${b.cost}" aria-pressed="${sel === id}">
       <div class="c-icon">${A.building(id, { d: G.d })}</div><div class="c-name">${b.name}</div>
       <div class="c-row"><span class="cost">${icon('coin')}짓는 돈 <b>${b.cost}</b></span>${needs(id)}</div><div class="c-fx">${effects(id)}</div>
-      ${!st.ok ? `<span class="c-lock">${reasonHtml(st.reason, id)}</span>` : ''}${isNew ? '<span class="c-new">NEW</span>' : ''}</button>`;
+      ${!st.ok ? `<span class="c-lock">${reasonHtml(st.reason, id)}</span>` : ''}${isNew ? '<span class="c-new">NEW</span>' : ''}${id === 'school' && G.d < 2 && !practice ? '<span class="c-note">1980년대 산업 준비</span>' : ''}</button>`;
   }
   /* 지은 건물에서 증축·이전·산업 전환을 고른다. */
   function popHtml() {
@@ -466,6 +483,7 @@
     const d = G.d, chips = G.tiles.map((t, i) => [i, E.exportOf(G, i)]).filter(([, v]) => v > 0);
     Paint.preload(era(d).event.char);
     const res = E.advance(G);
+    G.records[d].mission = missionOk(d, res, res.gauges);
     saveGame();
     if (res.problem) Paint.preload(res.problem.char);
     build();
@@ -499,7 +517,7 @@
     if (G.records[d].choices.length < (res.problem ? 2 : 1)) await eventCard(era(d).event, false);
     await historyCard(d);
     busy = false;
-    if (d >= E.LAST) { E.nextDecade(G); ending(); return; }
+    if (d >= E.lastEra(G)) { E.nextDecade(G); ending(); return; }
     E.nextDecade(G); saveGame(); eraPaper();
   }
 
@@ -544,6 +562,7 @@
     return `<div class="report-card"><b class="rc-title">내 도시 성적표</b>
       <div class="rc-money">🪙 도시 돈 <strong>${before} → ${after}</strong> <em class="${rec.income >= 0 ? 'up' : 'down'}">${rec.income >= 0 ? '+' : '−'}${Math.abs(rec.income)}</em></div>
       <div class="rc-export"><span>수출</span><i><b style="width:${pct}%"></b></i><strong>${num(rec.exports)} / 목표 ${target}</strong></div>
+      ${rec.mission !== undefined ? `<div class="rc-mission ${rec.mission ? 'ok' : ''}">🎯 ${MISSIONS[d].title} — <b>${rec.mission ? '미션 성공! 도장 꽝' : '아쉽게 실패'}</b></div>` : ''}
       <div class="rc-gauges">${rows}</div>
       ${(rec.warnings || []).length ? `<div class="rc-todo"><b>다음 10년 숙제</b>${rec.warnings.slice(0, 2).map(v => `<p>${esc(v)}</p>`).join('')}</div>` : ''}</div>`;
   }
@@ -553,7 +572,7 @@
       openLayer(`<div class="hist"><span class="hist-tag">그때 우리나라는?</span><h3>${era(d).label}</h3>
         <div class="hist-row"><div class="hist-ico">${A.building(REPR[cat])}</div><p>${esc(era(d).realText)}</p></div>
         <div class="hist-me ${rec.match ? 'yes' : 'no'}">${icon(rec.match ? 'check' : 'compass')}<b>${rec.match ? '시대 산업을 활용했어요' : '다온시는 다른 산업을 키웠어요'}</b><span class="mine">${rec.built.map(id => A.building(id, { d })).join('')}</span></div>
-        ${reportCard(d)}${btn('hist-next', d < E.LAST ? `다음 10년 ${icon('play')}` : `70년사 보기 ${icon('play')}`, 'primary big')}</div>`, 'hist-layer');
+        ${reportCard(d)}${btn('hist-next', d < E.lastEra(G) ? `다음 10년 ${icon('play')}` : `${erasOf() * 10}년사 보기 ${icon('play')}`, 'primary big')}</div>`, 'hist-layer');
       layer.querySelector('[data-action="hist-next"]').addEventListener('click', () => { closeLayer(); resolve(); }, { once: true });
     });
   }
@@ -561,7 +580,7 @@
   /* ───── 엔딩: 다온시 70년사 ───── */
   function ending() {
     clearGame();
-    const end = E.ending(G), g = E.gauges(G, E.LAST), score = E.historyScore(G);
+    const end = E.ending(G), g = E.gauges(G, E.lastEra(G)), score = E.historyScore(G), stamps = missionStamps();
     const isNew = !progress.endings.includes(end.id);
     if (isNew) progress.endings.push(end.id);
     const earned = [];
@@ -572,10 +591,10 @@
     save();
     S.play(end.legend ? 'fanfare' : 'paper');
     setScreen('ending', `<section class="ending-page">
-      <article class="final-paper${end.legend ? ' legend' : ''}"><div class="masthead">다온일보 호외</div><div class="dateline"><span>다온시 70년사</span><span>엔딩 ${progress.endings.length}/${D.endings.length}</span></div>
+      <article class="final-paper${end.legend ? ' legend' : ''}"><div class="masthead">다온일보 호외</div><div class="dateline"><span>다온시 ${erasOf() * 10}년사${erasOf() < D.eras.length ? ' · 짧은 판' : ''}</span><span>엔딩 ${progress.endings.length}/${D.endings.length}</span></div>
         ${isNew ? '<span class="new-stamp">NEW!</span>' : ''}<h2>${end.name}</h2><p class="story">${end.story}</p>
         <div class="final-body"><div class="final-map">${mapHtml(true)}</div><div class="final-side">${gaugesHtml(g, 'big')}
-          <div class="hist-score">${icon('news')}<span>시대 산업 운영 <b>${score}/${D.eras.length}</b> · 나의 발전 경로</span></div></div></div>
+          <div class="hist-score">${icon('news')}<span>시대 산업 운영 <b>${score}/${erasOf()}</b> · 나의 발전 경로</span></div>${stamps.length ? `<div class="mission-stamps"><b>🎯 시대 미션 ${stamps.filter(r => r.mission).length}/${stamps.length}</b><div>${stamps.map(r => `<span class="${r.mission ? 'ok' : ''}" title="${MISSIONS[r.d].title}">${era(r.d).label.replace('년대', '')}<i>${r.mission ? '✓' : '·'}</i></span>`).join('')}</div></div>` : ''}</div></div>
         <div class="note">${P.icon('bulb')}<p>${end.note}${end.legend ? '' : `<br><span class="sub">${D.finalNote}</span>`}</p></div>
         ${earned.length ? `<div class="earned">${earned.map(id => `<span class="badge-chip">${icon('star')}${D.badges.find(b => b.id === id).name}</span>`).join('')}</div>` : ''}
         <div class="end-btns">${btn('new', `다시 하기 ${icon('play')}`, 'primary')}${btn('endings', '엔딩 도감', 'secondary')}${btn('title', '처음으로', 'secondary')}</div></article>
@@ -759,9 +778,9 @@
   async function act(a, el) {
     if (!practiceAllows(a)) { toast('이번 연습에서는 빛나는 곳을 눌러 보세요.'); return; }
     switch (a) {
-      case 'new': if (savedGame()) { openLayer(`<div class="menu"><h2>새로 시작할까요?</h2><p class="confirm-note">지금 만들던 도시는 지워져요.</p>${btn('new-confirm', '새로 시작', 'primary big')}${btn('close', '취소', 'secondary')}</div>`); break; }
+      case 'new': newEras = Number(el?.dataset.eras) || D.eras.length; if (savedGame()) { openLayer(`<div class="menu"><h2>새로 시작할까요?</h2><p class="confirm-note">지금 만들던 도시는 지워져요.</p>${btn('new-confirm', '새로 시작', 'primary big')}${btn('close', '취소', 'secondary')}</div>`); break; }
       // falls through
-      case 'new-confirm': closeLayer(); clearGame(); lens = 'industry'; trayMode = 'industry'; relocating = null; G = E.newGame(); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
+      case 'new-confirm': closeLayer(); clearGame(); lens = 'industry'; trayMode = 'industry'; relocating = null; G = E.newGame(newEras); saveGame(); sel = null; pop = null; S.play('tick'); eraPaper(); break;
       case 'continue': G = savedGame(); if (G) { build(); if (G.phase === 'events') { app.querySelector('.build').classList.add('timelapse'); finishDecade(); } } else title(); break;
       case 'start-build': build(); break;
       case 'endings': endings(); break;

@@ -42,7 +42,7 @@ window.TradeArt = (() => {
   // 그림이 준비되기 전·실패한 뒤에도 같은 위치의 SVG를 남깁니다.
   const raster = (path, fallback, x, y, width, height, cls = '', style = '') => `<g class="chart-art"><g class="chart-fallback" style="visibility:${window.GameAssets?.isReady(`../shared-art/trade/${path}.webp`) ? 'hidden' : 'visible'}">${fallback}</g><image class="${cls}" style="${style}" href="../shared-art/trade/${path}.webp" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet" onload="this.previousElementSibling.style.visibility='hidden'" onerror="this.previousElementSibling.style.visibility='visible';this.remove()"/></g>`;
   let serial = 0, lastChart = { key: '', known: [], reveals: {} };
-  function map(s, miniature = false) {
+  function map(s, miniature = false, overlay = '') {
     const w = s.world, T = window.TRADE, uid = `chart-${++serial}`, known = s.known;
     const key = `${w.seed}/${w.mapId}/${w.flip}`, now = Date.now();
     if (!miniature) {
@@ -85,7 +85,7 @@ window.TradeArt = (() => {
       const frames = steps.map(t => { const segment = Math.min(points.length - 2, Math.floor(t * (points.length - 1))), f = t * (points.length - 1) - segment, [a, b] = points[segment], [aa, bb] = points[segment + 1]; return `${(t - start) / (end - start) * 100}%{left:${(a + (aa - a) * f) / 10}%;top:${(b + (bb - b) * f) / 6.4}%}`; }).join('');
       return `<style>@keyframes ${uid}-boat-${index}{${frames}}</style><span class="boat-marker" style="left:${x / 10}%;top:${y / 6.4}%;animation:${uid}-boat-${index} 2.5s linear both" role="img" aria-label="${v.explore ? '탐험선' : '무역선'}, 도착까지 ${v.left}년">${window.Paint.scene('trade/ship', icon('ship'), '', 'eager')}<b>${v.left}</b></span>`;
     }).join('');
-    return `<div class="map-wrap">${chart}<div class="map-pins">${pins}</div>${markers}</div>`;
+    return `<div class="map-wrap">${chart}${overlay}<div class="map-pins">${pins}</div>${markers}</div>`;
   }
   function layoutPins() {
     const wrap = document.querySelector('.map-wrap');

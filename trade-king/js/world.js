@@ -8,7 +8,7 @@
   function coverage(ids) {
     const has = g => g === 'chip' || ids.some(id => T.countries[id].sells[g] || T.countries[id].sells.any);
     // 얼음 항로가 닫히는 해에도 국민에게 필요한 물량을 구할 수 있어야 합니다.
-    const enough = g => Array.from({ length: T.years }, (_, i) => i + 1).every(year => ids.reduce((n, id) => n + (T.countries[id].frozenYears?.includes(year) ? 0 : T.countries[id].sells[g] || T.countries[id].sells.any || 0), 0) >= T.needs.filter(n => n.from <= year).at(-1)[g]);
+    const enough = g => Array.from({ length: T.years }, (_, i) => i + 1).every(year => ids.reduce((n, id) => n + (T.countries[id].frozenYears?.includes(year) ? 0 : T.countries[id].sells[g] || T.countries[id].sells.any || 0), 0) >= (T.needs.filter(n => n.from <= year).at(-1)?.[g] || 0));
     return T.coverage.needGoods.every(enough) && Object.values(T.products).filter(p => p.parts.every(has)).length >= T.coverage.minProducts && ids.filter(id => Object.keys(T.countries[id].buys).length).length >= T.coverage.minBuyers;
   }
   function neighbors(w, slot) { return w.lanes.filter(l => l[0] === slot || l[1] === slot).map(l => l[0] === slot ? l[1] : l[0]); }
@@ -44,7 +44,9 @@
       const positions = shuffle(free, r); w.countries = {};
       for (const [slot, id] of Object.entries(fixed)) w.countries[slot] = { id };
       ids.forEach((id, i) => w.countries[positions[i]] = { id });
-      valid = coverage(Object.values(w.countries).map(c => c.id)) && T.coverage.needGoods.every(g => Object.entries(w.countries).some(([s, c]) => (T.countries[c.id].sells[g] || T.countries[c.id].sells.any) && route(w, s).years <= 3));
+      // 첫해부터 밥상·불빛 재료를 구할 수 있게, 곡물·석유를 파는 나라는 다온국 바로 옆에 둔다
+      const near = neighbors(w, home);
+      valid = coverage(Object.values(w.countries).map(c => c.id)) && T.coverage.needGoods.every(g => near.some(s => w.countries[s] && (T.countries[w.countries[s].id].sells[g] || T.countries[w.countries[s].id].sells.any)));
     }
     if (!valid) throw new Error('조건에 맞는 세계를 만들지 못했어요.');
     for (const c of Object.values(w.countries)) c.personality = pick(Object.keys(T.personalities), r);

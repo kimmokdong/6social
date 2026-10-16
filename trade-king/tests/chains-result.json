@@ -1,4 +1,1693 @@
 {
-  "comparisons": 1494,
-  "failures": []
+  "comparisons": 1431,
+  "failures": [
+    {
+      "root": "tariff",
+      "seed": 5,
+      "branch": "c",
+      "difference": 73,
+      "fair": 798,
+      "bad": 871
+    },
+    {
+      "root": "tariff",
+      "seed": 47,
+      "branch": "b",
+      "difference": 7,
+      "fair": 555,
+      "bad": 562
+    },
+    {
+      "root": "tariff",
+      "seed": 48,
+      "branch": "b",
+      "difference": 80,
+      "fair": 494,
+      "bad": 574
+    },
+    {
+      "root": "tariff",
+      "seed": 48,
+      "branch": "c",
+      "difference": 100,
+      "fair": 494,
+      "bad": 594
+    },
+    {
+      "root": "tariff",
+      "seed": 62,
+      "branch": "c",
+      "difference": 32,
+      "fair": 785,
+      "bad": 817
+    },
+    {
+      "root": "tariff",
+      "seed": 73,
+      "branch": "c",
+      "difference": 4,
+      "fair": 487,
+      "bad": 491
+    },
+    {
+      "root": "tariff",
+      "seed": 74,
+      "branch": "c",
+      "difference": 33,
+      "fair": 732,
+      "bad": 765
+    },
+    {
+      "root": "tariff",
+      "seed": 81,
+      "branch": "c",
+      "difference": 27,
+      "fair": 799,
+      "bad": 826
+    },
+    {
+      "root": "tariff",
+      "seed": 86,
+      "branch": "a",
+      "difference": 233,
+      "fair": 440,
+      "bad": 673
+    },
+    {
+      "root": "tariff",
+      "seed": 86,
+      "branch": "b",
+      "difference": 98,
+      "fair": 440,
+      "bad": 538
+    },
+    {
+      "root": "tariff",
+      "seed": 86,
+      "branch": "c",
+      "difference": 117,
+      "fair": 440,
+      "bad": 557
+    },
+    {
+      "root": "tariff",
+      "seed": 106,
+      "branch": "c",
+      "difference": 15,
+      "fair": 485,
+      "bad": 500
+    },
+    {
+      "root": "tariff",
+      "seed": 124,
+      "branch": "c",
+      "difference": 17,
+      "fair": 516,
+      "bad": 533
+    },
+    {
+      "root": "tariff",
+      "seed": 137,
+      "branch": "b",
+      "difference": 76,
+      "fair": 638,
+      "bad": 714
+    },
+    {
+      "root": "tariff",
+      "seed": 137,
+      "branch": "c",
+      "difference": 76,
+      "fair": 638,
+      "bad": 714
+    },
+    {
+      "root": "tariff",
+      "seed": 156,
+      "branch": "c",
+      "difference": 45,
+      "fair": 568,
+      "bad": 613
+    },
+    {
+      "root": "tariff",
+      "seed": 158,
+      "branch": "a",
+      "difference": 1,
+      "fair": 733,
+      "bad": 734
+    },
+    {
+      "root": "tariff",
+      "seed": 158,
+      "branch": "c",
+      "difference": 93,
+      "fair": 733,
+      "bad": 826
+    },
+    {
+      "root": "tariff",
+      "seed": 208,
+      "branch": "a",
+      "difference": 35,
+      "fair": 266,
+      "bad": 301
+    },
+    {
+      "root": "tariff",
+      "seed": 208,
+      "branch": "c",
+      "difference": 35,
+      "fair": 266,
+      "bad": 301
+    },
+    {
+      "root": "tariff",
+      "seed": 217,
+      "branch": "b",
+      "difference": 39,
+      "fair": 516,
+      "bad": 555
+    },
+    {
+      "root": "tariff",
+      "seed": 217,
+      "branch": "c",
+      "difference": 57,
+      "fair": 516,
+      "bad": 573
+    },
+    {
+      "root": "tariff",
+      "seed": 222,
+      "branch": "a",
+      "difference": 46,
+      "fair": 844,
+      "bad": 890
+    },
+    {
+      "root": "tariff",
+      "seed": 222,
+      "branch": "c",
+      "difference": 52,
+      "fair": 844,
+      "bad": 896
+    },
+    {
+      "root": "tariff",
+      "seed": 235,
+      "branch": "b",
+      "difference": 43,
+      "fair": 621,
+      "bad": 664
+    },
+    {
+      "root": "tariff",
+      "seed": 235,
+      "branch": "c",
+      "difference": 60,
+      "fair": 621,
+      "bad": 681
+    },
+    {
+      "root": "tariff",
+      "seed": 255,
+      "branch": "a",
+      "difference": 6,
+      "fair": 449,
+      "bad": 455
+    },
+    {
+      "root": "tariff",
+      "seed": 266,
+      "branch": "a",
+      "difference": 104,
+      "fair": 577,
+      "bad": 681
+    },
+    {
+      "root": "tariff",
+      "seed": 266,
+      "branch": "b",
+      "difference": 112,
+      "fair": 577,
+      "bad": 689
+    },
+    {
+      "root": "tariff",
+      "seed": 266,
+      "branch": "c",
+      "difference": 122,
+      "fair": 577,
+      "bad": 699
+    },
+    {
+      "root": "tariff",
+      "seed": 268,
+      "branch": "b",
+      "difference": 25,
+      "fair": 823,
+      "bad": 848
+    },
+    {
+      "root": "tariff",
+      "seed": 270,
+      "branch": "b",
+      "difference": 29,
+      "fair": 644,
+      "bad": 673
+    },
+    {
+      "root": "tariff",
+      "seed": 278,
+      "branch": "a",
+      "difference": 23,
+      "fair": 686,
+      "bad": 709
+    },
+    {
+      "root": "tariff",
+      "seed": 280,
+      "branch": "b",
+      "difference": 103,
+      "fair": 718,
+      "bad": 821
+    },
+    {
+      "root": "tariff",
+      "seed": 280,
+      "branch": "c",
+      "difference": 121,
+      "fair": 718,
+      "bad": 839
+    },
+    {
+      "root": "defect",
+      "seed": 3,
+      "branch": "a",
+      "difference": 35,
+      "fair": 505,
+      "bad": 540
+    },
+    {
+      "root": "defect",
+      "seed": 3,
+      "branch": "b",
+      "difference": 77,
+      "fair": 505,
+      "bad": 582
+    },
+    {
+      "root": "defect",
+      "seed": 3,
+      "branch": "c",
+      "difference": 68,
+      "fair": 505,
+      "bad": 573
+    },
+    {
+      "root": "defect",
+      "seed": 5,
+      "branch": "c",
+      "difference": 12,
+      "fair": 798,
+      "bad": 810
+    },
+    {
+      "root": "defect",
+      "seed": 7,
+      "branch": "c",
+      "difference": 1,
+      "fair": 918,
+      "bad": 919
+    },
+    {
+      "root": "defect",
+      "seed": 18,
+      "branch": "a",
+      "difference": 19,
+      "fair": 605,
+      "bad": 624
+    },
+    {
+      "root": "defect",
+      "seed": 18,
+      "branch": "b",
+      "difference": 151,
+      "fair": 605,
+      "bad": 756
+    },
+    {
+      "root": "defect",
+      "seed": 18,
+      "branch": "c",
+      "difference": 140,
+      "fair": 605,
+      "bad": 745
+    },
+    {
+      "root": "defect",
+      "seed": 22,
+      "branch": "b",
+      "difference": 38,
+      "fair": 428,
+      "bad": 466
+    },
+    {
+      "root": "defect",
+      "seed": 22,
+      "branch": "c",
+      "difference": 36,
+      "fair": 428,
+      "bad": 464
+    },
+    {
+      "root": "defect",
+      "seed": 38,
+      "branch": "a",
+      "difference": 12,
+      "fair": 459,
+      "bad": 471
+    },
+    {
+      "root": "defect",
+      "seed": 41,
+      "branch": "a",
+      "difference": 23,
+      "fair": 762,
+      "bad": 785
+    },
+    {
+      "root": "defect",
+      "seed": 51,
+      "branch": "a",
+      "difference": 281,
+      "fair": 685,
+      "bad": 966
+    },
+    {
+      "root": "defect",
+      "seed": 51,
+      "branch": "b",
+      "difference": 23,
+      "fair": 685,
+      "bad": 708
+    },
+    {
+      "root": "defect",
+      "seed": 62,
+      "branch": "c",
+      "difference": 106,
+      "fair": 785,
+      "bad": 891
+    },
+    {
+      "root": "defect",
+      "seed": 67,
+      "branch": "a",
+      "difference": 18,
+      "fair": 587,
+      "bad": 605
+    },
+    {
+      "root": "defect",
+      "seed": 67,
+      "branch": "b",
+      "difference": 101,
+      "fair": 587,
+      "bad": 688
+    },
+    {
+      "root": "defect",
+      "seed": 67,
+      "branch": "c",
+      "difference": 60,
+      "fair": 587,
+      "bad": 647
+    },
+    {
+      "root": "defect",
+      "seed": 71,
+      "branch": "a",
+      "difference": 41,
+      "fair": 827,
+      "bad": 868
+    },
+    {
+      "root": "defect",
+      "seed": 71,
+      "branch": "c",
+      "difference": 95,
+      "fair": 827,
+      "bad": 922
+    },
+    {
+      "root": "defect",
+      "seed": 74,
+      "branch": "a",
+      "difference": 12,
+      "fair": 732,
+      "bad": 744
+    },
+    {
+      "root": "defect",
+      "seed": 74,
+      "branch": "b",
+      "difference": 4,
+      "fair": 732,
+      "bad": 736
+    },
+    {
+      "root": "defect",
+      "seed": 74,
+      "branch": "c",
+      "difference": 91,
+      "fair": 732,
+      "bad": 823
+    },
+    {
+      "root": "defect",
+      "seed": 81,
+      "branch": "c",
+      "difference": 86,
+      "fair": 799,
+      "bad": 885
+    },
+    {
+      "root": "defect",
+      "seed": 96,
+      "branch": "a",
+      "difference": 55,
+      "fair": 534,
+      "bad": 589
+    },
+    {
+      "root": "defect",
+      "seed": 98,
+      "branch": "a",
+      "difference": 43,
+      "fair": 801,
+      "bad": 844
+    },
+    {
+      "root": "defect",
+      "seed": 110,
+      "branch": "c",
+      "difference": 76,
+      "fair": 575,
+      "bad": 651
+    },
+    {
+      "root": "defect",
+      "seed": 111,
+      "branch": "c",
+      "difference": 13,
+      "fair": 900,
+      "bad": 913
+    },
+    {
+      "root": "defect",
+      "seed": 114,
+      "branch": "a",
+      "difference": 14,
+      "fair": 745,
+      "bad": 759
+    },
+    {
+      "root": "defect",
+      "seed": 114,
+      "branch": "b",
+      "difference": 3,
+      "fair": 745,
+      "bad": 748
+    },
+    {
+      "root": "defect",
+      "seed": 114,
+      "branch": "c",
+      "difference": 8,
+      "fair": 745,
+      "bad": 753
+    },
+    {
+      "root": "defect",
+      "seed": 115,
+      "branch": "b",
+      "difference": 85,
+      "fair": 925,
+      "bad": 1010
+    },
+    {
+      "root": "defect",
+      "seed": 115,
+      "branch": "c",
+      "difference": 52,
+      "fair": 925,
+      "bad": 977
+    },
+    {
+      "root": "defect",
+      "seed": 122,
+      "branch": "a",
+      "difference": 131,
+      "fair": 701,
+      "bad": 832
+    },
+    {
+      "root": "defect",
+      "seed": 122,
+      "branch": "c",
+      "difference": 127,
+      "fair": 701,
+      "bad": 828
+    },
+    {
+      "root": "defect",
+      "seed": 132,
+      "branch": "c",
+      "difference": 21,
+      "fair": 891,
+      "bad": 912
+    },
+    {
+      "root": "defect",
+      "seed": 167,
+      "branch": "c",
+      "difference": 10,
+      "fair": 856,
+      "bad": 866
+    },
+    {
+      "root": "defect",
+      "seed": 170,
+      "branch": "c",
+      "difference": 7,
+      "fair": 937,
+      "bad": 944
+    },
+    {
+      "root": "defect",
+      "seed": 175,
+      "branch": "a",
+      "difference": 123,
+      "fair": 511,
+      "bad": 634
+    },
+    {
+      "root": "defect",
+      "seed": 175,
+      "branch": "b",
+      "difference": 111,
+      "fair": 511,
+      "bad": 622
+    },
+    {
+      "root": "defect",
+      "seed": 175,
+      "branch": "c",
+      "difference": 106,
+      "fair": 511,
+      "bad": 617
+    },
+    {
+      "root": "defect",
+      "seed": 181,
+      "branch": "a",
+      "difference": 4,
+      "fair": 815,
+      "bad": 819
+    },
+    {
+      "root": "defect",
+      "seed": 217,
+      "branch": "a",
+      "difference": 73,
+      "fair": 516,
+      "bad": 589
+    },
+    {
+      "root": "defect",
+      "seed": 217,
+      "branch": "b",
+      "difference": 65,
+      "fair": 516,
+      "bad": 581
+    },
+    {
+      "root": "defect",
+      "seed": 217,
+      "branch": "c",
+      "difference": 98,
+      "fair": 516,
+      "bad": 614
+    },
+    {
+      "root": "defect",
+      "seed": 221,
+      "branch": "a",
+      "difference": 157,
+      "fair": 619,
+      "bad": 776
+    },
+    {
+      "root": "defect",
+      "seed": 221,
+      "branch": "b",
+      "difference": 39,
+      "fair": 619,
+      "bad": 658
+    },
+    {
+      "root": "defect",
+      "seed": 221,
+      "branch": "c",
+      "difference": 208,
+      "fair": 619,
+      "bad": 827
+    },
+    {
+      "root": "defect",
+      "seed": 256,
+      "branch": "a",
+      "difference": 19,
+      "fair": 738,
+      "bad": 757
+    },
+    {
+      "root": "defect",
+      "seed": 285,
+      "branch": "a",
+      "difference": 59,
+      "fair": 452,
+      "bad": 511
+    },
+    {
+      "root": "defect",
+      "seed": 285,
+      "branch": "b",
+      "difference": 59,
+      "fair": 452,
+      "bad": 511
+    },
+    {
+      "root": "defect",
+      "seed": 285,
+      "branch": "c",
+      "difference": 85,
+      "fair": 452,
+      "bad": 537
+    },
+    {
+      "root": "defect",
+      "seed": 288,
+      "branch": "a",
+      "difference": 33,
+      "fair": 806,
+      "bad": 839
+    },
+    {
+      "root": "defect",
+      "seed": 288,
+      "branch": "c",
+      "difference": 86,
+      "fair": 806,
+      "bad": 892
+    },
+    {
+      "root": "defect",
+      "seed": 299,
+      "branch": "a",
+      "difference": 59,
+      "fair": 728,
+      "bad": 787
+    },
+    {
+      "root": "creditDue",
+      "seed": 13,
+      "branch": "b",
+      "difference": 43,
+      "fair": 626,
+      "bad": 669
+    },
+    {
+      "root": "creditDue",
+      "seed": 13,
+      "branch": "c",
+      "difference": 23,
+      "fair": 626,
+      "bad": 649
+    },
+    {
+      "root": "creditDue",
+      "seed": 16,
+      "branch": "a",
+      "difference": 95,
+      "fair": 847,
+      "bad": 942
+    },
+    {
+      "root": "creditDue",
+      "seed": 16,
+      "branch": "b",
+      "difference": 133,
+      "fair": 847,
+      "bad": 980
+    },
+    {
+      "root": "creditDue",
+      "seed": 16,
+      "branch": "c",
+      "difference": 113,
+      "fair": 847,
+      "bad": 960
+    },
+    {
+      "root": "creditDue",
+      "seed": 24,
+      "branch": "b",
+      "difference": 16,
+      "fair": 684,
+      "bad": 700
+    },
+    {
+      "root": "creditDue",
+      "seed": 30,
+      "branch": "a",
+      "difference": 21,
+      "fair": 799,
+      "bad": 820
+    },
+    {
+      "root": "creditDue",
+      "seed": 32,
+      "branch": "b",
+      "difference": 8,
+      "fair": 658,
+      "bad": 666
+    },
+    {
+      "root": "creditDue",
+      "seed": 40,
+      "branch": "b",
+      "difference": 30,
+      "fair": 785,
+      "bad": 815
+    },
+    {
+      "root": "creditDue",
+      "seed": 40,
+      "branch": "c",
+      "difference": 10,
+      "fair": 785,
+      "bad": 795
+    },
+    {
+      "root": "creditDue",
+      "seed": 47,
+      "branch": "b",
+      "difference": 54,
+      "fair": 555,
+      "bad": 609
+    },
+    {
+      "root": "creditDue",
+      "seed": 47,
+      "branch": "c",
+      "difference": 31,
+      "fair": 555,
+      "bad": 586
+    },
+    {
+      "root": "creditDue",
+      "seed": 49,
+      "branch": "c",
+      "difference": 102,
+      "fair": 620,
+      "bad": 722
+    },
+    {
+      "root": "creditDue",
+      "seed": 50,
+      "branch": "a",
+      "difference": 29,
+      "fair": 610,
+      "bad": 639
+    },
+    {
+      "root": "creditDue",
+      "seed": 51,
+      "branch": "a",
+      "difference": 91,
+      "fair": 685,
+      "bad": 776
+    },
+    {
+      "root": "creditDue",
+      "seed": 51,
+      "branch": "b",
+      "difference": 172,
+      "fair": 685,
+      "bad": 857
+    },
+    {
+      "root": "creditDue",
+      "seed": 51,
+      "branch": "c",
+      "difference": 184,
+      "fair": 685,
+      "bad": 869
+    },
+    {
+      "root": "creditDue",
+      "seed": 52,
+      "branch": "a",
+      "difference": 56,
+      "fair": 794,
+      "bad": 850
+    },
+    {
+      "root": "creditDue",
+      "seed": 52,
+      "branch": "b",
+      "difference": 94,
+      "fair": 794,
+      "bad": 888
+    },
+    {
+      "root": "creditDue",
+      "seed": 52,
+      "branch": "c",
+      "difference": 74,
+      "fair": 794,
+      "bad": 868
+    },
+    {
+      "root": "creditDue",
+      "seed": 59,
+      "branch": "b",
+      "difference": 24,
+      "fair": 631,
+      "bad": 655
+    },
+    {
+      "root": "creditDue",
+      "seed": 59,
+      "branch": "c",
+      "difference": 4,
+      "fair": 631,
+      "bad": 635
+    },
+    {
+      "root": "creditDue",
+      "seed": 74,
+      "branch": "a",
+      "difference": 69,
+      "fair": 732,
+      "bad": 801
+    },
+    {
+      "root": "creditDue",
+      "seed": 74,
+      "branch": "b",
+      "difference": 106,
+      "fair": 732,
+      "bad": 838
+    },
+    {
+      "root": "creditDue",
+      "seed": 74,
+      "branch": "c",
+      "difference": 86,
+      "fair": 732,
+      "bad": 818
+    },
+    {
+      "root": "creditDue",
+      "seed": 81,
+      "branch": "a",
+      "difference": 69,
+      "fair": 799,
+      "bad": 868
+    },
+    {
+      "root": "creditDue",
+      "seed": 81,
+      "branch": "b",
+      "difference": 108,
+      "fair": 799,
+      "bad": 907
+    },
+    {
+      "root": "creditDue",
+      "seed": 81,
+      "branch": "c",
+      "difference": 88,
+      "fair": 799,
+      "bad": 887
+    },
+    {
+      "root": "creditDue",
+      "seed": 84,
+      "branch": "a",
+      "difference": 0,
+      "fair": 869,
+      "bad": 869
+    },
+    {
+      "root": "creditDue",
+      "seed": 84,
+      "branch": "b",
+      "difference": 38,
+      "fair": 869,
+      "bad": 907
+    },
+    {
+      "root": "creditDue",
+      "seed": 84,
+      "branch": "c",
+      "difference": 18,
+      "fair": 869,
+      "bad": 887
+    },
+    {
+      "root": "creditDue",
+      "seed": 85,
+      "branch": "a",
+      "difference": 28,
+      "fair": 768,
+      "bad": 796
+    },
+    {
+      "root": "creditDue",
+      "seed": 86,
+      "branch": "a",
+      "difference": 56,
+      "fair": 440,
+      "bad": 496
+    },
+    {
+      "root": "creditDue",
+      "seed": 86,
+      "branch": "b",
+      "difference": 120,
+      "fair": 440,
+      "bad": 560
+    },
+    {
+      "root": "creditDue",
+      "seed": 86,
+      "branch": "c",
+      "difference": 100,
+      "fair": 440,
+      "bad": 540
+    },
+    {
+      "root": "creditDue",
+      "seed": 94,
+      "branch": "b",
+      "difference": 126,
+      "fair": 730,
+      "bad": 856
+    },
+    {
+      "root": "creditDue",
+      "seed": 94,
+      "branch": "c",
+      "difference": 106,
+      "fair": 730,
+      "bad": 836
+    },
+    {
+      "root": "creditDue",
+      "seed": 97,
+      "branch": "b",
+      "difference": 12,
+      "fair": 518,
+      "bad": 530
+    },
+    {
+      "root": "creditDue",
+      "seed": 104,
+      "branch": "a",
+      "difference": 23,
+      "fair": 742,
+      "bad": 765
+    },
+    {
+      "root": "creditDue",
+      "seed": 104,
+      "branch": "b",
+      "difference": 60,
+      "fair": 742,
+      "bad": 802
+    },
+    {
+      "root": "creditDue",
+      "seed": 104,
+      "branch": "c",
+      "difference": 40,
+      "fair": 742,
+      "bad": 782
+    },
+    {
+      "root": "creditDue",
+      "seed": 106,
+      "branch": "a",
+      "difference": 98,
+      "fair": 485,
+      "bad": 583
+    },
+    {
+      "root": "creditDue",
+      "seed": 106,
+      "branch": "b",
+      "difference": 90,
+      "fair": 485,
+      "bad": 575
+    },
+    {
+      "root": "creditDue",
+      "seed": 106,
+      "branch": "c",
+      "difference": 90,
+      "fair": 485,
+      "bad": 575
+    },
+    {
+      "root": "creditDue",
+      "seed": 113,
+      "branch": "b",
+      "difference": 25,
+      "fair": 511,
+      "bad": 536
+    },
+    {
+      "root": "creditDue",
+      "seed": 113,
+      "branch": "c",
+      "difference": 5,
+      "fair": 511,
+      "bad": 516
+    },
+    {
+      "root": "creditDue",
+      "seed": 128,
+      "branch": "a",
+      "difference": 26,
+      "fair": 465,
+      "bad": 491
+    },
+    {
+      "root": "creditDue",
+      "seed": 128,
+      "branch": "b",
+      "difference": 45,
+      "fair": 465,
+      "bad": 510
+    },
+    {
+      "root": "creditDue",
+      "seed": 128,
+      "branch": "c",
+      "difference": 51,
+      "fair": 465,
+      "bad": 516
+    },
+    {
+      "root": "creditDue",
+      "seed": 130,
+      "branch": "b",
+      "difference": 72,
+      "fair": 587,
+      "bad": 659
+    },
+    {
+      "root": "creditDue",
+      "seed": 130,
+      "branch": "c",
+      "difference": 52,
+      "fair": 587,
+      "bad": 639
+    },
+    {
+      "root": "creditDue",
+      "seed": 137,
+      "branch": "a",
+      "difference": 169,
+      "fair": 638,
+      "bad": 807
+    },
+    {
+      "root": "creditDue",
+      "seed": 137,
+      "branch": "b",
+      "difference": 208,
+      "fair": 638,
+      "bad": 846
+    },
+    {
+      "root": "creditDue",
+      "seed": 137,
+      "branch": "c",
+      "difference": 188,
+      "fair": 638,
+      "bad": 826
+    },
+    {
+      "root": "creditDue",
+      "seed": 140,
+      "branch": "a",
+      "difference": 54,
+      "fair": 767,
+      "bad": 821
+    },
+    {
+      "root": "creditDue",
+      "seed": 140,
+      "branch": "b",
+      "difference": 90,
+      "fair": 767,
+      "bad": 857
+    },
+    {
+      "root": "creditDue",
+      "seed": 140,
+      "branch": "c",
+      "difference": 70,
+      "fair": 767,
+      "bad": 837
+    },
+    {
+      "root": "creditDue",
+      "seed": 158,
+      "branch": "a",
+      "difference": 6,
+      "fair": 733,
+      "bad": 739
+    },
+    {
+      "root": "creditDue",
+      "seed": 158,
+      "branch": "b",
+      "difference": 158,
+      "fair": 733,
+      "bad": 891
+    },
+    {
+      "root": "creditDue",
+      "seed": 162,
+      "branch": "b",
+      "difference": 29,
+      "fair": 796,
+      "bad": 825
+    },
+    {
+      "root": "creditDue",
+      "seed": 162,
+      "branch": "c",
+      "difference": 9,
+      "fair": 796,
+      "bad": 805
+    },
+    {
+      "root": "creditDue",
+      "seed": 165,
+      "branch": "b",
+      "difference": 0,
+      "fair": 568,
+      "bad": 568
+    },
+    {
+      "root": "creditDue",
+      "seed": 168,
+      "branch": "b",
+      "difference": 45,
+      "fair": 879,
+      "bad": 924
+    },
+    {
+      "root": "creditDue",
+      "seed": 168,
+      "branch": "c",
+      "difference": 25,
+      "fair": 879,
+      "bad": 904
+    },
+    {
+      "root": "creditDue",
+      "seed": 190,
+      "branch": "b",
+      "difference": 116,
+      "fair": 850,
+      "bad": 966
+    },
+    {
+      "root": "creditDue",
+      "seed": 190,
+      "branch": "c",
+      "difference": 96,
+      "fair": 850,
+      "bad": 946
+    },
+    {
+      "root": "creditDue",
+      "seed": 191,
+      "branch": "a",
+      "difference": 98,
+      "fair": 671,
+      "bad": 769
+    },
+    {
+      "root": "creditDue",
+      "seed": 191,
+      "branch": "c",
+      "difference": 4,
+      "fair": 671,
+      "bad": 675
+    },
+    {
+      "root": "creditDue",
+      "seed": 197,
+      "branch": "a",
+      "difference": 53,
+      "fair": 1018,
+      "bad": 1071
+    },
+    {
+      "root": "creditDue",
+      "seed": 197,
+      "branch": "b",
+      "difference": 92,
+      "fair": 1018,
+      "bad": 1110
+    },
+    {
+      "root": "creditDue",
+      "seed": 197,
+      "branch": "c",
+      "difference": 72,
+      "fair": 1018,
+      "bad": 1090
+    },
+    {
+      "root": "creditDue",
+      "seed": 200,
+      "branch": "a",
+      "difference": 83,
+      "fair": 562,
+      "bad": 645
+    },
+    {
+      "root": "creditDue",
+      "seed": 200,
+      "branch": "b",
+      "difference": 147,
+      "fair": 562,
+      "bad": 709
+    },
+    {
+      "root": "creditDue",
+      "seed": 200,
+      "branch": "c",
+      "difference": 127,
+      "fair": 562,
+      "bad": 689
+    },
+    {
+      "root": "creditDue",
+      "seed": 202,
+      "branch": "a",
+      "difference": 3,
+      "fair": 445,
+      "bad": 448
+    },
+    {
+      "root": "creditDue",
+      "seed": 202,
+      "branch": "b",
+      "difference": 41,
+      "fair": 445,
+      "bad": 486
+    },
+    {
+      "root": "creditDue",
+      "seed": 202,
+      "branch": "c",
+      "difference": 21,
+      "fair": 445,
+      "bad": 466
+    },
+    {
+      "root": "creditDue",
+      "seed": 207,
+      "branch": "a",
+      "difference": 84,
+      "fair": 699,
+      "bad": 783
+    },
+    {
+      "root": "creditDue",
+      "seed": 207,
+      "branch": "b",
+      "difference": 186,
+      "fair": 699,
+      "bad": 885
+    },
+    {
+      "root": "creditDue",
+      "seed": 207,
+      "branch": "c",
+      "difference": 117,
+      "fair": 699,
+      "bad": 816
+    },
+    {
+      "root": "creditDue",
+      "seed": 213,
+      "branch": "a",
+      "difference": 285,
+      "fair": 411,
+      "bad": 696
+    },
+    {
+      "root": "creditDue",
+      "seed": 213,
+      "branch": "b",
+      "difference": 290,
+      "fair": 411,
+      "bad": 701
+    },
+    {
+      "root": "creditDue",
+      "seed": 213,
+      "branch": "c",
+      "difference": 290,
+      "fair": 411,
+      "bad": 701
+    },
+    {
+      "root": "creditDue",
+      "seed": 216,
+      "branch": "a",
+      "difference": 62,
+      "fair": 778,
+      "bad": 840
+    },
+    {
+      "root": "creditDue",
+      "seed": 216,
+      "branch": "b",
+      "difference": 63,
+      "fair": 778,
+      "bad": 841
+    },
+    {
+      "root": "creditDue",
+      "seed": 216,
+      "branch": "c",
+      "difference": 43,
+      "fair": 778,
+      "bad": 821
+    },
+    {
+      "root": "creditDue",
+      "seed": 217,
+      "branch": "a",
+      "difference": 23,
+      "fair": 516,
+      "bad": 539
+    },
+    {
+      "root": "creditDue",
+      "seed": 217,
+      "branch": "b",
+      "difference": 63,
+      "fair": 516,
+      "bad": 579
+    },
+    {
+      "root": "creditDue",
+      "seed": 217,
+      "branch": "c",
+      "difference": 43,
+      "fair": 516,
+      "bad": 559
+    },
+    {
+      "root": "creditDue",
+      "seed": 219,
+      "branch": "a",
+      "difference": 12,
+      "fair": 639,
+      "bad": 651
+    },
+    {
+      "root": "creditDue",
+      "seed": 219,
+      "branch": "b",
+      "difference": 16,
+      "fair": 639,
+      "bad": 655
+    },
+    {
+      "root": "creditDue",
+      "seed": 221,
+      "branch": "a",
+      "difference": 253,
+      "fair": 619,
+      "bad": 872
+    },
+    {
+      "root": "creditDue",
+      "seed": 221,
+      "branch": "b",
+      "difference": 115,
+      "fair": 619,
+      "bad": 734
+    },
+    {
+      "root": "creditDue",
+      "seed": 221,
+      "branch": "c",
+      "difference": 95,
+      "fair": 619,
+      "bad": 714
+    },
+    {
+      "root": "creditDue",
+      "seed": 233,
+      "branch": "b",
+      "difference": 15,
+      "fair": 887,
+      "bad": 902
+    },
+    {
+      "root": "creditDue",
+      "seed": 233,
+      "branch": "c",
+      "difference": 94,
+      "fair": 887,
+      "bad": 981
+    },
+    {
+      "root": "creditDue",
+      "seed": 236,
+      "branch": "a",
+      "difference": 20,
+      "fair": 640,
+      "bad": 660
+    },
+    {
+      "root": "creditDue",
+      "seed": 236,
+      "branch": "b",
+      "difference": 64,
+      "fair": 640,
+      "bad": 704
+    },
+    {
+      "root": "creditDue",
+      "seed": 236,
+      "branch": "c",
+      "difference": 120,
+      "fair": 640,
+      "bad": 760
+    },
+    {
+      "root": "creditDue",
+      "seed": 246,
+      "branch": "a",
+      "difference": 89,
+      "fair": 1035,
+      "bad": 1124
+    },
+    {
+      "root": "creditDue",
+      "seed": 246,
+      "branch": "b",
+      "difference": 127,
+      "fair": 1035,
+      "bad": 1162
+    },
+    {
+      "root": "creditDue",
+      "seed": 246,
+      "branch": "c",
+      "difference": 107,
+      "fair": 1035,
+      "bad": 1142
+    },
+    {
+      "root": "creditDue",
+      "seed": 256,
+      "branch": "a",
+      "difference": 68,
+      "fair": 738,
+      "bad": 806
+    },
+    {
+      "root": "creditDue",
+      "seed": 256,
+      "branch": "b",
+      "difference": 48,
+      "fair": 738,
+      "bad": 786
+    },
+    {
+      "root": "creditDue",
+      "seed": 256,
+      "branch": "c",
+      "difference": 28,
+      "fair": 738,
+      "bad": 766
+    },
+    {
+      "root": "creditDue",
+      "seed": 267,
+      "branch": "a",
+      "difference": 0,
+      "fair": 714,
+      "bad": 714
+    },
+    {
+      "root": "creditDue",
+      "seed": 278,
+      "branch": "a",
+      "difference": 14,
+      "fair": 686,
+      "bad": 700
+    },
+    {
+      "root": "creditDue",
+      "seed": 279,
+      "branch": "b",
+      "difference": 0,
+      "fair": 423,
+      "bad": 423
+    },
+    {
+      "root": "creditDue",
+      "seed": 280,
+      "branch": "a",
+      "difference": 44,
+      "fair": 718,
+      "bad": 762
+    },
+    {
+      "root": "creditDue",
+      "seed": 280,
+      "branch": "b",
+      "difference": 92,
+      "fair": 718,
+      "bad": 810
+    },
+    {
+      "root": "creditDue",
+      "seed": 280,
+      "branch": "c",
+      "difference": 72,
+      "fair": 718,
+      "bad": 790
+    },
+    {
+      "root": "creditDue",
+      "seed": 282,
+      "branch": "a",
+      "difference": 18,
+      "fair": 687,
+      "bad": 705
+    },
+    {
+      "root": "creditDue",
+      "seed": 282,
+      "branch": "b",
+      "difference": 11,
+      "fair": 687,
+      "bad": 698
+    },
+    {
+      "root": "creditDue",
+      "seed": 287,
+      "branch": "b",
+      "difference": 3,
+      "fair": 791,
+      "bad": 794
+    },
+    {
+      "root": "creditDue",
+      "seed": 290,
+      "branch": "b",
+      "difference": 9,
+      "fair": 739,
+      "bad": 748
+    },
+    {
+      "root": "creditDue",
+      "seed": 293,
+      "branch": "c",
+      "difference": 11,
+      "fair": 768,
+      "bad": 779
+    },
+    {
+      "root": "creditDue",
+      "seed": 294,
+      "branch": "a",
+      "difference": 2,
+      "fair": 504,
+      "bad": 506
+    },
+    {
+      "root": "creditDue",
+      "seed": 294,
+      "branch": "b",
+      "difference": 41,
+      "fair": 504,
+      "bad": 545
+    },
+    {
+      "root": "creditDue",
+      "seed": 294,
+      "branch": "c",
+      "difference": 21,
+      "fair": 504,
+      "bad": 525
+    },
+    {
+      "root": "creditDue",
+      "seed": 298,
+      "branch": "b",
+      "difference": 47,
+      "fair": 768,
+      "bad": 815
+    },
+    {
+      "root": "creditDue",
+      "seed": 298,
+      "branch": "c",
+      "difference": 20,
+      "fair": 768,
+      "bad": 788
+    }
+  ]
 }
