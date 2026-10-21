@@ -1,6 +1,6 @@
 # 6학년 사회 게임 시리즈 — 공용 그림 (for Codex image generation)
 
-Goal: give the "story" pictures of 삼권 스와이프 and 다온시 70년 the same painted look as 가짜 여행자.
+Goal: give the "story" pictures of 삼권 스와이프 the same painted look as 가짜 여행자.
 Use the built-in image generation tool only (no code/SVG/PIL drawing). Save originals to `raw/`, optimized WebP to the folders below.
 
 ## Shared style (append to EVERY prompt)
@@ -47,22 +47,6 @@ Generate each face as one sheet of 6 (3 roles × 2 moods, 3 columns × 2 rows) s
 - `bg_assembly`, `bg_president`, `bg_court`: a wide painted street scene with the institution's building in the center back, fictional design (assembly: green dome; government: modern blue building with a flag pole without a real flag; court: classical columns with a balance-scale motif), empty foreground for a character, soft daylight. No people.
 - `props` sticker sheet (4×3 grid, cream background, crop by detected bounding boxes to `samgwon/prop_{id}.webp` 256×256): flowers, trophy, emptyChairs (two empty chairs), emptySafe (open empty safe), gavel, scarecrow, brokenCrown, ferrisWheel, envelope, phone, ballot (ballot box), brokenScale.
 
-## 4. 다온시 70년 — `daon/` (1200×800)
-Era newspaper photos (a Korean town in that decade, painted like an old-to-new photo, no identifiable people, no text):
-- `era0` 1960s: rice fields with thatched-roof houses and the first small textile factory with a chimney, dirt road
-- `era1` 1970s: a new highway with trucks, a steel mill with glowing furnace and a shipyard crane in the distance
-- `era2` 1980s: a car factory lot full of new cars, apartment blocks rising, a stadium in the distance
-- `era3` 1990s: a clean white semiconductor factory, computers in an office window, a busy city street
-- `era4` 2000s: a glowing city at dusk with internet cafés and many phone screens lighting up, glass office towers
-- `era5` 2010s: a big concert stage with colorful lights and a happy crowd seen from behind, city skyline
-- `era6` 2020s: wind turbines and solar panels next to a modern battery factory, electric buses, green parks
-Ending scenes:
-- `end_together`: a bright green modern city with parks, clean river, factories with solar roofs, people enjoying
-- `end_gray`: a busy port city under thick gray smog, many smokestacks and cargo ships
-- `end_unfair`: shiny glass towers next to small run-down houses, a clear contrast
-- `end_green`: a quiet green village with fields and few jobs, peaceful but sleepy
-- `end_stuck`: rusty closed old factories, empty streets
-- `end_grown`: an ordinary bustling city, a mix of old and new
 
 ## 5. 떡볶이 타이쿤 — `tteok/`
 Extra characters (same rules as section 1, add to `people/`):

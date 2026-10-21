@@ -1,7 +1,7 @@
 # 공용 그림을 게임 3개에 연결하기 (Codex 작업 지시)
 
 ## 목표
-`shared-art/` 의 구아슈 그림(manifest.json 참고)을 **삼권 스와이프 · 다온시 70년 · 떡볶이 타이쿤** 화면에 연결한다.
+`shared-art/` 의 구아슈 그림(manifest.json 참고)을 **삼권 스와이프 · 떡볶이 타이쿤** 화면에 연결한다.
 원칙: **이야기 그림(인물·신문 사진·엔딩·타이틀)은 그림 파일**, **놀이 조각(지도·건물·아이콘·게이지·장사 장면)은 지금의 SVG 그대로**.
 
 ## 공통 규칙
@@ -20,12 +20,6 @@
 - 엔딩 도감 썸네일의 `A.prop(...)` → `prop_{prop}.webp`.
 - 건물 아이콘·게이지·권한 수첩 그림은 **그대로 SVG**.
 
-## 2) 다온시 70년 (`daon-city/`)
-- 시대 신문(`setScreen('paper', …)`) 머리 사진 → `daon/era{d}.webp` (d = 0~6).
-- 엔딩 신문의 큰 장면 → `daon/end_{id}.webp` (id: together, gray, unfair, green, stuck, grown). 엔딩 도감에서 얻은 엔딩 카드에도 작은 썸네일로.
-- 엔딩 아래 시대별 미니 신문(`.mini-paper`)에 해당 시대 사진 작게.
-- 사건 카드 인물(`P.portrait(ev.char)`) → `people/{id}.webp`.
-- 도시 지도·건물·게이지는 **그대로 SVG**.
 
 ## 3) 떡볶이 타이쿤 (`tteok-tycoon/`)
 - 타이틀 화면의 장면 → `tteok/title.webp` (SVG 장면 대신). 장사 화면의 거리 장면은 **그대로 SVG**(손님 애니메이션이 그 위에서 움직임).

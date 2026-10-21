@@ -16,9 +16,6 @@ body.game-preparing #app{visibility:hidden}
 @keyframes prep-stamp{from{transform:scale(1.5);opacity:0}50%,to{transform:scale(1);opacity:1}}
 .game-preparation[data-game="fake-traveler"] .prep-art{background:#ecd4a9;border-radius:8px;transform:rotate(5deg)}
 .game-preparation[data-game="fake-traveler"] .prep-art:after{content:"";position:absolute;inset:14px;background:linear-gradient(150deg,#b9dce2 50%,#8bad78 51%);border:8px solid #fffaf2;transform:rotate(-8deg)}
-.game-preparation[data-game="daon-city"] .prep-art{background:#d8e6cb;border-radius:12px;border-color:#668565}
-.game-preparation[data-game="daon-city"] .prep-art span{top:auto;bottom:0;width:22px;height:65px;left:12px;background:#6f9cb3;border-radius:3px 3px 0 0;transform-origin:bottom;animation:prep-build 1.8s infinite}
-.game-preparation[data-game="daon-city"] .prep-art span:nth-child(2){left:44px;height:85px;background:#e7a773}.game-preparation[data-game="daon-city"] .prep-art span:nth-child(3){left:76px;height:55px;background:#99b47c}
 @keyframes prep-build{from{transform:scaleY(.1)}60%,to{transform:scaleY(1)}}
 .game-preparation[data-game="trade-king"] .prep-art{height:60px;margin-top:55px;background:#537e96;border-radius:8px 8px 55px 55px;animation:prep-sail 2s infinite ease-in-out}
 .game-preparation[data-game="trade-king"] .prep-art:after{content:"";position:absolute;width:48px;height:65px;bottom:55px;left:50px;background:#fffaf2;clip-path:polygon(0 0,0 100%,100% 100%)}

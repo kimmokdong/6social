@@ -80,26 +80,7 @@ window.GAME_IMAGE_LIST = {
       "../shared-art/samgwon/prop_scarecrow.webp",
       "../shared-art/samgwon/prop_trophy.webp"
     ]
-  },
-  "daon-city": {
-    "home": [],
-    "all": [
-      "../shared-art/daon/era0.webp",
-      "../shared-art/daon/era1.webp",
-      "../shared-art/daon/era2.webp",
-      "../shared-art/daon/era3.webp",
-      "../shared-art/daon/era4.webp",
-      "../shared-art/daon/era5.webp",
-      "../shared-art/daon/era6.webp",
-      "../shared-art/people/activist.webp",
-      "../shared-art/people/grandma.webp",
-      "../shared-art/people/kid.webp",
-      "../shared-art/people/reporter.webp",
-      "../shared-art/people/shopkeeper.webp",
-      "../shared-art/people/teacher.webp",
-      "../shared-art/people/tycoon.webp"
-    ]
-  },
+  },
   "tteok-tycoon": {
     "home": [
       "../shared-art/tteok/title.webp"

@@ -763,188 +763,6 @@
       "bytes": 26592,
       "visual_review": "?? ?? ??: ????? 30? ??; ??? ????????? ??, ?????????? ????? ?? ?? ??, 512x512 WebP"
     },
-    "daon/era0": {
-      "id": "era0",
-      "file": "daon/era0.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era0.png",
-      "prompt_file": "raw/daon_era0.json",
-      "crop": null,
-      "bytes": 241474,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/era1": {
-      "id": "era1",
-      "file": "daon/era1.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era1_retry.png",
-      "prompt_file": "raw/daon_era1_retry.json",
-      "crop": null,
-      "bytes": 203088,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/era2": {
-      "id": "era2",
-      "file": "daon/era2.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era2.png",
-      "prompt_file": "raw/daon_era2.json",
-      "crop": null,
-      "bytes": 206240,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/era3": {
-      "id": "era3",
-      "file": "daon/era3.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era3.png",
-      "prompt_file": "raw/daon_era3.json",
-      "crop": null,
-      "bytes": 223316,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/era4": {
-      "id": "era4",
-      "file": "daon/era4.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era4_retry.png",
-      "prompt_file": "raw/daon_era4_retry.json",
-      "crop": null,
-      "bytes": 246204,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/era5": {
-      "id": "era5",
-      "file": "daon/era5.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era5.png",
-      "prompt_file": "raw/daon_era5.json",
-      "crop": null,
-      "bytes": 179846,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/era6": {
-      "id": "era6",
-      "file": "daon/era6.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_era6.png",
-      "prompt_file": "raw/daon_era6.json",
-      "crop": null,
-      "bytes": 261002,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/end_together": {
-      "id": "end_together",
-      "file": "daon/end_together.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_end_together.png",
-      "prompt_file": "raw/daon_end_together.json",
-      "crop": null,
-      "bytes": 288730,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/end_gray": {
-      "id": "end_gray",
-      "file": "daon/end_gray.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_end_gray.png",
-      "prompt_file": "raw/daon_end_gray.json",
-      "crop": null,
-      "bytes": 163316,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/end_unfair": {
-      "id": "end_unfair",
-      "file": "daon/end_unfair.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_end_unfair.png",
-      "prompt_file": "raw/daon_end_unfair.json",
-      "crop": null,
-      "bytes": 230870,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/end_green": {
-      "id": "end_green",
-      "file": "daon/end_green.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_end_green.png",
-      "prompt_file": "raw/daon_end_green.json",
-      "crop": null,
-      "bytes": 270988,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/end_stuck": {
-      "id": "end_stuck",
-      "file": "daon/end_stuck.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_end_stuck.png",
-      "prompt_file": "raw/daon_end_stuck.json",
-      "crop": null,
-      "bytes": 208706,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
-    "daon/end_grown": {
-      "id": "end_grown",
-      "file": "daon/end_grown.webp",
-      "size": [
-        1200,
-        800
-      ],
-      "status": "complete",
-      "raw": "raw/daon_end_grown.png",
-      "prompt_file": "raw/daon_end_grown.json",
-      "crop": null,
-      "bytes": 239250,
-      "visual_review": "직접 열어 확인: 글자·워터마크·실존 로고 없음, 요구 특징 및 크롭 적합"
-    },
     "samgwon/bg_assembly": {
       "id": "bg_assembly",
       "file": "samgwon/bg_assembly.webp",
@@ -2438,100 +2256,10 @@
       "note": ""
     },
     {
-      "raw": "raw/daon_era0.png",
-      "job": "raw/daon_era0.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_era1.png",
-      "job": "raw/daon_era1.json",
-      "retry_of": null,
-      "note": "검수 탈락: 트럭 번호판과 전면 표식에 글자 모양"
-    },
-    {
       "raw": "raw/characters_01.png",
       "job": "raw/characters_01.json",
       "retry_of": null,
       "note": "검수 탈락: 옆 칸에 어깨가 닿아 재생성"
-    },
-    {
-      "raw": "raw/daon_era1_retry.png",
-      "job": "raw/daon_era1_retry.json",
-      "retry_of": "raw/daon_era1.png",
-      "note": "트럭 번호판·전면 글자 모양 제거"
-    },
-    {
-      "raw": "raw/daon_era2.png",
-      "job": "raw/daon_era2.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_era3.png",
-      "job": "raw/daon_era3.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_era4.png",
-      "job": "raw/daon_era4.json",
-      "retry_of": null,
-      "note": "검수 탈락: 산 위 전망탑이 실존 건물을 연상시키고 일부 간판에 글자 모양"
-    },
-    {
-      "raw": "raw/daon_era4_retry.png",
-      "job": "raw/daon_era4_retry.json",
-      "retry_of": "raw/daon_era4.png",
-      "note": "실존 전망탑을 연상시키는 형태·간판 글자·버스 표시 글자 제거"
-    },
-    {
-      "raw": "raw/daon_era5.png",
-      "job": "raw/daon_era5.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_era6.png",
-      "job": "raw/daon_era6.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_end_together.png",
-      "job": "raw/daon_end_together.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_end_gray.png",
-      "job": "raw/daon_end_gray.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_end_unfair.png",
-      "job": "raw/daon_end_unfair.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_end_green.png",
-      "job": "raw/daon_end_green.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_end_stuck.png",
-      "job": "raw/daon_end_stuck.json",
-      "retry_of": null,
-      "note": ""
-    },
-    {
-      "raw": "raw/daon_end_grown.png",
-      "job": "raw/daon_end_grown.json",
-      "retry_of": null,
-      "note": ""
     },
     {
       "raw": "raw/samgwon_bg_assembly.png",
@@ -2949,8 +2677,8 @@
     }
   ],
   "summary": {
-    "total": 140,
-    "completed": 126,
+    "total": 128,
+    "completed": 114,
     "remaining": [
       "tteok/street",
       "tteok/kid_0",
@@ -2970,7 +2698,6 @@
     "by_folder": {
       "people": 28,
       "players": 28,
-      "daon": 13,
       "samgwon": 15,
       "tteok": 16,
       "trade": 26
