@@ -1,121 +1,140 @@
-/* 수량·협상·도착 순서·계약·사건·순수 함수를 직접 검증합니다. */
-'use strict';
-const assert = require('assert/strict'), { T, E } = require('./bots');
-let s = E.fresh(7);
-const first = JSON.stringify(s), id = 'hubCity';
-let out = E.command(s, { type: 'trade', id, basket: { buy: { grain: -1 }, sell: {} }, offer: 'high' }); assert.equal(out.result.ok, false); assert.equal(JSON.stringify(s), first);
-out = E.command(s, { type: 'trade', id, basket: { buy: { grain: 5 }, sell: {} }, offer: 'high' }); assert.equal(out.result.ok, false);
-out = E.command(s, { type: 'trade', id, basket: { buy: { grain: 2, oil: 2 }, sell: {} }, offer: 'high' }); assert(out.result.accepted); assert.equal(JSON.stringify(s), first); s = out.state;
-assert.equal(s.stock.grain, 0); assert.equal(s.actions, 2); assert.equal(s.voyages.length, 1);
-s = E.command(s, { type: 'end' }).state; assert(s.history[0].prep); assert.equal(s.history[0].use.grain, 0); assert.equal(s.history[0].arrivals.length, 1); assert.equal(JSON.stringify(s.gauges), JSON.stringify(T.start.gauges), '1년째는 별이 움직이지 않음');
-s.events = []; s = E.command(s, { type: 'end' }).state; assert.equal(s.history[1].use.grain, 2); assert.equal(s.history[1].use.oil, 2);
-let t = E.fresh(7); t.trust[id] = 1; const trust = t.trust[id]; assert(!E.haggle(t, id).ok);
-out = E.command(t, { type: 'trade', id, basket: { buy: { grain: 1 }, sell: {} }, offer: 'low' }); assert.equal(out.result.accepted, false); assert(out.result.retry); t = out.state; assert.equal(t.actions, 3); assert.equal(t.trust[id], trust);
-out = E.command(t, { type: 'trade', id, basket: { buy: { grain: 1 }, sell: {} }, offer: 'low' }); assert.equal(out.result.retry, false); t = out.state; assert.equal(t.actions, 2); assert.equal(t.trust[id], trust);
-assert.equal(E.command(t, { type: 'trade', id, basket: { buy: { grain: 1 } }, offer: 'high' }).result.ok, false);
-t = E.fresh(7); t = E.command(t, { type: 'contract', id: 'factoryIsle', good: 'iron', quantity: 2 }).state;
-assert.equal(t.voyages.length, 0); t = E.command(t, { type: 'end' }).state; assert.equal(t.voyages[0].contract, true); assert.equal(t.stock.iron, 0); assert.equal(t.contracts[0].left, 2);
-let b = E.fresh(7); b = E.command(b, { type: 'contract', id: 'factoryIsle', good: 'iron', quantity: 1 }).state; b = E.command(b, { type: 'break', index: 0 }).state; assert.equal(b.stats.unfair, 1); assert.equal(b.trust.factoryIsle, 0);
-let f = E.fresh(7); f.stock.chip = 2; f.stock.iron = 1; f.stock.rubber = 1; const actions = f.actions; f = E.command(f, { type: 'make', id: 'car' }).state; assert.equal(f.stock.car, 1); assert.equal(f.actions, actions); assert.equal(f.stock.chip, 1); assert(!E.canMake(f, 'car'));
-f = E.fresh(7); f.swaps.phone = ['rare', 'chip']; f.stock.chip = 1; f.stock.lithium = 1; assert(!E.canMake(f, 'phone')); f.stock.chip = 2; assert(E.canMake(f, 'phone'));
-let chain = E.fresh(7); chain.newsPlan = Array(12).fill(null); chain.events = [{ id: 'creditDue', root: 'creditDue', char: 'lithiumHigh' }];
-chain = E.command(chain, { type: 'event', key: 'b' }).state; assert.equal(chain.pending[0].root, 'creditDue'); assert.equal(chain.trust.lithiumHigh, T.start.trustMet); chain = E.command(chain, { type: 'end' }).state; assert.equal(chain.events[0].id, 'promiseAngry'); chain = E.command(chain, { type: 'event', key: 'c' }).state; assert(chain.found.includes('creditDue:c'));
-let frozen = E.fresh(0); frozen.known = Object.keys(frozen.world.slots); const north = Object.entries(frozen.world.countries).find(([, c]) => c.id === 'northIce'); if (north) { frozen.year = 3; assert.equal(E.path(frozen, north[0]), null); }
-// 노드 자체 효과는 선택 전 한 번, 선택 효과는 선택할 때 적용합니다.
-let node = E.fresh(7); node.newsPlan = Array(12).fill(null);
-node.pending = [{ id: 'tariff2', year: 2, root: 'tariff' }];
-node = E.command(node, { type: 'end' }).state;
-assert.equal(node.mods.filter(m => m.key === 'buy').length, 1);
-node = E.command(node, { type: 'event', key: 'b' }).state;
-assert.equal(node.mods.filter(m => m.key === 'buy').length, 1);
-assert(!node.mods.some(m => m.key === 'tariff'));
-let refusal = E.fresh(7); refusal.newsPlan = Array(12).fill(null);
-refusal = E.command(refusal, { type: 'contract', id, good: 'grain', quantity: 1 }).state;
-refusal.trust[id] = 5;
-refusal.pending = [{ id: 'badRumor', year: 2, root: 'defect' }];
-refusal = E.command(refusal, { type: 'end' }).state;
-assert.equal(E.contractYears(refusal), T.nodes.badRumor.noContract);
-assert.equal(refusal.trust[id], Math.max(0, 5 + T.nodes.badRumor.trust.all));
-assert.equal(refusal.contracts.length, 1);
-refusal = E.command(refusal, { type: 'event' }).state;
-refusal.events = [{ id: 'promiseAngry', root: 'creditDue', char: 'lithiumHigh' }];
-refusal = E.command(refusal, { type: 'event', key: 'b' }).state;
-assert.equal(E.contractYears(refusal), Math.max(T.nodes.badRumor.noContract, T.nodes.promiseAngry.options[1].noContract));
-assert.equal(E.command(refusal, { type: 'contract', id, good: 'oil', quantity: 1 }).result.ok, false);
-const years = E.contractYears(refusal);
-refusal = E.command(refusal, { type: 'end' }).state;
-assert.equal(E.contractYears(refusal), years - 1);
-assert(refusal.voyages.some(v => v.contract && v.id === id));
-// 짧은 거절이 다시 와도 남은 기간이 줄어들지 않습니다.
-refusal.pending = [{ id: 'badRumor', year: refusal.year + 1, root: 'defect' }];
-refusal.mods = [{ key: 'noContract', value: [1], left: 9 }];
-refusal = E.command(refusal, { type: 'end' }).state;
-assert.equal(E.contractYears(refusal), Math.max(8, T.nodes.badRumor.noContract));
-let low = E.fresh(7); low.trust[id] = 1;
-assert.equal(E.command(low, { type: 'contract', id, good: 'grain', quantity: 1 }).result.ok, false);
-assert(E.command(low, { type: 'trade', id, basket: { buy: { grain: 1 } }, offer: 'high' }).result.ok);
-low.trust[id] = 0;
-assert.equal(E.command(low, { type: 'trade', id, basket: { buy: { grain: 1 } }, offer: 'high' }).result.ok, false);
-let severed = E.fresh(7); severed.newsPlan = Array(12).fill(null);
-severed = E.command(severed, { type: 'contract', id, good: 'grain', quantity: 1 }).state;
-severed.trust[id] = 1;
-severed.pending = [{ id: 'promiseAngry', year: 2, root: 'creditDue' }];
-severed = E.command(severed, { type: 'end' }).state;
-assert.equal(severed.trust[id], 0); assert.equal(severed.contracts.length, 0);
-// 기존에 출발한 배송은 유지합니다.
-assert(severed.voyages.some(v => v.id === id));
-for (const sold of [0, 1, 3]) {
-  let recall = E.fresh(7); recall.money = 10000; recall.stats.soldYear = sold;
-  recall.events = [{ id: 'recall', root: 'defect', char: 'reporter' }]; recall.gauges.jobs += (T.nodes.recall.gauge?.jobs || 0);
-  recall = E.command(recall, { type: 'event', key: 'a' }).state;
-  assert.equal(recall.money, 10000 - Math.max(2, sold) * T.nodes.recall.options[0].recall);
-  assert.equal(recall.gauges.jobs, Math.max(0, T.start.gauges.jobs + (T.nodes.recall.gauge?.jobs || 0) + (T.nodes.recall.options[0].gauge?.jobs || 0)));
-}
-assert(require('./bots').play(54).money + Object.values(require('./bots').play(54).gauges).reduce((a, b) => a + b, 0) * 40 > 0, '통행료를 못 내는 판매처에서 봇이 멈추지 않음');
-// 관세는 큰 시장국의 완성품에만 3년, 시장 위축은 모든 수출에 명시된 기간만 적용됩니다.
-let tariff = E.fresh(4); tariff.newsPlan = Array(12).fill(null); tariff.fta = []; tariff.mods = [];
-tariff.pending = [{ id: 'tariff2', year: 2, root: 'tariff' }];
-tariff = E.command(tariff, { type: 'end' }).state;
-const plain = JSON.parse(JSON.stringify(tariff)); plain.mods = [];
-for (const c of Object.values(tariff.world.countries)) for (const good of ['car', 'ev', 'phone', 'chip']) {
-  const factor = T.nodes.tariff2.buy[1] * (c.id === 'bigMarket' && good !== 'chip' ? 0.5 : 1);
-  assert(Math.abs(E.price(tariff, c.id, good, false) / E.price(plain, c.id, good, false) - factor) < 1e-9);
-  assert.equal(E.price(tariff, c.id, good, true), E.price(plain, c.id, good, true));
-}
-let peace = E.command(tariff, { type: 'event', key: 'a' }).state;
-while (peace.year < 5) { while (peace.events.length) peace = E.command(peace, { type: 'event' }).state; peace = E.command(peace, { type: 'end' }).state; }
-assert(peace.events.some(ev => ev.id === 'warEnd'));
-assert(!peace.mods.some(m => (m.key === 'tariff' || m.key === 'closed') && m.value[0] === 'bigMarket'));
-assert(peace.mods.some(m => m.key === 'buy' && m.value[1] === T.nodes.tradeWar.buy[1]));
-let expire = E.command(tariff, { type: 'event', key: 'c' }).state;
-for (let i = 0; i < 3; i++) expire = E.command(expire, { type: 'end' }).state;
-assert(!expire.mods.some(m => m.key === 'tariff'));
-while (!expire.ended) expire = E.command(expire, { type: 'end' }).state;
-assert.equal(expire.mods.find(m => m.key === 'buy' && m.value[0] === 'all')?.left || 0, Math.max(0, T.nodes.tariff2.buy[2] - (T.years - 1)));
-// 무료 부품은 두 번의 부품 절약이며 공장의 연간 상한은 늘리지 않습니다.
-let parts = E.fresh(7); parts.newsPlan = Array(12).fill(null); parts.factory = 4;
-parts.stock.chip = 4; parts.stock.iron = 4; parts.stock.rubber = 0;
-parts.events = [{ id: 'defect', root: 'defect', char: 'factoryIsle' }];
-parts = E.command(parts, { type: 'event', key: 'a' }).state;
-const limited = JSON.parse(JSON.stringify(parts)); limited.factory = 1;
-assert.equal(E.command(E.command(limited, { type: 'make', id: 'car' }).state, { type: 'make', id: 'car' }).result.ok, false);
-for (let i = 0; i < 2; i++) { const made = E.command(parts, { type: 'make', id: 'car' }); assert(made.result.ok); parts = made.state; }
-assert.equal(parts.freePart, 0); assert.equal(parts.stock.rubber, 0); assert.equal(parts.stock.chip, 2);
-assert.equal(E.command(parts, { type: 'make', id: 'car' }).result.ok, false);
-parts.stock.rubber = 1; assert(E.command(parts, { type: 'make', id: 'car' }).result.ok);
-parts = E.command(parts, { type: 'end' }).state; assert.equal(parts.freePart, 0);
-// 밥상 별이 높아도 함께 거래한 나라 수에 따라 고립된 부자가 됩니다.
-let rich = E.fresh(7); rich.money = 200; rich.gauges = { food: 5, energy: 5, jobs: 5 };
-rich.deals = Object.fromEntries(Object.keys(rich.deals).map(id => [id, 0]));
-assert.equal(E.ending(rich).id, 'richAlone');
-rich.gauges = { food: 5, energy: 0, jobs: 0 };
-Object.keys(rich.deals).slice(0, 3).forEach(id => rich.deals[id] = 2);
-assert.equal(E.ending(rich).id, 'richAlone');
-// 주문서: 사 주는 나라에 완성품을 팔면 주문이 채워지고 보너스·일자리 별
-let ord = E.fresh(7); assert(ord.orders.length >= 1 && ord.orders.length <= T.orders.max); const o = ord.orders[0];
-ord.known = Object.keys(ord.world.slots); ord.stock[o.product] = o.qty; const jobsBefore = ord.gauges.jobs, moneyBefore = ord.money;
-const sale = E.command(ord, { type: 'trade', id: o.id, basket: { buy: {}, sell: { [o.product]: o.qty } }, offer: 'fair' }); assert(sale.result.ok, '주문 상대에게 판매'); assert(sale.result.orderDone, '주문 완료 결과');
-assert.equal(sale.state.money, moneyBefore + o.bonus); assert.equal(sale.state.gauges.jobs, Math.min(5, jobsBefore + T.orders.jobs)); assert.equal(sale.state.stats.orders, 1);
-// 흥정 규칙: 믿음이 기준 이상이면 깎기가 통한다 (변덕쟁이는 홀수 해만)
-let hg = E.fresh(7); const [, hc] = Object.entries(hg.world.countries).find(([, c]) => c.id === id); hg.trust[id] = 5; hg.year = 1; assert(E.haggle(hg, id).ok); hg.year = 2; assert.equal(E.haggle(hg, id).ok, hc.personality !== 'fickle');
-console.log('규칙 검사 통과: 기존 규칙·관세 대상/기간/휴전·무료 부품 2회/공장 상한·고립된 부자 조건');
+/* 무역왕 5.0 규칙 검사: 엔진의 핵심 규칙이 설계서대로 움직이는지 확인한다. */
+const assert = require('node:assert/strict');
+const E = require('../js/engine.js');
+const T = E.T, sum = a => a.reduce((s, v) => s + v, 0);
+const tests = [];
+const test = (name, fn) => tests.push([name, fn]);
+const isInt = v => Number.isInteger(v);
+// 첫 소식을 고르고 만들기 단계로 간다.
+const start = (seed = 1, id = 'daon') => { const G = E.newGame(seed, id); E.chooseEvent(G, 0); return G; };
+// 지금 해를 끝까지 넘겨 다음 해 만들기 단계로 간다.
+function toNextMake(G) { while (G.phase !== 'event') E.endPhase(G); E.chooseEvent(G, 0); }
+function toShip(G, year = 2) { while (!(G.year === year && G.phase === 'ship')) { if (G.phase === 'event') E.chooseEvent(G, 0); else if (G.phase === 'make') { const n = E.player(G); E.assign(G, E.best(n), n.workers); E.endPhase(G); } else E.endPhase(G); } }
+
+test('버전과 기본 자료', () => {
+  assert.equal(T.version, 5); assert.equal(T.years, 5); assert.equal(T.goods.length, 5); assert.equal(T.countries.length, 8);
+  for (const c of T.countries) { assert.ok(c.production.every(isInt)); assert.ok(c.quality.every(q => q >= 1 && q <= 3)); }
+});
+test('같은 씨앗이면 같은 판', () => {
+  const a = E.runBot(7, 'daon', 'smart'), b = E.runBot(7, 'daon', 'smart');
+  assert.deepEqual(E.player(a).history, E.player(b).history); assert.equal(a.ending, b.ending);
+});
+test('상대 4나라는 우리와 겹치지 않고 서로 다르다', () => {
+  for (let s = 1; s <= 20; s++) { const G = E.newGame(s, 'plains'), ids = G.nations.map(n => n.id); assert.equal(ids.length, 5); assert.equal(new Set(ids).size, 5); assert.equal(ids[0], 'plains'); }
+});
+test('사건 계획: 다섯 해 중 위기는 정확히 둘, 5년째는 위기', () => {
+  for (let s = 1; s <= 40; s++) { const G = E.newGame(s, 'daon'), crisis = G.eventPlan.filter(id => E.event(id).crisis); assert.equal(crisis.length, 2, G.eventPlan.join()); assert.ok(E.event(G.eventPlan[4]).crisis); assert.ok(!E.event(G.eventPlan[0]).crisis); }
+});
+test('일꾼은 정수로만, 일꾼 수를 넘지 못한다', () => {
+  const G = start(), n = E.player(G);
+  assert.equal(E.assign(G, 0, 1.5), false); assert.equal(E.assign(G, 0, n.workers + 1), false);
+  assert.ok(E.assign(G, 0, 2)); assert.ok(E.assign(G, 1, n.workers - 2)); assert.equal(E.assign(G, 2, 1), false);
+});
+test('만든 상자와 점수, 돈은 모두 정수', () => {
+  for (const id of T.countries.map(c => c.id)) { const G = E.runBot(3, id, 'smart'); for (const n of G.nations) { assert.ok(isInt(n.money), `${n.id} 돈 ${n.money}`); assert.ok(n.box.every(b => b.every(isInt))); } for (const h of E.player(G).history) assert.ok(isInt(h.score)); }
+});
+test('1년째는 국경이 닫혀 배를 보낼 수 없다', () => {
+  const G = start(), n = E.player(G); E.assign(G, E.best(n), n.workers); E.endPhase(G);
+  assert.equal(G.phase, 'yearEnd'); assert.equal(E.voyage(G, G.nations[1].id, [], [[0, 1]]), false);
+});
+test('2년째부터 출항: 배 수, 한 척 6상자 제한, 되돌리기', () => {
+  const G = E.newGame(2, 'daon'); toShip(G); const n = E.player(G), o = G.nations[1];
+  assert.equal(E.shipsLeft(n), E.shipsTotal(n)); assert.equal(E.shipsTotal(n), 3);
+  const q = E.quoteVoyage(G, n, 'world', [], [[0, 7]]); assert.equal(q.ok, false); assert.match(q.reason, /6상자/);
+  const money = n.money, food = E.count(n, 0);
+  assert.ok(E.voyage(G, 'world', [], [[0, 2]])); assert.equal(E.shipsLeft(n), 2); assert.equal(E.count(n, 0), food + 2); assert.ok(n.money < money);
+  assert.ok(E.undoVoyage(G, 0)); assert.equal(n.money, money); assert.equal(E.count(n, 0), food); assert.equal(E.shipsLeft(n), 3);
+  assert.equal(E.quoteVoyage(G, n, o, [], []).ok, false);
+});
+test('국민 몫은 팔 수 없고, 상대가 필요한 만큼만 판다', () => {
+  const G = E.newGame(2, 'daon'); toShip(G); const n = E.player(G), o = G.nations[1];
+  const good = [0, 1, 2, 3, 4].find(i => E.surplus(n, i) === 0 && E.count(n, i) > 0);
+  if (good !== undefined) assert.equal(E.quoteVoyage(G, n, 'world', [[good, 1]], []).ok, false);
+  const i = E.best(n), room = E.room(G, n, o, i);
+  if (E.surplus(n, i) > room) assert.equal(E.quoteVoyage(G, n, o, [[i, room + 1]], []).ok, false);
+});
+test('먼 바다 상인: 사면 비싸고(+2), 팔면 싸고, 물건마다 4상자까지만 산다', () => {
+  const G = E.newGame(2, 'daon'); toShip(G); const n = E.player(G), w = G.world, i = E.best(n);
+  assert.equal(E.buyPrice(G, n, w, 0), T.goods[0].price + 2);
+  assert.ok(E.sellPrice(G, n, w, i) < T.goods[i].price + 1);
+  assert.equal(E.room(G, n, w, i), 4);
+});
+test('대평원국 식량은 상인에게 제값', () => {
+  const G = E.newGame(2, 'plains'); toShip(G); const n = E.player(G);
+  assert.equal(E.sellPrice(G, n, G.world, 0), T.goods[0].price);
+});
+test('보호: 3년째부터, 값 +1, 불만 −2, 그 물건이 주력인 나라와 ♥−1', () => {
+  const G = E.newGame(4, 'daon'); E.chooseEvent(G, 0); assert.equal(E.setProtect(G, 0, true), false);
+  toShip(G, 3); const n = E.player(G), o = G.nations.slice(1).find(x => !n.fta.includes(x.id));
+  const i = E.best(o), price = E.buyPrice(G, n, o, i), r = E.rel(G, n, o);
+  assert.ok(E.setProtect(G, i, true)); assert.equal(E.buyPrice(G, n, o, i), price + 1); assert.equal(E.rel(G, n, o), Math.max(0, r - 1));
+  assert.equal(E.preview(G).unrest, 2);
+});
+test('보호 끄기 도전에서는 보호를 못 켠다', () => {
+  const G = E.newGame(4, 'daon', {}, 'no-protect'); toShip(G, 3); assert.equal(E.setProtect(G, 0, true), false);
+});
+test('일꾼 없는 공장은 2년 뒤 문을 닫고, 보호하면 닫히지 않는다', () => {
+  const G = E.newGame(5, 'daon'); const n = E.player(G), keep = 2;
+  for (let y = 1; y <= 3; y++) {
+    if (G.phase === 'event') E.chooseEvent(G, 0);
+    if (G.year === 3) E.setProtect(G, keep, true);
+    E.assign(G, 3, n.workers); while (G.phase !== 'yearEnd') E.endPhase(G); E.endPhase(G);
+  }
+  assert.ok(n.closed[0] || n.closed[4], `닫힌 공장 ${n.closed}`);
+  assert.equal(E.perWorker(n, n.closed.findIndex(Boolean)), 0);
+});
+test('사이(♥): 3상자 넘게 오가면 +1, 최대 3', () => {
+  const G = E.newGame(6, 'market'); toShip(G); const n = E.player(G);
+  const o = G.nations.slice(1).find(o => [0, 1, 2, 3, 4].some(i => E.available(G, o, i) >= 3 && E.buyPrice(G, n, o, i) * 3 <= n.money));
+  if (!o) return; const i = [0, 1, 2, 3, 4].find(i => E.available(G, o, i) >= 3); const r = E.rel(G, n, o);
+  assert.ok(E.voyage(G, o.id, [], [[i, 3]])); E.endPhase(G); assert.equal(E.rel(G, n, o), Math.min(3, r + 1));
+});
+test('FTA 정책: ♥3 상대와 맺으면 1원 싸고 보호해도 값이 오르지 않는다', () => {
+  const G = E.newGame(8, 'daon'); while (!(G.year === 4 && G.phase === 'yearEnd')) E.botTurn(G, 'smart');
+  const n = E.player(G), o = G.nations[1]; G.rel[n.id][o.id] = G.rel[o.id][n.id] = 3; n.fta = n.fta.filter(x => x !== o.id); n.money = 20;
+  assert.ok(E.policyChoices(G).includes('fta')); assert.ok(E.choosePolicy(G, 'fta', o.id)); assert.ok(n.fta.includes(o.id)); assert.equal(n.money, 20 - E.policyCost(n, 'fta') + n.workers * T.economy.tax);
+  E.chooseEvent(G, 0); E.assign(G, 3, n.workers); E.endPhase(G);
+  const i = [0, 1, 2, 3, 4].find(k => E.best(n) !== k), before = E.buyPrice(G, n, o, i); E.setProtect(G, i, true);
+  assert.equal(E.buyPrice(G, n, o, i), before);
+});
+test('정책: 돈이 모자라면 못 고르고, 3년째 전에는 정책이 없다', () => {
+  const G = E.newGame(9, 'daon'); while (G.phase !== 'yearEnd') E.botTurn(G, 'smart'); assert.deepEqual(E.policyChoices(G), []);
+  while (!(G.year === 3 && G.phase === 'yearEnd')) E.botTurn(G, 'smart');
+  const n = E.player(G), id = E.policyChoices(G)[0]; n.money = 0; assert.equal(E.choosePolicy(G, id, 0), false);
+  n.money = 20; const prod = n.production[3]; assert.ok(E.choosePolicy(G, 'grow', 3) || !E.policyChoices(G).includes('grow'));
+  if (G.year === 4) assert.ok(n.production[3] >= prod);
+});
+test('위기 피해는 수입에 기댄 만큼: 수입이 없으면 피해 없음', () => {
+  let found = 0;
+  for (let s = 1; s <= 30 && found < 3; s++) { const G = E.runBot(s, 'daon', 'self'); for (const h of E.player(G).history) if (h.crisis && h.imported === 0) { found++; assert.equal(h.crisisLoss, 0); } }
+  assert.ok(found > 0);
+});
+test('의존 위기: 한 나라에 70% 넘게 기대면 피해가 두 배', () => {
+  const one = [], spread = [];
+  for (let s = 1; s <= 30; s++) { const p = E.newGame(s, 'daon'), t = p.nations[1].id; one.push(E.player(E.runBot(s, 'daon', 'one', {oneTarget: t, cutTarget: true})).history.reduce((a, h) => a + h.crisisLoss, 0)); spread.push(E.player(E.runBot(s, 'daon', 'smart', {oneTarget: t, cutTarget: true, effOnly: true})).history.reduce((a, h) => a + h.crisisLoss, 0)); }
+  assert.ok(sum(one) > sum(spread), `${sum(one)} > ${sum(spread)}`);
+});
+test('귀한 물건: 폭풍이면 상인은 식량을 팔지 않는다', () => {
+  const G = E.newGame(1, 'daon'); G.event = {id: 'storm', source: G.nations[1].id, good: null};
+  assert.ok(E.scarce(G, 0)); assert.equal(E.available(G, G.world, 0), 0); assert.equal(E.available(G, G.world, 1), 99);
+});
+test('점수는 0~100, 엔딩과 해금', () => {
+  for (const id of T.countries.map(c => c.id)) for (const mode of ['self', 'smart', 'random']) {
+    const G = E.runBot(11, id, mode); assert.equal(G.phase, 'ending'); assert.ok(T.endings.some(e => e.id === G.ending));
+    for (const h of E.player(G).history) assert.ok(h.score >= 0 && h.score <= 100);
+  }
+  assert.deepEqual(E.unlocked({}).length < 8, true);
+  assert.equal(E.unlocked({endings: T.endings.map(e => e.id), events: T.events.map(e => e.id), badges: T.badges.map(b => b.id), countryEndings: {}, best: {}}).length, 8);
+});
+test('예상 점수는 해 끝 실제 점수와 같다(사건 효과 빼고)', () => {
+  for (let s = 1; s <= 10; s++) {
+    const G = E.newGame(s, 'daon'); E.chooseEvent(G, 0); const n = E.player(G); E.assign(G, E.best(n), n.workers);
+    const pv = E.preview(G); E.endPhase(G); const h = n.history.at(-1);
+    assert.equal(pv.slot, h.slot); assert.equal(pv.quality, h.quality);
+  }
+});
+
+let failed = 0;
+for (const [name, fn] of tests) { try { fn(); console.log(`PASS: ${name}`); } catch (e) { failed++; console.log(`FAIL: ${name}\n  ${e.message}`); } }
+assert.equal(failed, 0, `규칙 검사 실패 ${failed}개`);
+console.log(`PASS ${tests.length}개`);

@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#F4EEE2">
-  <meta name="description" content="안개 낀 바다를 탐험하고 무역으로 다온국의 밥상·불빛·일자리를 채워요.">
-  <title>무역왕</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23BFE0E3'/%3E%3Cpath d='M4 22h24l-6 6H9ZM16 3v18h10Z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="theme-color" content="#f2eddf">
+  <meta name="description" content="지도 위에서 배를 보내 무역하며 5년 동안 생활 수준을 겨루는 세계 무역 전략 보드게임">
+  <title>무역왕 5.2 · 세계를 잇는 다섯 해</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23537f85'/%3E%3Cpath d='M4 22h24l-6 6H9ZM16 3v18h10Z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css?v=5.2">
   <link rel="stylesheet" href="../shared/startup.css">
   <script defer src="https://hsstudio.pages.dev/project-visits.js"></script>
 </head>
@@ -18,17 +18,11 @@
   <noscript>게임을 하려면 자바스크립트를 켜 주세요.</noscript>
   <script src="../shared/game-assets.js"></script>
   <script src="../shared/startup.js" data-game="trade-king"></script>
-  <script>
-    window.SAMGWON = { checks: [], characters: { president: { group: 'gov' }, reporter: { group: 'press' }, teacher: { group: 'citizen' } } };
-  </script>
-  <script src="js/data.js"></script>
-  <script>Object.keys(TRADE.countries).forEach(id => SAMGWON.characters[id] = { group: 'business' });</script>
-  <script src="js/world.js"></script>
-  <script src="js/engine.js"></script>
+  <script src="js/data.js?v=5.2"></script>
+  <script src="js/engine.js?v=5.2"></script>
   <script src="js/people-art.js"></script>
   <script src="js/map-art.js"></script>
-  <script src="js/paint.js"></script>
   <script src="js/sfx.js"></script>
-  <script src="js/game.js"></script>
+  <script src="js/game.js?v=5.2"></script>
 </body>
 </html>

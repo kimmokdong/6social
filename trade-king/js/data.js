@@ -1,231 +1,67 @@
-/* 무역왕 — 콘텐츠·규칙 데이터
- * 2022 개정 6학년 사회: 세계 여러 나라와의 경제 교류(무역이 필요한 까닭, 서로 기대는 경제, 무역 갈등과 해결)
- * 플레이어: 다온국의 무역 대표. 자원은 거의 없고 기술(반도체)이 있는 나라.
- * 목표: 12년 동안 국민 행복(밥상·불빛·일자리)을 가득 채우기. 돈과 신뢰는 목표가 아니라 수단이다. */
-window.TRADE = {
-  years: 8,                                        // 8년: 수업 25분 안에 한 판
-  actionsPerYear: 3,
-  start: { money: 200, ships: 2, factory: 2, gauges: { food: 2, energy: 2, jobs: 2 }, trustMet: 2, trustNew: 1 },
-  shipCost: 60, maxShips: 4, shipLoad: 4,          // 배 한 척이 한 번에 싣는 양
-  factory: { cost: 50, max: 4 },                   // 한 해에 조립할 수 있는 완성품 수(투자로 +1)
-  tech: { cost: 70, chipPerYear: 1 },              // 기술 개발: 반도체 생산 +1 (한 번만)
-  home: { chipPerYear: 2 },                        // 우리 기술: 해마다 반도체 2개
-
-  /* 물건: price = 기준값(동전) */
-  goods: {
-    grain:   { name: '곡물',      price: 5,  icon: 'grain' },
-    oil:     { name: '석유',      price: 6, icon: 'oil' },
-    iron:    { name: '철광석',    price: 8,  icon: 'iron' },
-    lithium: { name: '리튬',      price: 12, icon: 'lithium' },
-    rare:    { name: '희귀 금속', price: 15, icon: 'rare' },
-    rubber:  { name: '고무',      price: 8,  icon: 'rubber' },
-    chip:    { name: '반도체',    price: 20, icon: 'chip' }
-  },
-  /* 완성품: 부품 3개(서로 다른 나라에서 와야 함) → 우리 공장에서 조립 */
-  products: {
-    phone: { name: '스마트폰', parts: ['chip', 'rare', 'lithium'], price: 80, icon: 'phone' },
-    car:   { name: '자동차',   parts: ['chip', 'iron', 'rubber'],  price: 65, icon: 'car' },
-    ev:    { name: '전기차',   parts: ['chip', 'lithium', 'iron'], price: 70, icon: 'ev' }
-  },
-  /* 판마다 하나: 다온국의 특기 — 그 완성품은 값 +15, 일자리 2배 */
-  specialties: {
-    phone: { name: '스마트폰 강국', bonus: 15 },
-    car:   { name: '자동차 강국',   bonus: 15 },
-    ev:    { name: '전기차 강국',   bonus: 15 }
-  },
-
-  /* 국민에게 해마다 필요한 것 (from: 몇 년째부터) */
-  needs: [                                          // 1년째는 준비하는 해: 국민이 아직 창고를 쓰지 않음
-    { from: 2, grain: 2, oil: 2 },
-    { from: 5, grain: 3, oil: 2 }
-  ],
-  /* 주문서: 해마다 사 주는 나라가 완성품을 주문. 기한 안에 배달하면 보너스 돈 + 일자리 별 */
-  orders: { max: 2, years: 3, bonus: 0.6, jobs: 1 },
-  /* 행복 게이지(0~5): 해마다 끝에 바뀜 */
-  gaugeRules: {
-    need: { full: 2, half: 1, little: -1, none: -2 },        // 필요한 만큼 / 절반 이상 / 조금 / 하나도 없음
-    jobs: [{ made: 2, d: 2 }, { made: 1, d: 1 }, { made: 0, d: -1 }]  // 이번 해 조립한 완성품 수(특기는 2배로 셈)
-  },
-
-  /* 나라 카드 10종 — 판마다 6개(해협형 지도에선 해협 섬나라 고정)
-   * sells: 해마다 팔 수 있는 양 / buys: 해마다 사 주는 완성품 수 / market: 완성품 사 주는 값 배율 */
-  countries: {
-    oilKingdom:  { name: '석유 왕국',     emblem: 'drop',    color: '#D9A21E', sells: { oil: 4 },               buys: { car: 2, phone: 1 },     market: 1.0,  trait: 'resource', traitText: '석유값을 마음대로 올려요' },
-    plains:      { name: '대평원국',      emblem: 'wheat',   color: '#8DB34A', sells: { grain: 5, rubber: 1 },  buys: { car: 2 },               market: 1.0,  trait: 'fta',      traitText: 'FTA를 좋아해요' },
-    factoryIsle: { name: '공장 섬',       emblem: 'gear',    color: '#6B7A8F', sells: { rubber: 2, iron: 2 },   buys: {},                       market: 1.0,  trait: 'assembly', traitText: '싸게 대신 만들어 준대요' },
-    chipLand:    { name: '반도체 강국',   emblem: 'chip',    color: '#3B6FE0', sells: { chip: 2, rare: 1 },     buys: { phone: 1 },             market: 0.9,  trait: 'rival',    traitText: '우리와 경쟁하는 나라' },
-    straitIsle:  { name: '해협 섬나라',   emblem: 'wave',    color: '#2BA3B5', sells: { grain: 1 },             buys: { phone: 1 },             market: 1.0,  trait: 'strait',   traitText: '해협을 지키고 통행료를 받아요' },
-    bigMarket:   { name: '큰 시장국',     emblem: 'basket',  color: '#7B52D3', sells: { grain: 2, iron: 2 },    buys: { phone: 3, car: 3, ev: 3 }, market: 1.2, trait: 'tariff',  traitText: '많이 사 주지만 관세를 좋아해요' },
-    hubCity:     { name: '무역항 도시국', emblem: 'anchor',  color: '#E0533C', sells: { any: 2 },               buys: { any: 2 },               market: 0.85, trait: 'hub',      traitText: '무엇이든 사고팔지만 수수료가 붙어요', anyMarkup: 1.25 },
-    forest:      { name: '숲의 나라',     emblem: 'tree',    color: '#2E9E6B', sells: { rubber: 3, grain: 1 },  buys: { ev: 2 },                market: 1.1,  trait: 'green',    traitText: '깨끗한 물건을 좋아해요' },
-    lithiumHigh: { name: '리튬 고원국',   emblem: 'crystal', color: '#C04F8A', sells: { lithium: 3, rare: 1 },  buys: { phone: 2 },             market: 1.0,  trait: 'credit',   traitText: '외상 거래를 잘 해 줘요' },
-    northIce:    { name: '얼음 북방국',   emblem: 'snow',    color: '#7FB5DA', sells: { rare: 3, oil: 1 },      buys: { car: 1, ev: 1 },        market: 1.1,  trait: 'frozen',   traitText: '겨울엔 바닷길이 얼어요', frozenYears: [3, 6, 9, 12] }
-  },
-  countriesPerGame: 6,
-  /* 판을 만들 때 꼭 있어야 하는 것: 곡물·석유를 파는 나라, 완성품 2종 이상의 부품, 완성품을 사 주는 곳 */
-  coverage: { needGoods: ['grain', 'oil'], minProducts: 2, minBuyers: 2 },
-
-  /* 나라 성격 — 판마다 나라마다 무작위
-   * ask: 우리에게 팔 때 부르는 값 배율, bid: 우리 물건을 살 때 주는 값 배율 */
-  personalities: {
-    /* haggle: '깎기'가 통하는 믿음(♥) 수. 변덕쟁이는 홀수 해에만 통함 */
-    loyal:  { name: '의리파',   hint: '약속을 지키면 값을 잘 깎아 줘요', ask: 0.95, bid: 1.05, trustStep: 0.06, memory: 2, haggle: 2 },
-    tough:  { name: '깐깐이',   hint: '흥정이 어려워요',               ask: 1.1,  bid: 0.9,  trustStep: 0.04, memory: 1, haggle: 4 },
-    fickle: { name: '변덕쟁이', hint: '해마다 기분이 달라요',          ask: [0.85, 1.25], bid: [0.8, 1.2], trustStep: 0.05, memory: 1, haggle: 3 },
-    proud:  { name: '자존심파', hint: '존중하면 잘 대해 줘요',         ask: 1.0,  bid: 1.0,  trustStep: 0.07, memory: 3, haggle: 3 }
-  },
-  /* 흥정: 아이가 고르는 3단계 값. 나라가 받아들이는지는 숨겨진 값(ask·bid × 신뢰)과 비교 */
-  offers: { low: 0.8, fair: 1.0, high: 1.2 },
-  trust: { max: 5, dealsPerHeart: 2 },             // 거래 2번 성공마다 신뢰 +1
-  contract: { years: 3, discount: 0.9 },           // 3년 계약: 해마다 자동 배송, 값 10% 할인
-
-  /* 지도 틀 4종 — 1000×640 해도 위의 항구 자리와 항로. 판마다 좌우·상하 뒤집기도 무작위.
-   * lanes: [자리, 자리, 종류]  종류: 기본(1년) far(먼바다 2년) storm(폭풍 바다: 태풍 철엔 +1년) strait(해협: 통행료, 봉쇄될 수 있음)
-   * lands: 같은 땅덩이에 있는 자리 묶음(그림용) / home: 다온국이 시작할 수 있는 자리 / fixed: 꼭 들어갈 나라 */
-  maps: {
-    archipelago: { name: '섬 군도', slots: { a: [223, 445], b: [234, 130], c: [338, 97], d: [444, 326], e: [503, 232], f: [574, 436], g: [739, 119], h: [755, 357], i: [828, 491] },
-      lanes: [['a', 'b'], ['a', 'd'], ['b', 'c'], ['b', 'd'], ['c', 'd'], ['c', 'e', 'far'], ['d', 'e', 'storm'], ['d', 'f'], ['e', 'f'], ['e', 'g'], ['e', 'h'], ['f', 'h'], ['g', 'h'], ['h', 'i'], ['f', 'i', 'storm']],
-      lands: [['a'], ['b'], ['c'], ['d'], ['e'], ['f'], ['g'], ['h'], ['i']], home: ['a', 'b', 'f'] },
-    strait: { name: '해협', slots: { w1: [228, 250], w2: [230, 493], w3: [326, 365], s: [540, 329], e1: [618, 174], e2: [789, 354], e3: [628, 467], n: [517, 92], so: [499, 532] },
-      lanes: [['w1', 'w2'], ['w1', 'w3'], ['w2', 'w3'], ['w3', 's', 'strait'], ['s', 'e1', 'strait'], ['s', 'e3', 'strait'], ['e1', 'e2'], ['e2', 'e3'], ['w1', 'n', 'far'], ['n', 'e1', 'far'], ['w2', 'so', 'far'], ['so', 'e3', 'far']],
-      lands: [['w1', 'w2', 'w3'], ['e1', 'e2', 'e3'], ['s'], ['n'], ['so']], home: ['w1', 'w2'], fixed: { s: 'straitIsle' } },
-    inland: { name: '가운데 바다', slots: { n: [502, 104], ne: [766, 144], e: [856, 319], se: [734, 439], s: [484, 460], sw: [234, 421], w: [165, 257], nw: [258, 129], c: [499, 244] },
-      lanes: [['n', 'ne'], ['ne', 'e'], ['e', 'se'], ['se', 's'], ['s', 'sw'], ['sw', 'w'], ['w', 'nw'], ['nw', 'n'], ['n', 'c'], ['e', 'c', 'storm'], ['s', 'c'], ['w', 'c']],
-      lands: [['nw', 'n', 'ne'], ['e'], ['se', 's', 'sw'], ['w'], ['c']], home: ['w', 'sw', 'nw'] },
-    continent: { name: '큰 대륙', slots: { cw: [246, 367], cn: [566, 283], ce: [649, 352], i1: [156, 107], i2: [114, 481], i3: [907, 133], i4: [870, 504], i5: [517, 488], i6: [281, 491] },
-      lanes: [['cw', 'cn', 'far'], ['cn', 'ce', 'far'], ['cw', 'i1'], ['cw', 'i2'], ['cn', 'i1'], ['cn', 'i3'], ['ce', 'i3'], ['ce', 'i4'], ['cw', 'i6'], ['i6', 'i5'], ['i5', 'ce', 'storm'], ['i2', 'i6'], ['i4', 'i5']],
-      lands: [['cw', 'cn', 'ce'], ['i1'], ['i2'], ['i3'], ['i4'], ['i5'], ['i6']], home: ['i1', 'i2', 'i6'] }
-  },
-  laneYears: { normal: 1, far: 2, storm: 1, strait: 1 },
-  stormSeason: [4, 5, 10, 11],      // 태풍 철: 폭풍 바다 +1년 (지도에 미리 보여 줌)
-  toll: 5,                          // 해협 통행료(한 번 지날 때)
-
-  /* 대통령의 꿈 — 판마다 하나, 이루면 보너스 별 */
-  dreams: [
-    { id: 'phones',   name: '스마트폰 강국',    goal: '스마트폰 4대 만들기' },
-    { id: 'friends',  name: '모두와 친구',      goal: '3나라와 믿음 ♥3 이상' },
-    { id: 'fullFood', name: '배부른 나라',      goal: '8년째 밥상 별 5개' },
-    { id: 'explorer', name: '바다의 탐험가',    goal: '5년 안에 모든 나라 만나기' },
-    { id: 'partners', name: '무역 친구 다섯',   goal: '4나라와 두 번 이상 거래' },
-    { id: 'evs',      name: '깨끗한 자동차',    goal: '전기차 3대 만들기' }
-  ],
-
-  /* ───── 해마다 나오는 세계 소식 ─────
-   * 첫해는 소식 없음. needs: 이 나라가 판에 있어야 나옴.
-   * 효과: price:{물건,배율,해수} buy:{완성품,배율,해수} storm / block:{종류,해수} gauge:{food|energy|jobs} money trust:{나라|all|buyers, 값} next:[사건, 몇 년 뒤] */
-  news: {
-    oilSpike:   { title: '석유값 폭등!',       text: '석유가 모자라 값이 크게 올랐어요.',      needsAny: ['oilKingdom', 'northIce'], price: ['oil', 1.6, 2] },
-    harvest:    { title: '곡물 풍년',          text: '올해는 곡물이 넉넉해요.',                price: ['grain', 0.7, 1] },
-    drought:    { title: '가뭄',              text: '비가 안 와서 곡물값이 올랐어요.',         price: ['grain', 1.5, 2] },
-    phoneBoom:  { title: '스마트폰 열풍',      text: '세계가 새 스마트폰을 원해요!',            buy: ['phone', 1.3, 2] },
-    carSlump:   { title: '자동차 인기 시들',   text: '자동차가 잘 안 팔려요.',                  buy: ['car', 0.8, 1] },
-    evBoom:     { title: '전기차 바람',        text: '깨끗한 자동차가 인기예요!',               buy: ['ev', 1.3, 2] },
-    typhoon:    { title: '태풍 소식',          text: '폭풍 바다는 조심해서 돌아가요.',           storm: 1 },
-
-    /* 정답 없는 위기 (공정·불공정과 상관없음) */
-    exportBan:  { title: '수출 규제!', needsAny: ['chipLand', 'lithiumHigh'], char: 'country', text: '우리 희귀 금속은 2년 동안 다른 나라에 안 팔겠어요.',
-      choice: [
-        { key: 'a', label: '비싸게 미리 사 두기', stock: { rare: 3 }, fx: { money: -70 }, say: '희귀 금속 3개를 비싸게 사 뒀어요.' },
-        { key: 'b', label: '다른 나라 찾기',      say: '다른 나라에서 구해 봐요.' },
-        { key: 'c', label: '기술 개발하기',        fx: { money: -50 }, recipeSwap: ['phone', 'rare', 'chip'], say: '희귀 금속 대신 반도체를 하나 더 쓰는 기술을 만들었어요.' }],
-      effect: { embargo: ['rare', 2] } },
-    fta:        { title: 'FTA 제안', needsAny: ['plains', 'bigMarket'], char: 'country', text: '서로 관세를 없애고 마음껏 사고팔아요!',
-      choice: [
-        { key: 'a', label: '좋아요', fta: true, gauge: { jobs: -1 }, say: '수출은 쉬워졌지만, 값싼 곡물이 들어와 우리 농부들이 힘들어해요.' },
-        { key: 'b', label: '조금 더 생각할게요', say: '지금처럼 지내요.' }] },
-    blockade:   { title: '해협 봉쇄!', needsAny: ['straitIsle'], needsLane: 'strait', char: 'straitIsle', text: '2년 동안 해협을 막겠어요. 지나가려면 통행료를 세 배로 내요!',
-      choice: [
-        { key: 'a', label: '비싸도 해협으로',   tollMult: [3, 2], say: '통행료가 세 배예요.' },
-        { key: 'b', label: '먼 길로 돌아가기', block: ['strait', 2], say: '해협을 피해 먼 길로 다녀요.' },
-        { key: 'c', label: '협상하기',          fx: { money: -30 }, trust: { straitIsle: 1 }, say: '선물을 주고 해협을 다시 열었어요.' }] },
-    outsource:  { title: '공장 섬의 제안', needsAny: ['factoryIsle'], char: 'factoryIsle', text: '우리가 대신 싸게 만들어 줄게요. 부품 하나는 빼 줄게요!',
-      choice: [
-        { key: 'a', label: '맡길게요', outsource: 3, say: '3년 동안 공장 섬에서 만들어요. 우리 공장은 조용해졌어요.' },
-        { key: 'b', label: '우리가 만들래요', say: '우리 공장에서 계속 만들어요.' }] },
-    creditOffer: { title: '외상 거래 제안', needsAny: ['lithiumHigh'], char: 'lithiumHigh', text: '리튬 3개를 먼저 줄게요. 2년 뒤에 스마트폰 1대로 갚아요!',
-      choice: [
-        { key: 'a', label: '고마워요!', stock: { lithium: 3 }, next: ['creditDue', 2], say: '리튬 3개를 받았어요. 2년 뒤에 갚아야 해요.' },
-        { key: 'b', label: '괜찮아요', say: '지금은 필요 없어요.' }] },
-
-    /* 사슬의 시작(공격적·불공정한 선택) — 그 자리에서 벌을 주지 않는다 */
-    tariff: { title: '관세 소식', needsAny: ['bigMarket'], char: 'bigMarket', text: '우리 자동차 회사를 지키려고 다온국 자동차·전기차에 관세를 매기겠어요!',
-      effect: { tariff: ['bigMarket', ['car', 'ev'], 0.7, 2] },
-      choice: [
-        { key: 'a', label: '우리도 관세로 맞서기', unfair: true, gauge: { jobs: 1 }, next: ['tariff2', 1], say: '우리 공장을 지켰다며 사람들이 박수를 쳐요!' },
-        { key: 'b', label: '대화로 풀기',          fx: { money: -20 }, removeTariff: 'bigMarket', say: '조금 양보하고 관세를 없앴어요.' },
-        { key: 'c', label: '다른 시장 찾기',        say: '큰 시장국 말고 다른 나라에 팔아 봐요.' }] },
-    defect: { title: '수상한 부품', needsAny: ['factoryIsle'], char: 'factoryIsle', text: '조금 불량이지만 아주 싼 부품이 있어요. 올해 두 번까지 조립할 때 부품 하나를 덜 써요. 공장 칸 수는 그대로예요!',
-      choice: [
-        { key: 'a', label: '싸니까 써요', unfair: true, freePart: 2, next: ['recall', 1], say: '올해 두 번까지 조립할 때 부품 하나를 덜 써요. 공장 칸 수는 그대로예요.' },
-        { key: 'b', label: '불량은 안 돼요', say: '좋은 부품만 써요.' }] },
-    creditDue: { title: '갚을 때예요', char: 'lithiumHigh', text: '약속한 스마트폰 1대를 보내 줄래요?', chainStart: true,
-      choice: [
-        { key: 'a', label: '약속 지키기', payBack: 'phone', say: '약속을 지켰어요.' },
-        { key: 'b', label: '아직 없다고 미루기', unfair: true, next: ['promiseAngry', 1], say: '내년에 주겠다고 했어요.' }] }
-  },
-  /* 첫해 뒤 해마다 하나씩, 판에 있는 나라에 맞는 소식 중에서 섞어 뽑는다. 사슬 시작 사건은 6년째 안에 나온다 */
-  newsPlan: { chainRoots: ['tariff', 'defect', 'creditOffer'], chainBy: 6, crises: ['exportBan', 'fta', 'blockade', 'outsource'], market: ['oilSpike', 'harvest', 'drought', 'phoneBoom', 'carSlump', 'evBoom', 'typhoon'] },
-
-  /* 사건 사슬 — 떡볶이 타이쿤과 같은 원칙: 어느 갈래로 가도 결국 처음 얻은 것보다 더 잃는다 */
-  chains: {
-    tariff:   { name: '관세 맞불', icon: 'tariff', branch: 'tariff2',
-      lesson: '관세로 맞서면 상대도 또 맞서서 둘 다 손해를 봐요(무역 분쟁). 그래서 나라들은 대화와 국제기구로 갈등을 풀려고 해요.' },
-    defect:   { name: '불량 부품', icon: 'gear', branch: 'recall',
-      lesson: '나쁜 물건을 팔면 산 나라의 믿음을 잃어요. 믿음을 잃으면 다음 거래가 어려워져요.' },
-    creditDue: { name: '외상 약속', icon: 'handshake', branch: 'promiseAngry',
-      lesson: '약속을 어기면 그 나라뿐 아니라 소문을 들은 다른 나라도 거래를 꺼려요. 무역은 믿음으로 이어져요.' }
-  },
-  nodes: {
-    /* 사슬은 '한 번 내고 끝'이 아니라 오래 남는 손해로 이어진다(시장이 움츠러듦·믿음을 잃어 장기 계약 거절).
-     * noContract: [해수] — 그동안 어느 나라도 다온국과 새 장기 계약을 하지 않음 */
-    tariff2: { chain: 'tariff', char: 'bigMarket', title: '관세 더 올림', text: '흥, 관세를 더 올리겠소! 3년 동안 우리 나라에선 다온국 완성품이 반값이오. 다툼이 커지자 세계 시장도 움츠러들어, 3년 동안 모든 나라가 다온국 물건을 반값으로만 사요.',
-      effect: { tariff: ['bigMarket', ['car', 'ev', 'phone'], 0.5, 3] }, buy: ['all', 0.5, 3],
-      options: [
-        { key: 'a', label: '우리도 더 올리기', next: ['tradeWar', 1], say: '양쪽 다 관세를 높였어요. 다른 나라들도 걱정스럽게 지켜봐요.' },
-        { key: 'b', label: '이제라도 대화',   fx: { money: -60 }, removeTariff: 'bigMarket', gauge: { jobs: -1 }, say: '협상비로 동전 60까지 내고 관세를 없앴어요. 일자리 별도 하나 줄었어요. 세계 시장 위축은 이어져요.' },
-        { key: 'c', label: '다른 시장 찾기', fx: { money: -40 }, trust: { bigMarket: -2 }, say: '다른 시장을 찾는 준비비로 동전 40까지 썼어요. 큰 시장국의 신뢰가 두 칸 줄었어요. 관세와 세계 시장 위축은 정해진 기간까지 이어져요.' }] },
-    tradeWar: { chain: 'tariff', char: 'bigMarket', title: '무역 전쟁', text: '무역 전쟁! 2년 동안 큰 시장국과 거래가 끊겨요. 세계 시장도 얼어붙어 3년 동안 모든 나라가 사 주는 값이 반값이 돼요. 일자리 별도 하나 줄어요.', effect: { closed: ['bigMarket', 2] }, buy: ['all', 0.5, 3], gauge: { jobs: -1 }, next: ['warEnd', 2] },
-    warEnd:   { chain: 'tariff', char: 'bigMarket', title: '휴전', text: '큰 시장국의 관세와 거래 중단이 끝났어요. 다시 거래해요. 세계 시장의 위축은 남은 기간까지 이어져요.', removeTariff: 'bigMarket' },
-
-    recall: { chain: 'defect', char: 'buyer', title: '불량 신고', text: '다온국 물건이 고장 났어요! 검사비로 30을 썼어요. 어떻게 할 거예요? 산 나라들의 믿음이 한 칸 줄고, 3년 동안 모든 나라가 우리 물건을 60% 값으로만 사요. 공장 일감이 줄어 일자리 별도 하나 내려가요.', fx: { money: -30 }, trust: { buyers: -1 }, buy: ['all', 0.6, 3], gauge: { jobs: -1 },
-      options: [
-        { key: 'a', label: '모두 바꿔 주기(리콜)', recall: 30, say: '판 물건마다 새것으로 바꿔 줬어요. 공장이 한동안 멈췄어요.' },
-        { key: 'b', label: '모른 척하기',          next: ['badRumor', 1], say: '대답하지 않았어요.' },
-        { key: 'c', label: '공장 섬 탓하기',        trust: { factoryIsle: -5, buyers: -2 }, say: '공장 섬이 화가 나서 거래를 끊었어요.' }] },
-    badRumor: { chain: 'defect', char: 'reporter', title: '나쁜 소문', text: '[세계 신문] 다온국 물건, 믿어도 될까? 모든 나라의 믿음이 한 칸 줄고, 3년 동안 새 계약을 받아 주지 않아요.', trust: { all: -1 }, buy: ['all', 0.6, 3], noContract: 3 },
-
-    promiseAngry: { chain: 'creditDue', char: 'lithiumHigh', title: '화난 리튬 고원국', text: '약속을 안 지켰군요! 외상으로 준 리튬값 60을 지금 받아 가겠어요. 다른 나라들도 다 알게 되어 믿음이 두 칸 줄고, 3년 동안 우리 물건을 60% 값으로만 사며 우리에게 파는 값은 30% 올려 불러요. 새 계약도 받아 주지 않고, 일감이 줄어 일자리 별도 하나 내려가요.', fx: { money: -60 }, trust: { all: -2 }, buy: ['all', 0.6, 3], price: ['all', 1.3, 3], noContract: 3, gauge: { jobs: -1 },
-      options: [
-        { key: 'a', label: '늦게라도 갚기',   fx: { money: -40 }, trust: { all: 1 }, say: '늦게라도 스마트폰 값을 갚았어요. 믿음이 조금 돌아왔지만 소문은 남았어요.' },
-        { key: 'b', label: '계속 버티기',     trust: { lithiumHigh: -5 }, noContract: 3, say: '리튬 고원국이 거래를 끊었어요.' },
-        { key: 'c', label: '반만 갚기',       fx: { money: -20 }, trust: { lithiumHigh: -2 }, say: '반만 갚았어요. 믿음은 돌아오지 않았어요.' }] }
-  },
-
-  /* 엔딩 — 위에서부터 먼저 맞는 것 */
-  endings: [
-    { id: 'king',      when: 'allGauges>=4 && partners>=2', name: '무역왕', legend: true, story: '국민 모두 배부르고 따뜻하고, 일자리도 넉넉해요!',
-      note: '우리에게 없는 것은 다른 나라에서, 우리가 잘 만드는 것은 다른 나라로. 서로 기대며 함께 잘 살아요.' },
-    { id: 'war',       when: 'tradeWar && avgGauge<3.5', name: '무역 전쟁의 늪', story: '관세 싸움에 지쳐 모두가 가난해졌어요.',
-      note: '무역 갈등은 대화와 약속으로 풀어야 모두에게 이로워요.' },
-    { id: 'richAlone', when: 'money>=200 && (avgGauge<3 || partners<=1)', name: '고립된 부자', story: '돈은 많이 모았지만, 국민 생활이 부족하거나 함께할 친구 나라가 적어요.',
-      note: '돈이 있어도 사 올 곳(믿을 수 있는 나라)이 없으면 소용없어요.' },
-    { id: 'island',    when: 'deals<=3', name: '자급자족의 섬', story: '다른 나라와 거의 거래하지 않았어요. 모자란 게 너무 많아요.',
-      note: '자원이 부족한 나라는 무역이 꼭 필요해요.' },
-    { id: 'rawOnly',   when: 'made<=1', name: '재료만 파는 나라', story: '물건을 사고팔기만 하고 만들지는 못했어요.',
-      note: '부품을 모아 완성품을 만들면 일자리와 이익이 커져요(가공 무역).' },
-    { id: 'normal',    when: 'else', name: '평범한 무역국', story: '12년 동안 열심히 사고팔았어요.',
-      note: '어느 나라와 무엇을 사고팔지 잘 고르면 더 잘 살 수 있어요.' }
-  ],
-
-  /* 도전 배지 */
-  badges: [
-    { id: 'king',      name: '무역왕',        goal: '무역왕 엔딩 보기' },
-    { id: 'explorer',  name: '바다 탐험가',   goal: '한 판에서 모든 나라 만나기' },
-    { id: 'allMaps',   name: '지도 박사',     goal: '지도 4종 모두 해 보기' },
-    { id: 'allLands',  name: '나라 박사',     goal: '나라 10종 모두 만나기' },
-    { id: 'honest',    name: '약속 지킴이',   goal: '불공정한 선택 없이 8년 마치기' },
-    { id: 'chain',     name: '공급망 박사',   goal: '한 판에 완성품 3종 모두 만들기' },
-    { id: 'dream',     name: '꿈을 이룬 대표', goal: '대통령의 꿈 이루기' },
-    { id: 'allEndings', name: '무역 박사',    goal: '엔딩 6개 모두 보기' }
-  ]
-};
+/* 무역왕 5.0 — 화면과 봇이 함께 쓰는 규칙 데이터. 모든 수는 정수(상자·원)다. */
+(function (root, factory) {
+  const data = factory();
+  if (typeof module === 'object' && module.exports) module.exports = data;
+  else root.TRADE = data;
+})(globalThis, function () {
+  'use strict';
+  // [id, 이름, 아이콘, 기본 값(원), 일꾼 1명당 필요량, 색]
+  const goods = [
+    ['food', '식량', 'wheat', 3, 1, '#cda034'], ['energy', '에너지', 'oil', 3, .7, '#d4773f'],
+    ['life', '생활용품', 'box', 2, .7, '#c56581'], ['tech', '기술제품', 'chip', 4, .5, '#5889bc'], ['iron', '철', 'iron', 2, .3, '#87959c']
+  ].map(([id, name, icon, price, rate, color]) => ({id, name, icon, price, rate, color}));
+  // 생산: 일꾼 1명이 만드는 상자 수. 품질: 1~3(⭐).
+  const countries = [
+    ['daon', '다온국', 'chipLand', 6, [1,0,2,5,1], [2,1,2,3,2], '자원 적음 · 기술 높음', '기술 개발', '공장 키우기 비용 반값', '식량과 에너지를 사 와야 해요.', ['기술 수출국','식량 지키기'], [2,1,5,3], '#b8d9f0'],
+    ['plains', '대평원국', 'plains', 5, [8,1,2,1,2], [2,2,1,1,2], '땅 넓음 · 곡물 풍부', '곡물 수출국', '먼 바다 상인에게 식량을 제값에 팔고, 남은 식량을 두 배까지 넘겨요', '기술제품을 잘 못 만들어요.', ['곡물 수출 대국','가공 산업'], [5,3,2,3], '#e7dfa5'],
+    ['oil', '석유 왕국', 'oilKingdom', 3, [1,4,1,0,1], [1,2,1,1,2], '석유 많음 · 인구 적음', '석유 부자', '에너지 값이 기본보다 높으면 팔 때 +1원', '일손이 적고 석유 말고는 약해요.', ['팔 때를 노려라','석유 이후 준비'], [2,5,2,1], '#f1d1a1'],
+    ['market', '큰 시장국', 'bigMarket', 9, [2,1,7,3,1], [2,1,2,2,1], '인구 많음 · 큰 공장', '많은 일손', '일꾼이 가장 많아요', '바구니가 커서 많이 사야 해요.', ['세계의 공장','기술로 올라가기'], [4,2,3,5], '#e4bdd5'],
+    ['forest', '숲의 나라', 'forest', 5, [5,1,2,1,1], [3,1,2,1,1], '덥고 비 많음 · 열대 농장', '열대 과일', '공정무역 약속 뒤 식량 팔 때 +1원', '기술과 에너지가 약해요.', ['농장 수출','공정무역'], [4,4,1,3], '#b5d9be'],
+    ['port', '항구 섬나라', 'hubCity', 4, [1,1,3,4,1], [1,1,2,2,1], '작은 땅 · 길목 항구', '길목 항구', '다른 나라끼리 거래할 때마다 수수료를 받아요', '태풍이 오면 크게 흔들려요.', ['세계의 항구','친구 많은 섬'], [1,2,3,2], '#b4dfe0'],
+    ['artisan', '장인의 나라', 'straitIsle', 5, [1,1,3,3,1], [1,1,3,3,2], '자원 부족 · 솜씨 좋음', '장인 솜씨', '⭐3 물건을 팔 때 +1원', '식량과 에너지를 사 와야 해요.', ['명품 수출','골고루 자급'], [3,3,5,3], '#cfcae8'],
+    ['ironland', '철의 나라', 'factoryIsle', 4, [1,2,1,1,7], [2,2,1,1,3], '광물 풍부 · 제철 산업', '광물 많음', '철 공장을 키우면 철 팔 때 +1원', '원자재만 팔면 값이 낮아요.', ['원자재 수출','가공해서 팔기'], [3,5,2,2], '#c7d2d8']
+  ].map(([id,name,portrait,workers,production,quality,condition,ability,abilityText,weakness,strategies,stats,color]) => ({id,name,portrait,workers,production,quality,condition,ability,abilityText,weakness,strategies,stats,color,art:`country-${id}`}));
+  // [id, 이름, 아이콘, 종류, 위기, 처음 나오는 해, 설명, 무역 노트, 선택지]
+  const events = [
+    ['restriction','갑작스러운 수입 제한','ship','problem',false,2,'{source}이 다른 나라 물건 수입을 줄였어요. 올해 팔 때 1원 덜 받아요. 작년에 한 나라에만 팔았다면 2원 덜 받아요.','여러 나라에 팔면 한 시장이 닫혀도 버틸 수 있어요.',['새 시장 찾기 · 4원: 피해 없음','그냥 버티기: 팔 때 값 깎임']],
+    ['retaliation','보복 관세','factory','problem',false,3,'우리가 보호를 켜자 {source}이 맞서 우리 물건에 세금을 붙였어요.','관세 싸움은 두 나라 국민 모두를 힘들게 할 수 있어요.',['보호 모두 끄기: 보복 멈춤','버티기: 올해 팔 때 1원 덜 받음','대화하기 · 3원: 보복 멈춤, ♥+1']],
+    ['exchange','환율 급등','coin','problem',true,2,'외국 돈 값이 크게 올랐어요. 올해 수입값이 두 배예요. 대신 팔 때는 1원 더 받아요.','환율이 오르면 수입은 비싸지고 수출은 유리해져요.',['수출에 힘쓰기: 대표 공장 1명당 +1','아껴 쓰기: 가장 많이 사는 칸 필요량 −1, 생활 −3']],
+    ['recession','세계 경제 위기','coin','problem',true,3,'세계 사람들이 지갑을 닫았어요. 올해 팔 때 값이 절반이에요.','세계가 이어져 있어 한 곳의 위기가 모두에게 번져요.',['그래도 팔기','나라가 돕기 · 3원: 생활 수준 +4']],
+    ['dependence','공급 끊김','oil','problem',true,2,'{source}에 분쟁이 생겨 {good} 수출을 줄였어요. 사이가 ♥1 이하인 나라에는 팔지 않고, 다른 나라에는 1원 비싸게 팔아요. 작년에 {good}을 거의 다 {source}에서 샀다면 피해가 더 커요.','한 나라에 너무 기대면, 그 나라에 일이 생길 때 크게 흔들려요.',['돌아가는 길 찾기 · 5원: 끊김 피해 없음','아껴 쓰기: {good} 필요량 −1, 생활 −3']],
+    ['storm','태풍과 흉년','ship','problem',true,2,'태풍이 와서 올해 식량 공장 1명당 생산이 1 줄고, 식량 사는 값이 2원 올라요.','날씨와 바닷길도 무역에 영향을 줘요. 남겨 둔 상자는 보험이에요.',['비싸게라도 사기','이웃에 도움 청하기: ♥2 이상인 나라마다 식량 1상자']],
+    ['dumping','덤핑 공세','box','problem',false,2,'{source}이 생활용품을 아주 싸게 팔아요. 올해 생활용품 값이 1원 내려요.','싼 수입품은 소비자에게 좋지만 우리 공장을 흔들 수 있어요.',['싸게 사기','우리 공장 지원: 생활용품 보호를 올해 무료로']],
+    ['defect','불량품 소동','box','problem',false,3,'작년에 산 ⭐1 물건 중에 불량품이 나왔어요.','싼 물건만 고르면 품질 문제가 생길 수 있어요.',['바꿔 달라 하기: 판 나라 ♥−1, 1상자 받기','그냥 쓰기: 올해 품질 점수 −2']],
+    ['fta','FTA 제안','check','opportunity',false,4,'{source}이 자유 무역 협정(FTA)을 맺자고 해요.','FTA는 서로 관세를 없애고 거래를 쉽게 하는 약속이에요.',['협정 맺기: 서로 보호 없음, 1원 할인','이번에는 거절']],
+    ['expo','국제 박람회','star','opportunity',false,1,'우리 대표 상품이 세계 박람회에 초대받았어요.','우리 상품을 알리면 새로운 손님을 만나요.',['출품하기 · 2원: 대표 상품 팔 때 +1원','안 하기']],
+    ['invention','신기술 발명','chip','opportunity',false,1,'새 도구가 대표 공장의 일을 도와줘요.','기술이 발전하면 같은 일손으로 더 많이 만들어요.',['도입하기: 대표 공장 1명당 +1','기술 나누기: 모든 나라와 ♥+1']],
+    ['voices','국민 목소리','person','opportunity',false,3,'농민은 "우리 농사를 지켜 주세요", 소비자는 "싸게 사고 싶어요"라고 해요.','생산자 보호와 소비자 물가 사이에는 선택이 필요해요.',['농민 편: 식량 보호를 올해 무료로','소비자 편: 올해 생활 수준 +4']]
+  ].map(([id,name,icon,kind,crisis,minYear,text,note,choices]) => ({id,name,icon,kind,crisis,minYear,text,note,choices,rarity:crisis?'위기':kind==='opportunity'?'기회':'문제',art:`event-${id}`}));
+  // [id, 이름, 비용, 설명]
+  const policies = [
+    ['grow','공장 키우기',6,'고른 공장 1명당 +1상자'],
+    ['reopen','공장 다시 열기',4,'문 닫은 공장을 다시 열어요'],
+    ['warehouse','비상 창고',4,'남은 상자를 필요량의 두 배까지 넘겨요'],
+    ['ships','배 늘리기',5,'해마다 보낼 수 있는 배 +1척 (최대 5척)'],
+    ['fta','FTA 맺기',3,'♥3 나라와 서로 보호 없음 · 1원 할인'],
+    ['friends','새 친구 찾기',3,'♥1 이하 나라 모두 ♥+1']
+  ].map(([id,name,cost,text]) => ({id,name,cost,text}));
+  const endings = [
+    ['power','무역 강국','잘 만드는 것을 나누고 여러 나라와 연결했어요.','교역 상대가 많으면 어떤 점이 좋을까요?','ship'],
+    ['dependent','수입에 기댄 나라','평소에는 넉넉했지만 한 나라가 흔들리자 크게 흔들렸어요.','수입이 끊길 때 어떤 준비가 필요할까요?','oil'],
+    ['alone','혼자 사는 나라','스스로 만들었지만 바구니를 모두 채우기는 어려웠어요.','우리에게 없는 것을 어떻게 구할 수 있을까요?','home'],
+    ['balanced','균형 잡힌 나라','무역하면서도 약한 공장을 지켜 위기를 넘겼어요.','보호에 드는 비용은 언제 감수할 만할까요?','basket'],
+    ['war','관세 전쟁','서로 세금을 올리는 동안 물가와 사이가 흔들렸어요.','관세 싸움을 멈추려면 무엇이 필요할까요?','factory'],
+    ['fair','친구 많은 나라','대화와 약속으로 여러 나라와 사이좋게 지냈어요.','사이좋은 무역 친구는 왜 중요할까요?','check']
+  ].map(([id,name,note,question,icon]) => ({id,name,note,question,icon,art:`ending-${id}`}));
+  const unlocks = {daon:'처음부터',plains:'처음부터',oil:'처음부터',market:'처음부터',forest:'엔딩 1개 발견',ironland:'사건 8종 발견',port:'무역 강국 엔딩 발견',artisan:'전략 배지 3개 획득'};
+  const badgeGoals = {
+    daon:['기술제품 40상자 이상 팔기','위기 해에 식량 칸 가득'], plains:['식량 40상자 이상 팔기','생활용품이나 기술 공장 키우기'],
+    oil:['한 해 30원 이상 벌기','에너지 말고 다른 공장 키우기'], market:['생활용품 60상자 이상 팔기','기술 공장 키우기'],
+    forest:['식량 30상자 이상 팔기','♥3 친구 2곳 이상'], port:['4나라 모두와 거래하기','♥3 친구 3곳 이상'],
+    artisan:['⭐3 물건 40상자 이상 팔기','모든 공장 열어 둔 채 평균 60점 이상'], ironland:['철 40상자 이상 팔기','철 공장 키우기']
+  };
+  const badges = countries.flatMap(c => c.strategies.map((name,i) => ({id:`${c.id}-${i?'B':'A'}`,name,country:c.id,text:badgeGoals[c.id][i]})));
+  const challenges=[{id:'no-protect',name:'보호 금지'},{id:'double-closed',name:'국경 닫힘 2년'}];
+  return {version:5,years:5,goods,countries,events,policies,endings,unlocks,badges,challenges,
+    economy:{startMoney:8,tax:2,slotPoints:16,qualityPoints:[0,0,2,4],unrest:2,closeAfter:2,relStart:1,relMax:3,relTrade:3,portFee:2}};
+});
