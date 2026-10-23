@@ -58,9 +58,11 @@
   function pool(climate) {
     const photos = Object.entries(B.photos).filter(([, p]) => p.home === climate).map(([img, p]) => ({ ...p, img, type: 'photo', id: 'p:' + img }));
     const temps = B.temps.filter(t => t.home === climate).map(t => ({ ...t, type: 'temp', id: `t:${climate}:${t.text}` }));
+    const ranges = B.ranges.filter(r => r.home === climate).map(r => ({ ...r, type: 'range', id: `r:${climate}:${r.text}` }));
+    const crops = Object.entries(B.crops).filter(([, c]) => c.home === climate).map(([crop, c]) => ({ ...c, crop, type: 'crop', id: 'c:' + crop }));
     const quotes = B.quotes.filter(q => q.home === climate).map(q => ({ ...q, type: 'quote', id: 'q:' + q.text }));
     const items = Object.entries(B.items).map(([item, e]) => ({ ...e, item, type: 'item', id: 'i:' + item })).filter(c => c.tags.length && R.verdict(c, climate).v !== 'lie');
-    return [...photos, ...temps, ...quotes, ...items];
+    return [...photos, ...temps, ...ranges, ...crops, ...quotes, ...items];
   }
   const neutral = () => B.neutralQuotes.map(text => ({ type: 'quote', text, tags: [], neutral: true, id: 'n:' + text }));
   const verdict = (card, climate) => card.neutral ? { v: 'ok', why: '' } : R.verdict(card, climate);
@@ -72,7 +74,8 @@
   }
   function cardName(card) {
     if (card.type === 'photo') return '그 사진';
-    if (card.type === 'temp') return card.text;
+    if (card.type === 'temp' || card.type === 'range') return card.text;
+    if (card.type === 'crop') return D.crops[card.crop];
     if (card.type === 'item') return itemName(card.item);
     return `"${card.text}"`;
   }

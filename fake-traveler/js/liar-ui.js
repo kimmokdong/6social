@@ -28,7 +28,7 @@
           || !x.chances || ![0, 1, 2].includes(x.chances.glass) || ![0, 1, 2].includes(x.chances.swap) || !Array.isArray(x.glassed) || !Number.isInteger(x.streak)
           || (x.bet !== null && !(Number.isInteger(x.bet) && x.bet >= 1 && x.bet <= L.maxBet(x)))
           || !Array.isArray(x.hand) || !Array.isArray(x.played) || x.hand.length + x.played.length !== L.CFG.handSize
-          || [...x.hand, ...x.played].some(c => !c || typeof c.id !== 'string' || !['photo', 'temp', 'quote', 'item'].includes(c.type)
+          || [...x.hand, ...x.played].some(c => !c || typeof c.id !== 'string' || !['photo', 'temp', 'range', 'crop', 'quote', 'item'].includes(c.type)
             || (!c.neutral && !Array.isArray(c.tags))) || (x.vote !== null && (!Number.isInteger(x.vote) || x.vote < 0 || x.vote > 3 || x.vote === i)))
         || !Array.isArray(s.order) || [...s.order].sort().join() !== '0,1,2,3'
         || !Number.isInteger(s.turn) || s.turn < 0 || s.turn > 4 * L.CFG.laps || !Number.isInteger(s.rng)

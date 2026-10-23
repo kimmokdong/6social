@@ -17,6 +17,10 @@ window.FAKE_BANK = {
     coldwinter: { cat: 'temp', why: '{T} 그렇게 꽁꽁 얼지 않아요!' },
     snow: { cat: 'temp', why: '{T} 눈이 쌓일 만큼 춥지 않아요!' },
     frozen: { cat: 'temp', why: '{T} 여름엔 얼음이 녹아요!' },
+    daybig: { cat: 'temp', why: '{T} 낮과 밤 기온 차이가 작아요!' },
+    daysmall: { cat: 'temp', why: '{T} 낮과 밤 기온 차이가 커요!' },
+    yearbig: { cat: 'temp', why: '{T} 여름과 겨울 기온 차이가 작아요!' },
+    yearsmall: { cat: 'temp', why: '{T} 여름과 겨울 기온 차이가 커요!' },
     rainyday: { cat: 'rain' }, wetseason: { cat: 'rain' }, dryseason: { cat: 'rain' }, norain: { cat: 'rain' },
     littlerain: { cat: 'rain' }, summerdry: { cat: 'rain' }, winterrain: { cat: 'rain' }, evenrain: { cat: 'rain' },
     jungle: { cat: 'land' }, tallgrass: { cat: 'land' }, shortgrass: { cat: 'land' }, sand: { cat: 'land' },
@@ -28,6 +32,12 @@ window.FAKE_BANK = {
     olive: { cat: 'land', why: '올리브와 포도는 여름이 건조한 곳에서 자라요!' },
     pasture: { cat: 'land', why: '젖소 목장은 1년 내내 비가 고르게 오는 곳에 많아요!' },
     mountain: { cat: 'land', why: '{T} 높은 산 위가 아니에요!' },
+    tropicalcrop: { cat: 'land', why: '바나나·카사바는 1년 내내 더운 곳에서 자라요!' },
+    dates: { cat: 'land', why: '대추야자는 사막의 오아시스에서 자라요!' },
+    wheat: { cat: 'land', why: '{T} 밀 농사를 짓기 어려워요!' },
+    citrus: { cat: 'land', why: '{T} 오렌지가 자라기 어려워요!' },
+    potato: { cat: 'land', why: '{T} 감자 농사를 짓기 어려워요!' },
+    quinoa: { cat: 'land', why: '퀴노아는 안데스 높은 산에서 자라요!' },
     savannaAnimals: { cat: 'animal', name: '기린·사자·얼룩말은' },
     parrot: { cat: 'animal', name: '앵무새는' },
     camel: { cat: 'animal', name: '낙타는' },
@@ -46,34 +56,34 @@ window.FAKE_BANK = {
   rules: {
     rainforest: { topic: '열대우림은', place: '열대우림에',
       facts: { temp: '1년 내내 더워요', rain: '1년 내내 비가 많이 와서 건기가 없어요', land: '나무가 빽빽한 밀림이에요' },
-      allowed: ['hot', 'rainyday', 'jungle', 'parrot', 'mosquito', 'hotwear'] },
+      allowed: ['hot', 'rainyday', 'jungle', 'parrot', 'mosquito', 'hotwear', 'daysmall', 'yearsmall', 'tropicalcrop', 'citrus'] },
     savanna: { topic: '사바나는', place: '사바나에',
       facts: { temp: '1년 내내 더워요', rain: '건기와 우기가 있어요', land: '긴 풀 초원에 나무가 드문드문 있어요' },
-      allowed: ['hot', 'warmsummer', 'dryseason', 'wetseason', 'tallgrass', 'savannaAnimals', 'parrot', 'mosquito', 'hotwear'] },
+      allowed: ['hot', 'warmsummer', 'dryseason', 'wetseason', 'tallgrass', 'savannaAnimals', 'parrot', 'mosquito', 'hotwear', 'daybig', 'daysmall', 'yearsmall', 'tropicalcrop', 'citrus'] },
     desert: { topic: '사막은', place: '사막에',
       facts: { temp: '낮엔 뜨겁고 밤엔 추워요', rain: '비가 거의 안 와요', land: '모래·바위가 많고, 스텝 같은 풀밭은 드물어요' },
-      allowed: ['hot', 'scorching', 'warmsummer', 'coldnight', 'needwarm', 'norain', 'littlerain', 'sand', 'oasis', 'camel', 'notrees', 'nomad', 'mosquito', 'hotwear'] },
+      allowed: ['hot', 'scorching', 'warmsummer', 'coldnight', 'needwarm', 'norain', 'littlerain', 'sand', 'oasis', 'camel', 'notrees', 'nomad', 'mosquito', 'hotwear', 'daybig', 'yearbig', 'dates', 'wheat'] },
     steppe: { topic: '스텝은', place: '스텝 초원에',
       facts: { temp: '여름은 덥고 겨울은 매우 추워요', rain: '비가 적어요', land: '나무 없이 짧은 풀만 자라요' },
-      allowed: ['hot', 'warmsummer', 'scorching', 'coldnight', 'coldwinter', 'snow', 'needwarm', 'norain', 'littlerain', 'dryseason', 'shortgrass', 'notrees', 'nomad', 'camel', 'mosquito', 'hotwear'] },
+      allowed: ['hot', 'warmsummer', 'scorching', 'coldnight', 'coldwinter', 'snow', 'needwarm', 'norain', 'littlerain', 'dryseason', 'shortgrass', 'notrees', 'nomad', 'camel', 'mosquito', 'hotwear', 'daybig', 'yearbig', 'wheat', 'potato'] },
     mediterranean: { topic: '지중해 주변 지역의 기후는', place: '지중해 지역에',
       facts: { temp: '여름은 덥고 겨울은 따뜻해요', rain: '여름엔 비가 거의 없고 겨울에 와요', land: '올리브와 포도가 잘 자라요' },
-      allowed: ['hot', 'warmsummer', 'warmwinter', 'needwarm', 'summerdry', 'winterrain', 'olive', 'mosquito', 'hotwear'] },
+      allowed: ['hot', 'warmsummer', 'warmwinter', 'needwarm', 'summerdry', 'winterrain', 'olive', 'mosquito', 'hotwear', 'daybig', 'daysmall', 'yearsmall', 'wheat', 'citrus', 'potato'] },
     marine: { topic: '서부 유럽의 기후는', place: '서부 유럽에',
       facts: { temp: '여름은 선선하고 겨울은 따뜻한 편이에요', rain: '1년 내내 비가 고르게 와요', land: '푸른 목초지가 많아요' },
-      allowed: ['mild', 'warmsummer', 'warmwinter', 'needwarm', 'evenrain', 'winterrain', 'pasture', 'mosquito', 'hotwear'] },
+      allowed: ['mild', 'warmsummer', 'warmwinter', 'needwarm', 'evenrain', 'winterrain', 'pasture', 'mosquito', 'hotwear', 'daysmall', 'yearsmall', 'wheat', 'potato'] },
     taiga: { topic: '타이가는', place: '타이가에',
       facts: { temp: '겨울은 길고 매우 춥지만 여름은 따뜻해요', rain: '눈과 비가 적당히 와요', land: '침엽수 숲이 끝없이 펼쳐져요' },
-      allowed: ['warmsummer', 'coldwinter', 'snow', 'needwarm', 'littlerain', 'conifer', 'moose', 'reindeer', 'village', 'mosquito', 'hotwear'] },
+      allowed: ['warmsummer', 'coldwinter', 'snow', 'needwarm', 'littlerain', 'conifer', 'moose', 'reindeer', 'village', 'mosquito', 'hotwear', 'daybig', 'daysmall', 'yearbig', 'potato'] },
     tundra: { topic: '툰드라는', place: '툰드라에',
       facts: { temp: '가장 따뜻한 달 평균도 10℃ 아래예요', rain: '비와 눈이 적어요', land: '나무 없이 이끼만 자라요' },
-      allowed: ['coolsummer', 'coldwinter', 'snow', 'needwarm', 'littlerain', 'moss', 'notrees', 'reindeer', 'moose', 'village', 'station', 'mosquito', 'hotwear'] },
+      allowed: ['coolsummer', 'coldwinter', 'snow', 'needwarm', 'littlerain', 'moss', 'notrees', 'reindeer', 'moose', 'village', 'station', 'mosquito', 'hotwear', 'daybig', 'daysmall', 'yearbig'] },
     icecap: { topic: '빙설 지역은', place: '빙설 지역에',
       facts: { temp: '1년 내내 평균 0℃ 아래예요', rain: '눈이 조금 와요', land: '끝없는 얼음뿐, 식물이 없어요' },
-      allowed: ['frozen', 'coldwinter', 'snow', 'needwarm', 'littlerain', 'ice', 'notrees', 'penguin', 'station'] },
+      allowed: ['frozen', 'coldwinter', 'snow', 'needwarm', 'littlerain', 'ice', 'notrees', 'penguin', 'station', 'daybig', 'daysmall', 'yearbig', 'yearsmall'] },
     highland: { topic: '고산 기후는', place: '높은 산 위에',
       facts: { temp: '1년 내내 봄처럼 시원해요', rain: '비는 지역마다 달라요', land: '높은 산 위 서늘한 곳이에요' },
-      allowed: ['mild', 'equatorcool', 'needwarm', 'rainyday', 'mountain', 'llama', 'parrot', 'thinair', 'mosquito', 'hotwear'] }
+      allowed: ['mild', 'equatorcool', 'needwarm', 'rainyday', 'mountain', 'llama', 'parrot', 'thinair', 'mosquito', 'hotwear', 'daybig', 'yearsmall', 'wheat', 'potato', 'quinoa'] }
   },
 
   // 사진: 고향 기후의 gallery(data.js)와 짝을 이룸
@@ -164,6 +174,34 @@ window.FAKE_BANK = {
     { home: 'highland', text: '14℃', tags: ['mild'] },
     { home: 'highland', text: '13℃', tags: ['mild'] }
   ],
+
+  // 기온 차: text = 용어, sub = 풀이
+  ranges: [
+    { home: 'rainforest', text: '연교차 작음', sub: '여름·겨울 기온이 비슷해요', tags: ['yearsmall'] },
+    { home: 'rainforest', text: '일교차 작음', sub: '낮·밤 기온이 비슷해요', tags: ['daysmall'] },
+    { home: 'savanna', text: '연교차 작음', sub: '여름·겨울 기온이 비슷해요', tags: ['yearsmall'] },
+    { home: 'desert', text: '일교차 큼', sub: '낮엔 뜨겁고 밤엔 추워요', tags: ['daybig'] },
+    { home: 'steppe', text: '연교차 큼', sub: '여름·겨울 기온 차이가 커요', tags: ['yearbig'] },
+    { home: 'steppe', text: '일교차 큼', sub: '낮·밤 기온 차이가 커요', tags: ['daybig'] },
+    { home: 'marine', text: '연교차 작음', sub: '여름·겨울 기온 차이가 작아요', tags: ['yearsmall'] },
+    { home: 'marine', text: '일교차 작음', sub: '낮·밤 기온이 비슷해요', tags: ['daysmall'] },
+    { home: 'taiga', text: '연교차 아주 큼', sub: '여름·겨울 기온 차이가 아주 커요', tags: ['yearbig'] },
+    { home: 'tundra', text: '연교차 큼', sub: '여름·겨울 기온 차이가 커요', tags: ['yearbig'] },
+    { home: 'highland', text: '연교차 작음', sub: '1년 내내 봄 같아요', tags: ['yearsmall'] },
+    { home: 'highland', text: '일교차 큼', sub: '낮·밤 기온 차이가 커요', tags: ['daybig'], trap: '고산 기후는 1년 내내 비슷하지만, 하루 중에는 기온 차이가 커요!' }
+  ],
+
+  // 작물: 이름은 data.js crops, 그림은 assets/img/crops/{id}.webp
+  crops: {
+    banana:  { home: 'rainforest', tags: ['tropicalcrop'] },
+    cassava: { home: 'rainforest', tags: ['tropicalcrop'] },
+    dates:   { home: 'desert', tags: ['dates'] },
+    wheat:   { home: 'steppe', tags: ['wheat'] },
+    olive:   { home: 'mediterranean', tags: ['olive'] },
+    orange:  { home: 'mediterranean', tags: ['citrus'] },
+    potato:  { home: 'highland', tags: ['potato'] },
+    quinoa:  { home: 'highland', tags: ['quinoa'] }
+  },
 
   quotes: [
     { home: 'rainforest', text: '땀이 줄줄 났어!', tags: ['hot'] },

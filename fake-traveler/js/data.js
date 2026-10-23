@@ -1,5 +1,5 @@
 /* 가짜 여행자를 찾아라 — 게임 콘텐츠 데이터
- * 증거(ev) 종류: photo(사진) / temp(기온) / quote(한마디) / item(짐)
+ * 증거(ev) 종류: photo(사진) / temp(기온) / range(기온 차) / crop(작물) / quote(한마디) / item(짐)
  * v: 'ok'   진짜 증거. 수상하다고 하면 틀림 → why 가 있으면 why, 없으면 기본 문장
  *    'trap' 수상해 보이지만 진짜 증거(헷갈리는 함정). why 필수
  *    'lie'  가짜 증거. why = 들통난 이유
@@ -46,6 +46,11 @@ window.FAKE = {
     sunglasses: '선글라스', sunscreen: '선크림', bugspray: '모기약', canteen: '물통',
     binoculars: '망원경', robe: '헐렁한 옷', boots: '장화', handwarmer: '손난로',
     oxygen: '산소캔', camera: '카메라', hikingboots: '등산화', tshirt: '반팔 티'
+  },
+
+  crops: {
+    banana: '바나나', cassava: '카사바', dates: '대추야자', wheat: '밀',
+    olive: '올리브', orange: '오렌지', potato: '감자', quinoa: '퀴노아'
   },
 
   travelers: {

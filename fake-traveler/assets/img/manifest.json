@@ -586,5 +586,61 @@
     "height": 800,
     "bytes": 100566,
     "source": "assets/raw/tg_treeline.png"
+  },
+  "banana": {
+    "file": "assets/img/crops/banana.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 7852,
+    "source": "assets/raw/crops/banana.png"
+  },
+  "cassava": {
+    "file": "assets/img/crops/cassava.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 12384,
+    "source": "assets/raw/crops/cassava.png"
+  },
+  "dates": {
+    "file": "assets/img/crops/dates.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 12282,
+    "source": "assets/raw/crops/dates.png"
+  },
+  "wheat": {
+    "file": "assets/img/crops/wheat.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 12900,
+    "source": "assets/raw/crops/wheat.png"
+  },
+  "olive": {
+    "file": "assets/img/crops/olive.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11308,
+    "source": "assets/raw/crops/olive.png"
+  },
+  "orange": {
+    "file": "assets/img/crops/orange.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 9356,
+    "source": "assets/raw/crops/orange.png"
+  },
+  "potato": {
+    "file": "assets/img/crops/potato.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10990,
+    "source": "assets/raw/crops/potato.png"
+  },
+  "quinoa": {
+    "file": "assets/img/crops/quinoa.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 16766,
+    "source": "assets/raw/crops/quinoa.png"
   }
 }

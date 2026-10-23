@@ -96,6 +96,8 @@
     if(e.type === 'photo') return `<span class="photo-wrap">${image(e.img)}<span class="tape"></span>${cap}</span>`;
     if(e.type === 'quote') return `<span class="speech">${esc(e.text)}</span>`;
     if(e.type === 'item') return `<span class="item-wrap">${image(e.item,'items',D.items[e.item])}<strong>${D.items[e.item]}</strong></span>`;
+    if(e.type === 'crop') return `<span class="item-wrap">${image(e.crop,'crops',D.crops[e.crop])}<strong>${D.crops[e.crop]}</strong></span>`;
+    if(e.type === 'range') { const big = e.text.includes('큼'); return `<span class="item-wrap range-wrap" style="--mercury:${big?'#D9412E':'#4B91BA'}"><svg viewBox="0 0 40 60" aria-hidden="true"><path d="M20 ${big?'4':'16'}v${big?52:28}M10 ${big?'14':'26'}l10-10 10 10M10 ${big?'46':'34'}l10 10 10-10" fill="none" stroke="var(--mercury)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>${esc(e.text)}</strong><small>${esc(e.sub)}</small></span>`; }
     const value = Number((e.text.match(/-?\d+/)||[0])[0]), fill = Math.max(8,Math.min(92,(value+35)/85*100));
     return `<span class="temp-wrap" style="--mercury:${value<12?'#4B91BA':'#D9412E'}"><svg class="thermometer" viewBox="0 0 40 100" aria-hidden="true"><path d="M12 72V12a8 8 0 0 1 16 0v60a15 15 0 1 1-16 0" fill="#FBF5EA" stroke="#6B5F52" stroke-width="2.5"/><rect x="16" y="${74-fill*.65}" width="8" height="${fill*.65+5}" rx="4" fill="var(--mercury)"/><circle cx="20" cy="84" r="9" fill="var(--mercury)"/><path d="M30 20h5m-5 13h3m-3 13h5m-5 13h3" stroke="#6B5F52" stroke-width="2"/></svg><strong>${esc(e.text)}</strong>${cap}</span>`;
   }

@@ -27,6 +27,15 @@ for (const [claim,c] of Object.entries(D.climates)) for (const home of c.confuse
   console.log(`${D.climates[claim].name} ← ${D.climates[home].name}: 라이어 손패 후보 중 통하는 사진 ${photos.length}장`);
 }
 
+// 기온 차·작물 카드: 고향에서 진짜, 태그·그림 존재, 거짓이 되는 기후 목록 출력(사람이 눈으로 확인)
+for (const climate of Object.keys(D.climates)) for (const c of L.pool(climate).filter(c => c.type === 'range' || c.type === 'crop')) {
+  assert(c.tags.length && c.tags.every(t => B.tags[t]), c.id + ' 태그');
+  assert.notEqual(L.verdict(c, climate).v, 'lie', c.id + ' 고향에서 진짜');
+  if (c.type === 'crop') assert(D.crops[c.crop] && fs.existsSync(path.join(__dirname, '../assets/img/crops', c.crop + '.webp')), c.id + ' 작물 이름·그림');
+  const lies = Object.keys(D.climates).filter(x => L.verdict(c, x).v === 'lie').map(x => D.climates[x].name);
+  console.log(`${D.climates[climate].name} ${L.cardName(c)}: 거짓 → ${lies.join(', ') || '없음'}`);
+}
+
 function humanMove(s, style) {
   const seat = 0, me = s.seats[0];
   if (style === 'random') {
