@@ -1,0 +1,103 @@
+/* 무역왕 6.1 — 모바일 게임처럼: 큰 숫자, 큼직한 버튼, 글은 짧게. 1366×768 기준, 스크롤 없음. */
+:root{--ink:#1f3435;--muted:#4d6060;--paper:#fffaf0;--line:#d9cfb4;--teal:#2f7d77;--teal2:#1f5f5a;--sea:#9fd3cf;--sea2:#7cbfc0;--gold:#f2b632;--red:#c8392b;--green:#21894a;
+  font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:18px;color:var(--ink);background:#f2eddf}
+*{box-sizing:border-box}body{margin:0;background:#f2eddf;overflow:hidden;user-select:none}[hidden]{display:none!important}
+img{-webkit-user-drag:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;border-radius:16px;background:#fff;padding:10px 16px;min-height:56px;font-weight:800;font-size:19px;box-shadow:0 4px 0 #cbbf9f}
+button:active:not(:disabled){translate:0 3px;box-shadow:0 1px 0 #cbbf9f}button:disabled{opacity:.45;cursor:default}
+button:focus-visible,[tabindex]:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+button.primary{background:var(--teal);color:#fff;box-shadow:0 4px 0 var(--teal2)}button.mini{min-height:44px;padding:4px 12px;font-size:16px}
+h1,h2,h3,p{margin:0}p{line-height:1.5}small,.muted{color:var(--muted);font-size:16px}.eyebrow{font-size:16px;font-weight:900;letter-spacing:2px;color:#6a7d63}
+.ico{width:30px;height:30px;vertical-align:middle;flex-shrink:0}.neg{color:var(--red)}.warn{color:var(--red);font-weight:900}
+.hearts{color:#e0524a;font-size:22px;letter-spacing:-2px;white-space:nowrap}.hearts i{font-style:normal;color:#d9d3c0}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+
+/* 시작 화면 */
+.start{height:100dvh;display:grid;grid-template-columns:1fr 1.7fr;gap:36px;align-items:center;padding:30px 40px;max-width:1340px;margin:auto}
+.start h1{font-size:72px;margin:8px 0 14px}.start p{font-size:20px;margin-bottom:10px}
+.pick{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.nation{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:10px;background:linear-gradient(150deg,var(--tint),#fffdf6 70%)}
+.nation img{width:100%;height:90px;object-fit:cover;border-radius:12px}.nation b{font-size:22px}.nation small{font-weight:600}
+.lv{display:flex;gap:4px;flex-wrap:wrap;font-size:18px}.lv span{display:flex;align-items:center}.lv .ico{width:24px;height:24px}
+
+/* 윗줄: 큰 계기판 */
+.bar{height:72px;display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--paper);border-bottom:3px solid var(--line)}
+.brand{font-size:26px;font-weight:900}.when{display:flex;align-items:center;gap:12px;flex:1;min-width:0}.when b{white-space:nowrap;font-size:26px}
+.track{flex:1;height:14px;border-radius:14px;background:#e6dcc0;overflow:hidden;max-width:300px}.track span{display:block;height:100%;background:var(--teal)}
+.speed{display:flex;gap:6px}.speed button{min-width:62px;min-height:52px;padding:4px 8px;font-size:22px}.speed [aria-pressed=true]{background:var(--gold);box-shadow:0 4px 0 #c08a14}
+.stat{white-space:nowrap;font-size:17px;font-weight:800;background:#fff;border-radius:30px;padding:4px 14px;box-shadow:0 3px 0 #e2d6b6}.stat b{font-size:32px;margin-left:4px}
+.stat.main{display:flex;align-items:center;gap:4px;background:#fff1c7;box-shadow:0 3px 0 #e0c060}.stat.main .name{font-size:22px;margin:0}
+
+/* 바다 지도 */
+/* 바다 지도 그림은 섬 자리·갈림목 %좌표와 맞도록 늘여서 깐다 */
+.map{position:relative;height:calc(100dvh - 72px - 150px - 44px);background:#2f78c0 url(../../shared-art/trade/v6/map6.webp) center/100% 100% no-repeat;overflow:hidden}
+.lanes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.lanes path{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}.lanes .mine{stroke:var(--c,#ffe08a);stroke-width:6;stroke-dasharray:14 9;filter:drop-shadow(0 1px 1px #0008)}.lanes .npc{stroke:#fff;stroke-width:2.5;opacity:.5;stroke-dasharray:5 7}
+/* 누를 때 button:active의 translate가 가운데 맞춤을 덮으면 카드가 튀어 클릭이 지도에 떨어진다 */
+.isle:active:not(:disabled){translate:-50% calc(-50% + 3px)}
+.isle{z-index:1;position:absolute;translate:-50% -50%;width:320px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;text-align:left;background:#fffaf0f2;border-radius:18px;box-shadow:0 5px 0 #0002}
+.isle-head{display:flex;gap:8px;align-items:center}.isle-head img{width:62px;height:46px;object-fit:cover;border-radius:10px}
+.isle-head>span{display:grid;grid-template-columns:auto auto;justify-content:start;align-items:center;column-gap:8px;line-height:1.15}.isle-head b{font-size:23px}.isle-head small{grid-column:1/3;display:flex;align-items:center;gap:3px;white-space:nowrap}.isle-head small .ico{width:24px;height:24px}
+.isle-head small{font-size:16px;font-weight:800;color:var(--muted)}
+.chips{display:flex;flex-direction:column;gap:3px;font-size:16px;font-weight:900}.chips>span{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.chips span span{display:inline-flex;align-items:center;font-size:23px;background:#fff;border-radius:12px;padding:1px 4px}.chips span span .ico{width:38px;height:38px}
+.sell{color:var(--green)}.buy{color:#1d5f9e}.chips small{font-size:16px;color:var(--muted)}.up{color:var(--red);font-style:normal;font-size:16px}.down{color:var(--green);font-style:normal;font-size:16px}
+.cut{font-size:19px;color:var(--red);font-weight:900}.busy{color:#a34a00;font-weight:900}
+.isle.world{width:auto;flex-direction:row;align-items:center;gap:10px;background:#f6e6bdf2;padding:6px 16px;min-height:48px}.isle.world b{font-size:20px}.isle.world small{font-size:16px;font-weight:800}
+.home{position:absolute;translate:-50% -50%;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none}
+.home img{width:170px;height:96px;object-fit:cover;border-radius:18px;border:4px solid var(--teal)}.home b{display:flex;align-items:center;gap:4px;background:var(--paper);padding:2px 12px;border-radius:12px;font-size:21px}.home .ico{width:28px;height:28px}
+.ship{position:absolute;translate:-50% -50%;width:48px;pointer-events:none;transition:none}.ship img{width:100%;display:block}
+.ship.npc{z-index:0;width:34px;opacity:.75;filter:hue-rotate(160deg) saturate(.6)}.ship i{position:absolute;right:-16px;top:-14px}.ship i .ico{width:30px;height:30px}
+.ship.mine{z-index:2;width:66px;pointer-events:auto;cursor:grab;touch-action:none}
+.ship.mine b{position:absolute;left:-8px;top:-12px;background:var(--c);color:#fff;border:3px solid #fff;border-radius:50%;width:34px;height:34px;display:grid;place-items:center;font-size:19px;box-shadow:0 2px 3px #0006}
+.dragging .isle{outline:5px dashed var(--gold);outline-offset:4px}.dragging .ship.mine{cursor:grabbing}
+.ghost{position:fixed;width:80px;translate:-50% -50%;pointer-events:none;z-index:50;opacity:.9}
+
+/* 부두 창(항로 정하기) */
+.dockpanel{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(840px,96%);max-height:96%;overflow:auto;background:var(--paper);border-radius:24px;padding:18px 20px;box-shadow:0 12px 40px #0004;z-index:5}
+.dockpanel h3{font-size:26px}.dockpanel h3 small{display:block;font-weight:700;margin-top:4px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}.cols p{display:flex;align-items:center;gap:10px;font-weight:900;font-size:21px;margin-bottom:8px}
+.slots{display:inline-flex;gap:4px;flex-wrap:wrap}.slots i{width:38px;height:38px;border-radius:8px;display:grid;place-items:center}
+.slots .box{background:linear-gradient(#e2b26a,#c98a3a);border:3px solid #8a5a20;box-shadow:inset 0 0 0 2px #f3d39a}.slots .box .ico{width:26px;height:26px}.slots .empty{border:3px dashed #b9a77a;background:#fffdf6}
+.step{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;border-radius:16px;background:#fff;box-shadow:0 3px 0 #e2d6b6}
+.step.on{background:#d6f0dc;box-shadow:0 3px 0 var(--green),inset 0 0 0 3px var(--green)}
+.step .what{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.2}.step .what b{font-size:20px}.step .what small{font-size:16px;font-weight:800}
+.step button{min-height:52px;min-width:52px;padding:0;font-size:28px}.step .n{font-size:30px;min-width:26px;text-align:center}
+.tag{font-style:normal;font-size:15px;font-weight:900;border-radius:10px;padding:0 6px;color:#fff;white-space:nowrap;align-self:flex-start}.tag.lack{background:var(--red)}.tag.main{background:#c98a14}
+.sum{font-weight:900;font-size:22px}.plus{color:var(--green)}
+
+/* 아래: 항로 카드와 창고 */
+.dock{height:150px;display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 12px;background:var(--paper);border-top:3px solid var(--line)}
+.cards{display:flex;gap:10px;min-width:0;overflow-x:auto}
+.shipcard{flex:1 1 0;min-width:240px;max-width:360px;border:3px solid var(--line);border-radius:18px;padding:6px 10px;display:grid;grid-template-columns:auto 1fr auto;grid-auto-rows:min-content;gap:2px 10px;align-items:center;background:#fff;cursor:grab;touch-action:none;font-size:17px}
+.shipcard.sel{border-color:var(--gold);background:#fff4d6}.shipcard.idle{border-style:dashed;background:#fffdf6}
+.shipcard,.shipcard.idle{border-left:10px solid var(--c)}.shipcard .num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--c);color:#fff;font-size:20px;box-shadow:0 2px 0 #0003}
+.shipcard .no{grid-row:span 4;display:flex;flex-direction:column;align-items:center;font-weight:900;font-size:18px}.shipcard .no img{width:54px}
+.who{font-weight:900;font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.deal{grid-column:2/4;display:flex;align-items:center;gap:2px;font-size:22px;font-weight:900;white-space:nowrap}.deal .ico{width:26px;height:26px}.deal i{font-style:normal;margin-right:4px}.deal b{margin-left:auto}
+.foot{grid-column:2/4;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.pips{color:var(--teal);letter-spacing:2px;font-size:22px}.good{color:var(--green);font-weight:900;font-size:18px}.bad{color:var(--red);font-weight:900;font-size:18px}
+.shipcard small{font-size:16px;font-weight:700}.shipcard .mini{grid-column:3;grid-row:1;min-height:34px;padding:0 12px;box-shadow:0 3px 0 #cbbf9f}
+.shipcard .deal{line-height:1.15}.shipcard .who{line-height:1.2}.shipcard .pips{font-size:18px;line-height:1}
+.hint{grid-column:2/4;color:var(--muted);font-weight:900;font-size:19px}
+.basket{display:grid;grid-template-columns:repeat(5,auto);gap:6px;align-content:center}
+.basket>span{position:relative;display:flex;flex-direction:column;align-items:center;padding:4px 8px;border-radius:14px;background:#fff;min-width:66px}.basket .tag{position:absolute;top:-10px;left:50%;translate:-50% 0}
+.basket b{font-size:32px;line-height:1.1}.basket small{font-size:15px;font-weight:800}.basket .short{background:#fbd9d1}
+.news{height:44px;display:flex;align-items:center;background:#1f3435;color:#fff;font-size:19px;font-weight:700;overflow:hidden;white-space:nowrap}
+.roll{display:inline-flex;gap:64px;padding-left:100%;animation:roll var(--dur,30s) linear infinite}@keyframes roll{to{transform:translateX(-100%)}}
+.news .old{opacity:.55;font-size:16px}.news .crisis,.news .warn{color:#ffb4a6}.news .big{color:#ffe08a}
+
+/* 멈춤 창 */
+#layer{position:fixed;inset:0;background:#122222a0;display:grid;place-items:center;z-index:20}
+.modal{width:min(640px,94vw);max-height:94dvh;overflow:auto;background:var(--paper);border-radius:28px;padding:26px;display:flex;flex-direction:column;gap:12px;font-size:20px}
+.modal h2{font-size:34px}.modal .big{font-size:56px;color:var(--teal)}
+.options{display:flex;flex-direction:column;gap:12px}.options button{text-align:left;display:flex;flex-direction:column;gap:2px;font-size:21px;min-height:64px}.options small{font-size:17px}.options .result{font-size:19px;font-weight:900;color:var(--teal2)}
+.rank{margin:0;padding-left:28px;font-size:22px;font-weight:700}.rank li{padding:3px 0}.rank .me{font-weight:900;color:var(--teal)}.rank b{font-size:24px}
+
+/* 노트북 1024 */
+@media (max-width:1100px){:root{font-size:17px}.isle{width:240px}.isle-head img{display:none}.isle-head b{font-size:21px}.chips span span{font-size:20px}
+  .stat b{font-size:26px}.brand{display:none}.home img{width:120px;height:70px}.shipcard{min-width:200px}.basket span{min-width:54px}.basket b{font-size:26px}}
+/* 태블릿 세로 */
+@media (max-width:820px){body{overflow:auto}.start{grid-template-columns:1fr;height:auto}.pick{grid-template-columns:repeat(2,1fr)}
+  #app:has(.map){height:calc(100dvh - 44px);display:flex;flex-direction:column}.map{height:auto;flex:1}.bar{gap:8px}.track{display:none}.stat{padding:2px 10px}
+  .stat.main .name{display:none}.dock{height:auto;grid-template-columns:1fr}.cards{flex-wrap:wrap}.isle{width:190px}.isle .chips{display:none}.isle-head b{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.roll{padding-left:16px}}
