@@ -1,0 +1,7 @@
+# Cloudflare Pages: 학생 브라우저가 예전 js/css/html을 캐시에서 쓰지 않도록 매번 서버에 확인(ETag로 바뀐 것만 다시 받음)
+/*.html
+  Cache-Control: no-cache
+/*
+  Cache-Control: no-cache
+/shared-art/*
+  Cache-Control: public, max-age=86400, must-revalidate

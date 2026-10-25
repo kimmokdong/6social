@@ -1,0 +1,177 @@
+/* 무역왕 7.1 시작 화면(보드판 장면·메뉴·설정)과 오프닝 영상. title-mock.html의 시안을 #title·#cine 아래로 묶었다(게임 클래스와 안 섞이게). */
+#title{position:fixed;inset:0;z-index:15;color:#fff;overflow:hidden;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;transition:opacity .45s}
+#title.out{opacity:0;pointer-events:none}
+#title button,#cine button{min-height:0;box-shadow:none;border-radius:0;background:none;padding:0;color:inherit}
+#title,#cine{--gold:#f2b632;--gold2:#ffe08a;--wood:#5a3518;--wood2:#3a2010;--ink:#1f3435;--tilt:58deg}
+#title *::-webkit-scrollbar{display:none}
+#title button,#cine button{font:inherit;cursor:pointer}
+#title .scene{position:fixed;inset:0;pointer-events:none;perspective:1100px;perspective-origin:50% 30%;overflow:hidden;background:radial-gradient(120% 90% at 50% 40%,#3b2412 0%,#1a0e06 60%,#0b0603 100%)}
+#title .rig{position:absolute;left:50%;top:56%;width:0;height:0;transform-style:preserve-3d;animation:t-camera 30s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes t-camera{
+  0%  {transform:translateZ(-260px) rotateX(52deg) rotateZ(-6deg)}
+  22% {transform:translateZ(-120px) rotateX(56deg) rotateZ(4deg)}
+  40% {transform:translateZ(260px) translateX(80px) translateY(30px) rotateX(66deg) rotateZ(14deg)}
+  58% {transform:translateZ(180px) translateX(-160px) translateY(-10px) rotateX(63deg) rotateZ(-12deg)}
+  78% {transform:translateZ(-40px) translateX(40px) rotateX(55deg) rotateZ(-18deg)}
+  100%{transform:translateZ(-260px) rotateX(52deg) rotateZ(-6deg)}}
+#title.intro .rig{animation:t-dropin 3.2s cubic-bezier(.2,.7,.2,1) both,t-camera 30s 3.2s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes t-dropin{from{transform:translateZ(-1400px) rotateX(80deg) rotateZ(-40deg)}to{transform:translateZ(-260px) rotateX(52deg) rotateZ(-6deg)}}
+#title .table{position:absolute;left:-1700px;top:-1100px;width:3400px;height:2200px;transform:translateZ(-30px);
+  background:
+    radial-gradient(50% 45% at 50% 50%,#0000 40%,#0008 100%),
+    repeating-linear-gradient(90deg,#0000 0 3px,#0001 3px 5px,#0000 5px 37px),
+    repeating-linear-gradient(90deg,#6b4020 0 180px,#5b361a 180px 186px,#71442a 186px 380px,#4e2d15 380px 386px),
+    #5a3518}
+#title .board{position:absolute;left:-700px;top:-258px;width:1400px;height:516px;transform-style:preserve-3d;
+  background:url(../../shared-art/trade/v6/map6.webp) center/cover;border-radius:10px;
+  box-shadow:0 0 0 18px #8a5a2b,0 0 0 22px #4a2a12,0 0 0 24px #c99a5b,0 30px 60px 30px #000a}
+#title .board::after{content:"";position:absolute;inset:0;border-radius:10px;box-shadow:inset 0 0 40px #0006;pointer-events:none}
+#title .board .edge{position:absolute;left:-24px;right:-24px;bottom:-24px;height:30px;transform-origin:50% 0;transform:rotateX(-90deg);background:linear-gradient(#5a3518,#2b1608);border-radius:0 0 8px 8px}
+#title .routes{position:absolute;inset:0;overflow:visible}
+#title .routes path{fill:none;stroke:#fff8;stroke-width:5;stroke-dasharray:4 16;stroke-linecap:round;animation:t-dash 2.4s linear infinite}
+#title .routes path.mine{stroke:#ffd25a;stroke-width:6}
+@keyframes t-dash{to{stroke-dashoffset:-40}}
+#title .stand{position:absolute;transform-style:preserve-3d}
+#title .stand>.up{position:absolute;left:0;bottom:0;transform-origin:50% 100%;transform:translateX(-50%) rotateX(calc(-1 * var(--tilt)))}
+#title .ship{offset-rotate:0deg;animation:t-sail var(--t,14s) ease-in-out infinite alternate;animation-delay:var(--d,0s)}
+@keyframes t-sail{from{offset-distance:4%}to{offset-distance:96%}}
+#title .ship .base{position:absolute;left:-52px;top:-14px;width:104px;height:28px;border-radius:50%;background:radial-gradient(#000a,#0000 70%);filter:blur(2px)}
+#title .ship .up img{display:block;width:130px;margin-bottom:-14px;filter:drop-shadow(0 4px 3px #0008)}
+#title .ship .num{position:absolute;left:-8px;top:-14px;width:34px;height:34px;border-radius:50%;background:var(--c);border:3px solid #fff;display:grid;place-items:center;font-weight:900;font-size:18px;box-shadow:0 2px 4px #0008}
+#title .flag .up{white-space:nowrap;padding:4px 14px;border-radius:8px;background:linear-gradient(#a8743d,#7b4f25);border:3px solid #4a2a12;color:#fff6dc;font-weight:900;font-size:22px;box-shadow:0 6px 0 #3a2010,0 10px 14px #0008;text-shadow:0 2px 0 #3a2010}
+#title .flag .up::after{content:"";position:absolute;left:50%;bottom:-34px;width:6px;height:34px;margin-left:-3px;background:#4a2a12}
+#title .flag.home .up{background:linear-gradient(#f6cf55,#d99a12);color:#3a2010;text-shadow:none;border-color:#7a4a08}
+#title .coins{position:absolute;transform-style:preserve-3d}
+#title .coins i{position:absolute;left:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(#ffe9a0 0 35%,#e2a923 37% 62%,#a8730c 64%);box-shadow:0 2px 0 #7a5208;transform:translateZ(calc(var(--k) * 5px))}
+#title .token{position:absolute;width:64px;height:64px;border-radius:50%;background:radial-gradient(#fffaf0 0 58%,#e9d6ac 60% 70%,#b98b4f 72%);box-shadow:0 5px 0 #8a5a2b,0 10px 12px #0008;display:grid;place-items:center;transform:translateZ(6px)}
+#title .token img{width:44px;height:44px;object-fit:contain}
+#title .card{position:absolute;width:150px;height:210px;border-radius:12px;background:linear-gradient(160deg,#fffaf0,#efe1bf);border:4px solid #c99a5b;box-shadow:0 10px 18px #0009;transform:translateZ(2px) rotate(var(--r));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#5a3518;font-weight:900;font-size:20px}
+#title .card b{font-size:46px}
+#title .card.back{background:repeating-linear-gradient(45deg,#2f7d77 0 12px,#28706a 12px 24px);border-color:#f2b632}
+#title .card.back::after{content:"무역";color:#ffe08a;font-size:30px;text-shadow:0 2px 0 #0006}
+#title .lamp{position:fixed;inset:0;pointer-events:none;background:radial-gradient(55% 60% at 50% 38%,#ffd9902a 0%,#0000 60%),radial-gradient(130% 100% at 50% 50%,#0000 50%,#000c 100%);mix-blend-mode:normal}
+#title .dof{position:fixed;inset:0;pointer-events:none;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);mask-image:linear-gradient(#000 0%,#0000 32%,#0000 72%,#000 100%);-webkit-mask-image:linear-gradient(#000 0%,#0000 32%,#0000 72%,#000 100%)}
+#title .dust{position:fixed;inset:0;pointer-events:none}
+#title .dust i{position:absolute;width:4px;height:4px;border-radius:50%;background:#ffe9b0;opacity:0;filter:blur(1px);animation:t-float var(--t) linear infinite;animation-delay:var(--d);left:var(--x);top:var(--y)}
+@keyframes t-float{0%{opacity:0;transform:translate(0,0)}15%{opacity:.7}85%{opacity:.5}100%{opacity:0;transform:translate(40px,-120px)}}
+#title .grain{position:fixed;inset:-50%;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:t-grain .5s steps(4) infinite}
+@keyframes t-grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+#title.bars::before,#title.bars::after{content:"";position:fixed;left:0;right:0;height:7vh;background:#000;z-index:5;transition:height 1.2s}
+#title.bars::before{top:0}
+#title.bars::after{bottom:0}
+#title .fade{position:fixed;inset:0;background:#000;z-index:20;pointer-events:none;animation:t-fadein 1.6s ease-out forwards}
+@keyframes t-fadein{to{opacity:0}}
+#title .hud{position:fixed;inset:0;z-index:6;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5vh;padding:calc(7vh + 18px) 16px calc(7vh + 22px) clamp(24px,6vw,96px);pointer-events:none;background:linear-gradient(90deg,#0b0603e0 0%,#0b0603a0 28%,#0000 48%)}
+#title .rig{left:62%}
+#title .logo{text-align:left;animation:t-logo 1.2s 1.4s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes t-logo{from{opacity:0;transform:scale(1.6) translateY(-10px)}to{opacity:1;transform:none}}
+#title .logo small{display:block;font-size:17px;font-weight:800;letter-spacing:.4em;color:#f3d9a8;text-shadow:0 2px 6px #000}
+#title .logo h1{margin:2px 0 0;font-size:clamp(64px,11vw,128px);line-height:1;font-weight:900;letter-spacing:.06em;
+  background:linear-gradient(#fff6c8 0%,#ffd25a 45%,#d38b0e 55%,#ffd76a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:2px #5a3010;filter:drop-shadow(0 6px 0 #3a1e08) drop-shadow(0 14px 24px #000c)}
+#title .logo p{margin:6px 0 0;font-size:20px;font-weight:800;color:#fff3d6;text-shadow:0 2px 8px #000}
+#title .menu{display:flex;flex-direction:column;align-items:flex-start;gap:10px;pointer-events:auto;animation:t-menu .8s 2.4s ease-out both}
+@keyframes t-menu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+#title .play,#title .resume{min-width:320px;height:76px;border:0;border-radius:999px;font-size:30px;font-weight:900;color:#3a2010;background:linear-gradient(#ffe48a,#f2b632 55%,#d99a12);box-shadow:0 7px 0 #8a5a08,0 14px 28px #000a,inset 0 2px 0 #fff8;animation:t-pulse 2.2s 3.4s ease-in-out infinite}
+#title .play:hover,#title .resume:hover{filter:brightness(1.08)}
+#title .resume{height:92px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+#title .resume small{font-size:15px;color:#5b3c17;font-weight:800}
+#title .play.new-game{height:56px;font-size:23px;background:linear-gradient(#fff5d6,#dbc28f);animation:none}
+#title .play:active{transform:translateY(4px);box-shadow:0 3px 0 #8a5a08,0 8px 18px #000a}
+@keyframes t-pulse{50%{box-shadow:0 7px 0 #8a5a08,0 14px 28px #000a,0 0 0 10px #f2b63233}}
+#title .menu .item{width:320px;white-space:nowrap;height:54px;display:flex;align-items:center;gap:10px;padding:0 22px;border-radius:14px;font-size:21px;font-weight:900;color:#fff3d6;background:linear-gradient(#2b1a0cd8,#1a0e06d8);border:2px solid #c99a5b;box-shadow:0 4px 0 #0008;backdrop-filter:blur(4px);text-align:left}
+#title .menu .item small{margin-left:auto;font-size:15px;font-weight:700;color:#f3d9a8b0}
+#title .menu .item:hover,#title .menu .item:focus-visible{background:linear-gradient(#5a3518e8,#3a2010e8);border-color:var(--gold);outline:none;transform:translateX(4px)}
+#title .menu .item:hover::before,#title .menu .item:focus-visible::before{content:"⚓";position:absolute;margin-left:-44px;color:var(--gold)}
+#title .panel{position:fixed;left:50%;top:50%;z-index:25;width:min(440px,calc(100vw - 32px));transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;transition:.25s;padding:20px 22px;border-radius:18px;background:linear-gradient(#fffaf0,#f1e6c8);border:5px solid #8a5a2b;box-shadow:0 0 0 3px #c99a5b,0 30px 60px #000d;color:#3a2010}
+#title .panel.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+#title .panel h2{margin:0 0 10px;font-size:26px}
+#title .panel .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:2px dashed #d9cfb4;font-size:19px;font-weight:800}
+#title .seg{display:flex;gap:4px}
+#title .seg button{height:42px;padding:0 14px;border-radius:999px;border:2px solid #c99a5b;background:#fffaf0;font-size:17px;font-weight:800;color:#6a4420}
+#title .seg .on{background:var(--gold);border-color:#b8860b;color:#2b1a08}
+#title .panel .close{margin-top:12px;width:100%;height:50px;border:0;border-radius:999px;background:#2f7d77;color:#fff;font-size:20px;font-weight:900;box-shadow:0 4px 0 #1f5f5a}
+#title .caption{position:fixed;right:20px;bottom:calc(7vh + 16px);z-index:6;font-size:15px;color:#f3d9a8aa;font-weight:700;letter-spacing:.05em}
+#title .toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:30;padding:18px 26px;border-radius:16px;background:#fffaf0;color:#3a2010;font-weight:900;font-size:20px;box-shadow:0 20px 40px #000c;display:none;text-align:center}
+#title .toast small{display:block;font-size:16px;color:#6a4420;font-weight:700;margin-top:6px}
+#title.go .rig{animation:t-dive 1.4s cubic-bezier(.6,0,.4,1) forwards}
+@keyframes t-dive{to{transform:translateZ(700px) rotateX(10deg) rotateZ(0)}}
+#title.go .hud{transition:opacity .5s;opacity:0}
+#title.go.bars::before,#title.go.bars::after{height:0}
+@media (max-width:900px){#title .caption{display:none}
+#title .hud{align-items:center;justify-content:space-between;background:linear-gradient(#0b0603c0,#0000 35%,#0000 60%,#0b0603d0)}
+#title .logo{text-align:center}
+#title .menu{align-items:center}
+#title .rig{left:50%}}
+@media (max-width:700px){#title .board{transform:scale(.62)}
+#title .play,#title .menu .item{min-width:0;width:260px}
+#title .menu .item small{display:none}}
+@media (max-height:700px){#title .logo h1{font-size:72px}
+#title .play{height:62px}
+#title .menu .item{height:46px}
+#title .menu{gap:7px}}
+#cine{position:fixed;inset:0;z-index:40;background:#000;display:none;overflow:hidden}
+#cine.on{display:block}
+#cine .shots{position:absolute;inset:0;z-index:0;isolation:isolate}
+#cine .shot{position:absolute;inset:0;visibility:hidden;overflow:hidden}
+#cine .shot .cam{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform,opacity,filter}
+#cine .shot .pic{position:absolute;inset:-6%;background-size:cover;background-position:center;will-change:transform}
+#cine .shot .tint{position:absolute;inset:0;opacity:0;pointer-events:none}
+#cine .cloud{position:absolute;width:95%;opacity:.95;pointer-events:none}
+#cine .cloud.l{left:-18%;top:6%}
+#cine .cloud.r{right:-18%;top:34%}
+#cine .fleet{position:absolute;inset:0}
+#cine .fleet img{position:absolute;left:0;top:0;width:13vw;filter:drop-shadow(0 8px 6px #0008)}
+#cine .fx{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+#cine .fx .ov{position:absolute;pointer-events:none}
+#cine .fx .pt{position:absolute;pointer-events:none;border-radius:50%}
+#cine .vig{position:absolute;inset:0;z-index:1;background:radial-gradient(120% 90% at 50% 50%,#0000 55%,#000b 100%);pointer-events:none}
+#cine::before,#cine::after{content:"";position:absolute;left:0;right:0;height:9vh;background:#000;z-index:2}
+#cine::before{top:0}
+#cine::after{bottom:0}
+#cine .sub-line{white-space:pre-line;position:absolute;left:50%;bottom:calc(9vh + 28px);width:min(920px,calc(100% - 32px));margin:0;text-align:center;font-size:clamp(22px,2.6vw,34px);font-weight:900;color:#fff8e6;text-shadow:0 2px 0 #000,0 0 18px #000c;z-index:3;line-height:1.4;opacity:0;transform:translateX(-50%)}
+#cine .chapter{position:absolute;left:50%;top:calc(9vh + 22px);z-index:3;display:flex;align-items:center;gap:14px;font-size:17px;font-weight:800;letter-spacing:.45em;color:#f3d9a8;text-shadow:0 2px 6px #000;white-space:nowrap;opacity:0;transform:translateX(-50%)}
+#cine .chapter::before,#cine .chapter::after{content:"";width:46px;height:1px;background:linear-gradient(90deg,#0000,#f3d9a8)}
+#cine .chapter::after{transform:scaleX(-1)}
+#cine .skip{position:absolute;right:20px;top:calc(9vh + 14px);z-index:5;height:48px;padding:0 20px;border-radius:999px;border:2px solid #fff8;background:#0008;color:#fff;font-size:18px;font-weight:800;backdrop-filter:blur(4px)}
+#cine .skip.voice{right:auto;left:20px}
+#cine .skip.voice[aria-pressed=false]{opacity:.6}
+#cine .skip:hover{background:#000c;border-color:#fff}
+#cine .skip kbd{font:inherit;font-size:15px;opacity:.7;margin-left:6px}
+#cine .cbar{position:absolute;left:0;bottom:9vh;height:4px;background:var(--gold);z-index:3;width:0}
+#cine.on .cbar{animation:t-cbar var(--total) linear forwards}
+@keyframes t-cbar{to{width:100%}}
+#cine .endlogo{position:absolute;inset:0;display:grid;place-items:center;z-index:2;opacity:0;pointer-events:none}
+#cine .endlogo h1{margin:0;font-size:clamp(80px,13vw,160px);font-weight:900;background:linear-gradient(#fff6c8,#ffd25a 45%,#d38b0e 55%,#ffd76a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2px #5a3010;filter:drop-shadow(0 8px 0 #3a1e08) drop-shadow(0 18px 30px #000)}
+/* 설정: 화면 움직임 줄이기(html.calm) — 장면을 멈춘 그림으로 */
+html.calm #title .rig,html.calm #title.intro .rig{animation:none;transform:translateZ(-200px) rotateX(54deg) rotateZ(-6deg)}
+html.calm #title .ship{animation:none;offset-distance:50%}html.calm #title .grain,html.calm #title .dust{display:none}
+html.calm #title .logo,html.calm #title .menu,html.calm #title .play,html.calm #title .resume,html.calm #title .fade,html.calm #title .routes path{animation:none}html.calm #title .fade{opacity:0}
+/* 설정 창: 실제 선택 상태 · 안내 한 줄 */
+#title .panel .tnote{margin:6px 0 0;font-size:15px;font-weight:700;color:#6a4420;line-height:1.35}
+#title .panel .row{padding:8px 0}
+#title .seg button{min-height:42px}
+#title .panel .close{min-height:50px}
+@media (max-height:700px){#title .panel{padding:14px 18px}#title .panel h2{font-size:22px;margin-bottom:4px}#title .panel .row{padding:5px 0;font-size:17px}#title .seg button{height:38px;min-height:38px;font-size:16px;padding:0 10px}#title .panel .close{height:44px;min-height:44px;margin-top:8px}}
+#cine .loading{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:4;font-size:20px;font-weight:800;color:#f3d9a8}
+/* 7.1c 자막: 긴 줄도 한 줄에(넓은 상자), 좁은 화면에서 넘칠 때는 낱말 단위로 두 줄을 고르게 나눈다(마지막 글자 한 개만 내려가지 않게) */
+#cine .sub-line{width:calc(100% - 48px);max-width:1400px;word-break:keep-all;text-wrap:balance}
+
+/* 7.1f 지금 나는 효과음 표시(sfx-demo에서만 켠다) */
+#cine .sfx-now{position:absolute;left:20px;bottom:calc(9vh + 70px);z-index:5;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:8px;pointer-events:none}
+#cine .sfx-now span{display:inline-block;padding:8px 16px;border-radius:999px;background:#c0392be6;color:#fff;font-size:18px;font-weight:800;text-shadow:0 1px 2px #0008;animation:t-sfxpulse .7s ease-in-out infinite alternate}
+@keyframes t-sfxpulse{from{box-shadow:0 0 0 3px #fff7,0 0 10px #c0392b}to{box-shadow:0 0 0 7px #fffa,0 0 28px #ff6b57}}
+
+/* 7.1g 운영체제의 '애니메이션 줄이기'가 켜진 컴퓨터: style6.css가 모든 애니메이션을 끄므로, 애니메이션 끝 상태로 두어야 하는 것들을 직접 그 상태로 둔다(검은 .fade 막이 안 걷히던 문제) */
+html.calm #title .fade{opacity:0}html.calm #title .logo,html.calm #title .menu,html.calm #title .play{opacity:1;transform:none}html.calm #title .resume{animation:none}html.calm #cine.on .cbar{width:100%}
+
+/* 7.6d 터치 기기(태블릿·폰): 3D 장면 안의 흐림·그림자 필터, 화면 위·아래 흐림(backdrop-filter), 필름 잡티는 그래픽 처리에 무거워 깜빡임이 생긴다 → 끄고,
+   큰 나무 탁자는 줄여서 그래픽 메모리 부담을 던다. 카메라 움직임은 그대로. */
+@media (pointer:coarse),(hover:none){
+  #title .dof,#title .grain{display:none}
+  #title .dust i{filter:none}
+  #title .ship .base{filter:none;background:radial-gradient(#0007,#0000 70%)}
+  #title .ship .up img{filter:none}
+  #title .rig{will-change:transform}
+  #title .table{left:-1250px;top:-800px;width:2500px;height:1600px}
+}

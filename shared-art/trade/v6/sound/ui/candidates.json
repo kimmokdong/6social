@@ -1,0 +1,155 @@
+[
+ {
+  "id": "click",
+  "name": "버튼 누르기",
+  "files": [
+   "ui/click.mp3",
+   "ui/kenney-interface-click-001.mp3",
+   "ui/kenney-interface-select-003.mp3"
+  ]
+ },
+ {
+  "id": "pickup",
+  "name": "배 집어 들기",
+  "files": [
+   "ui/kenney-interface-pluck-001.mp3",
+   "ui/fs-447910-plop.mp3",
+   "ui/pop.mp3"
+  ]
+ },
+ {
+  "id": "hover",
+  "name": "끄는 중 섬 위에 올리기",
+  "files": [
+   "ui/tick.mp3",
+   "ui/fs528561.mp3",
+   "ui/kenney-ui-rollover2.mp3"
+  ]
+ },
+ {
+  "id": "contract",
+  "name": "계약하기(배 놓기)",
+  "files": [
+   "sfx_stamp.mp3",
+   "ui/kenney-interface-confirmation-001.mp3",
+   "ui/kenney-interface-drop-002.mp3"
+  ]
+ },
+ {
+  "id": "cancel",
+  "name": "취소·되돌리기",
+  "files": [
+   "ui/kenney-interface-toggle-002.mp3",
+   "ui/kenney-digital-pepsound2.mp3",
+   "ui/kenney-ui-rollover1.mp3"
+  ]
+ },
+ {
+  "id": "depart",
+  "name": "배 출항",
+  "files": [
+   "ui/fs-127197-fast-simple-chop-5-aif.mp3",
+   "ui/whoosh.mp3",
+   "sfx_horn.mp3"
+  ]
+ },
+ {
+  "id": "arrive",
+  "name": "배 도착·판매",
+  "files": [
+   "ui/kenney-interface-confirmation-002.mp3",
+   "ui/fs-571513-soft-notifications-bell-ding-d.mp3",
+   "ui/kenney-interface-glass-001.mp3"
+  ]
+ },
+ {
+  "id": "settle",
+  "name": "3달 정산",
+  "files": [
+   "sfx_bell.mp3",
+   "ui/kenney-digital-threetone1.mp3",
+   "ui/kenney-interface-confirmation-003.mp3"
+  ]
+ },
+ {
+  "id": "crisis",
+  "name": "위기 사건",
+  "files": [
+   "ui/kenney-impact-impactsoft-heavy-000.mp3",
+   "sfx_thunder.mp3",
+   "ui/fs524817.mp3"
+  ]
+ },
+ {
+  "id": "problem",
+  "name": "무역 문제 사건",
+  "files": [
+   "ui/kenney-digital-twotone1.mp3",
+   "ui/kenney-interface-bong-001.mp3",
+   "ui/fs745291.mp3"
+  ]
+ },
+ {
+  "id": "opportunity",
+  "name": "기회 사건",
+  "files": [
+   "sfx_sparkle.mp3",
+   "ui/kenney-interface-maximize-001.mp3",
+   "ui/kenney-digital-threetone2.mp3"
+  ]
+ },
+ {
+  "id": "meeting",
+  "name": "발전 회의 열림",
+  "files": [
+   "ui/kenney-interface-glass-002.mp3",
+   "sfx_crowd.mp3",
+   "ui/kenney-interface-maximize-002.mp3"
+  ]
+ },
+ {
+  "id": "buy",
+  "name": "카드 사기",
+  "files": [
+   "sfx_crates.mp3",
+   "ui/kenney-interface-drop-003.mp3",
+   "sfx_stamp.mp3"
+  ]
+ },
+ {
+  "id": "error",
+  "name": "안 돼요(돈 부족 등)",
+  "files": [
+   "ui/kenney-interface-glitch-002.mp3",
+   "ui/kenney-digital-pepsound3.mp3",
+   "ui/kenney-ui-rollover4.mp3"
+  ]
+ },
+ {
+  "id": "page",
+  "name": "책 넘기기",
+  "files": [
+   "ui/fs393811.mp3",
+   "ui/fs830856.mp3",
+   "ui/kenney-interface-select-001.mp3"
+  ]
+ },
+ {
+  "id": "rankup",
+  "name": "순위·칭호 오름",
+  "files": [
+   "sfx_fanfare.mp3",
+   "ui/kenney-interface-confirmation-003.mp3",
+   "sfx_sparkle.mp3"
+  ]
+ },
+ {
+  "id": "end",
+  "name": "게임 끝(결과 책)",
+  "files": [
+   "sfx_cheer.mp3",
+   "sfx_fanfare.mp3",
+   "sfx_bell.mp3"
+  ]
+ }
+]

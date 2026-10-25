@@ -1,6 +1,9 @@
 /* 사용자 동작 이후에만 만드는 작은 합성 효과음.
    음표: [주파수, 시작(초), 길이(초), 파형='triangle', 세기=.1, 끝 주파수(미끄러지기)] */
 window.SFX = (() => {
+  /* 7.4 녹음 효과음(../shared/sfx, CC0)이 어울리는 것은 파일로, 나머지(멜로디 신호음)는 아래 합성음 그대로 */
+  const FILES = {tap: ['click.mp3', .6], pop: ['pop.mp3', .7], paper: ['paper.mp3', .8], card: ['card.mp3', .8], stamp: ['stamp.mp3', .8]};
+  window.SfxFiles?.preload(Object.values(FILES).map(f => f[0]));
   let ctx, noise;
   const T = 'triangle', Q = 'square', W = 'sawtooth', S = 'sine';
   const notes = {
@@ -30,6 +33,7 @@ window.SFX = (() => {
   };
   function play(name, enabled) {
     if (!enabled) return;
+    if (FILES[name] && window.SfxFiles?.play(...FILES[name])) return;
     try {
       const Audio = window.AudioContext || window.webkitAudioContext;
       if (!Audio) return;

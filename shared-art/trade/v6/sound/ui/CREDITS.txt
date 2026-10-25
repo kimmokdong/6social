@@ -1,0 +1,39 @@
+인게임 효과음 후보(모두 CC0). 출처:
+ui/click.mp3  "Classic Click" by adh.dreaming (https://freesound.org/people/adh.dreaming/sounds/671105/), CC0  https://freesound.org/people/adh.dreaming/sounds/671105/  CC0 1.0
+ui/fs-127197-fast-simple-chop-5-aif.mp3  dave.des via Freesound (CC0; credit optional)  https://freesound.org/people/dave.des/sounds/127197/  CC0 1.0
+ui/fs-447910-plop.mp3  Breviceps via Freesound (CC0; credit optional)  https://freesound.org/people/Breviceps/sounds/447910/  CC0 1.0
+ui/fs-571513-soft-notifications-bell-ding-d.mp3  LegitCheese via Freesound (CC0; credit optional)  https://freesound.org/people/LegitCheese/sounds/571513/  CC0 1.0
+ui/fs393811.mp3  deleted_user_6479820 via Freesound (CC0; credit given voluntarily)  https://freesound.org/people/deleted_user_6479820/sounds/393811/  CC0 1.0
+ui/fs524817.mp3  DeVern via Freesound (CC0; credit given voluntarily)  https://freesound.org/people/DeVern/sounds/524817/  CC0 1.0
+ui/fs528561.mp3  Jummit via Freesound (CC0; credit given voluntarily)  https://freesound.org/people/Jummit/sounds/528561/  CC0 1.0
+ui/fs745291.mp3  SamsterBirdies via Freesound (CC0; credit given voluntarily)  https://freesound.org/people/SamsterBirdies/sounds/745291/  CC0 1.0
+ui/fs830856.mp3  MeanRaccoon via Freesound (CC0; credit given voluntarily)  https://freesound.org/people/MeanRaccoon/sounds/830856/  CC0 1.0
+ui/kenney-digital-pepsound2.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/digital-audio  CC0 1.0
+ui/kenney-digital-pepsound3.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/digital-audio  CC0 1.0
+ui/kenney-digital-threetone1.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/digital-audio  CC0 1.0
+ui/kenney-digital-threetone2.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/digital-audio  CC0 1.0
+ui/kenney-digital-twotone1.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/digital-audio  CC0 1.0
+ui/kenney-impact-impactsoft-heavy-000.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/impact-sounds  CC0 1.0
+ui/kenney-interface-bong-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-click-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-confirmation-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-confirmation-002.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-confirmation-003.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-drop-002.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-drop-003.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-glass-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-glass-002.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-glitch-002.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-maximize-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-maximize-002.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-pluck-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-select-001.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-select-003.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-interface-toggle-002.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/interface-sounds  CC0 1.0
+ui/kenney-ui-rollover1.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/ui-audio  CC0 1.0
+ui/kenney-ui-rollover2.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/ui-audio  CC0 1.0
+ui/kenney-ui-rollover4.mp3  Kenney (kenney.nl), CC0; credit optional  https://kenney.nl/assets/ui-audio  CC0 1.0
+ui/pop.mp3  "POP SFX Neutral" by ethernel0 (https://freesound.org/people/ethernel0/sounds/776016/), CC0  https://freesound.org/people/ethernel0/sounds/776016/  CC0 1.0
+ui/tick.mp3  "Click / Tick" by Squirrel_404 (https://freesound.org/people/Squirrel_404/sounds/683048/), CC0  https://freesound.org/people/Squirrel_404/sounds/683048/  CC0 1.0
+ui/whoosh.mp3  "Whoosh" by qubodup (https://freesound.org/people/qubodup/sounds/60013/), CC0  https://freesound.org/people/qubodup/sounds/60013/  CC0 1.0
+ui/stamp1.mp3  sfx_stamp.mp3(eddies2000, CC0)의 첫 도장 소리 0.26초만 잘라 씀  https://freesound.org/people/eddies2000/sounds/448474/

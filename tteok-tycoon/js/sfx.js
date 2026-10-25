@@ -1,5 +1,8 @@
 /* 교실에서는 조용하게 시작해요(기본 꺼짐). 소리는 첫 조작 뒤에만 만듭니다. */
 window.TteokSfx = (() => {
+  /* 7.4 녹음 효과음(../shared/sfx, CC0)이 어울리는 것은 파일로, 나머지(멜로디 신호음)는 아래 합성음 그대로 */
+  const FILES = {tick: ['click.mp3', .6], whoosh: ['swipe.mp3', .7], event: ['popup.mp3', .7]};
+  window.SfxFiles?.preload(Object.values(FILES).map(f => f[0]));
   let context, enabled = false;
   const tunes = {
     tick: [[520, 0, .045]],
@@ -22,6 +25,7 @@ window.TteokSfx = (() => {
   }
   function play(name) {
     if (!enabled) return;
+    if (FILES[name] && window.SfxFiles?.play(...FILES[name])) return;
     try {
       const Audio = window.AudioContext || window.webkitAudioContext;
       if (!Audio) return;

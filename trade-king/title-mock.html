@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>무역왕 시작 화면 시안</title>
+<style>
+/* ===== 무역왕 시작 화면 시안: 나무 탁자 위 보드판을 카메라가 천천히 훑는 '영상' 느낌 ===== */
+:root{--gold:#f2b632;--gold2:#ffe08a;--wood:#5a3518;--wood2:#3a2010;--ink:#1f3435;--tilt:58deg}
+*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#120a05;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#fff}
+button{font:inherit;cursor:pointer}
+
+/* ---------- 3D 무대 ---------- */
+.scene{position:fixed;inset:0;pointer-events:none;perspective:1100px;perspective-origin:50% 30%;overflow:hidden;background:radial-gradient(120% 90% at 50% 40%,#3b2412 0%,#1a0e06 60%,#0b0603 100%)}
+.rig{position:absolute;left:50%;top:56%;width:0;height:0;transform-style:preserve-3d;animation:camera 30s cubic-bezier(.45,0,.55,1) infinite}
+/* 카메라 컷: 높은 전경 → 낮게 배를 따라감 → 옆으로 훑기 → 다시 전경 */
+@keyframes camera{
+  0%  {transform:translateZ(-260px) rotateX(52deg) rotateZ(-6deg)}
+  22% {transform:translateZ(-120px) rotateX(56deg) rotateZ(4deg)}
+  40% {transform:translateZ(260px) translateX(80px) translateY(30px) rotateX(66deg) rotateZ(14deg)}
+  58% {transform:translateZ(180px) translateX(-160px) translateY(-10px) rotateX(63deg) rotateZ(-12deg)}
+  78% {transform:translateZ(-40px) translateX(40px) rotateX(55deg) rotateZ(-18deg)}
+  100%{transform:translateZ(-260px) rotateX(52deg) rotateZ(-6deg)}}
+.intro .rig{animation:dropin 3.2s cubic-bezier(.2,.7,.2,1) both,camera 30s 3.2s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes dropin{from{transform:translateZ(-1400px) rotateX(80deg) rotateZ(-40deg)}to{transform:translateZ(-260px) rotateX(52deg) rotateZ(-6deg)}}
+
+/* 나무 탁자(보드판보다 훨씬 넓다) */
+.table{position:absolute;left:-1700px;top:-1100px;width:3400px;height:2200px;transform:translateZ(-30px);
+  background:
+    radial-gradient(50% 45% at 50% 50%,#0000 40%,#0008 100%),
+    repeating-linear-gradient(90deg,#0000 0 3px,#0001 3px 5px,#0000 5px 37px),
+    repeating-linear-gradient(90deg,#6b4020 0 180px,#5b361a 180px 186px,#71442a 186px 380px,#4e2d15 380px 386px),
+    #5a3518}
+/* 보드판: 바다 지도 + 두꺼운 나무 테두리 */
+.board{position:absolute;left:-700px;top:-258px;width:1400px;height:516px;transform-style:preserve-3d;
+  background:url(../shared-art/trade/v6/map6.webp) center/cover;border-radius:10px;
+  box-shadow:0 0 0 18px #8a5a2b,0 0 0 22px #4a2a12,0 0 0 24px #c99a5b,0 30px 60px 30px #000a}
+.board::after{content:"";position:absolute;inset:0;border-radius:10px;box-shadow:inset 0 0 40px #0006;pointer-events:none}
+/* 보드판 두께(아래로 내려간 옆면) */
+.board .edge{position:absolute;left:-24px;right:-24px;bottom:-24px;height:30px;transform-origin:50% 0;transform:rotateX(-90deg);background:linear-gradient(#5a3518,#2b1608);border-radius:0 0 8px 8px}
+
+/* 항로 점선(보드에 그려진 길) */
+.routes{position:absolute;inset:0;overflow:visible}
+.routes path{fill:none;stroke:#fff8;stroke-width:5;stroke-dasharray:4 16;stroke-linecap:round;animation:dash 2.4s linear infinite}
+.routes path.mine{stroke:#ffd25a;stroke-width:6}
+@keyframes dash{to{stroke-dashoffset:-40}}
+
+/* 세워진 기물: 보드 기울기만큼 되돌려 세운다 */
+.stand{position:absolute;transform-style:preserve-3d}
+.stand>.up{position:absolute;left:0;bottom:0;transform-origin:50% 100%;transform:translateX(-50%) rotateX(calc(-1 * var(--tilt)))}
+/* 배 기물: 색 받침 + 배 그림, 항로를 따라 움직인다 */
+.ship{offset-rotate:0deg;animation:sail var(--t,14s) ease-in-out infinite alternate;animation-delay:var(--d,0s)}
+@keyframes sail{from{offset-distance:4%}to{offset-distance:96%}}
+.ship .base{position:absolute;left:-52px;top:-14px;width:104px;height:28px;border-radius:50%;background:radial-gradient(#000a,#0000 70%);filter:blur(2px)}
+.ship .up img{display:block;width:130px;margin-bottom:-14px;filter:drop-shadow(0 4px 3px #0008)}
+.ship .num{position:absolute;left:-8px;top:-14px;width:34px;height:34px;border-radius:50%;background:var(--c);border:3px solid #fff;display:grid;place-items:center;font-weight:900;font-size:18px;box-shadow:0 2px 4px #0008}
+/* 섬 이름판 */
+.flag .up{white-space:nowrap;padding:4px 14px;border-radius:8px;background:linear-gradient(#a8743d,#7b4f25);border:3px solid #4a2a12;color:#fff6dc;font-weight:900;font-size:22px;box-shadow:0 6px 0 #3a2010,0 10px 14px #0008;text-shadow:0 2px 0 #3a2010}
+.flag .up::after{content:"";position:absolute;left:50%;bottom:-34px;width:6px;height:34px;margin-left:-3px;background:#4a2a12}
+.flag.home .up{background:linear-gradient(#f6cf55,#d99a12);color:#3a2010;text-shadow:none;border-color:#7a4a08}
+/* 탁자 위 소품: 동전 더미·물건 토큰·카드 */
+.coins{position:absolute;transform-style:preserve-3d}
+.coins i{position:absolute;left:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(#ffe9a0 0 35%,#e2a923 37% 62%,#a8730c 64%);box-shadow:0 2px 0 #7a5208;transform:translateZ(calc(var(--k) * 5px))}
+.token{position:absolute;width:64px;height:64px;border-radius:50%;background:radial-gradient(#fffaf0 0 58%,#e9d6ac 60% 70%,#b98b4f 72%);box-shadow:0 5px 0 #8a5a2b,0 10px 12px #0008;display:grid;place-items:center;transform:translateZ(6px)}
+.token img{width:44px;height:44px;object-fit:contain}
+.card{position:absolute;width:150px;height:210px;border-radius:12px;background:linear-gradient(160deg,#fffaf0,#efe1bf);border:4px solid #c99a5b;box-shadow:0 10px 18px #0009;transform:translateZ(2px) rotate(var(--r));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#5a3518;font-weight:900;font-size:20px}
+.card b{font-size:46px}
+.card.back{background:repeating-linear-gradient(45deg,#2f7d77 0 12px,#28706a 12px 24px);border-color:#f2b632}
+.card.back::after{content:"무역";color:#ffe08a;font-size:30px;text-shadow:0 2px 0 #0006}
+
+/* ---------- 카메라 느낌: 조명·심도·비네트·필름 결·레터박스 ---------- */
+.lamp{position:fixed;inset:0;pointer-events:none;background:radial-gradient(55% 60% at 50% 38%,#ffd9902a 0%,#0000 60%),radial-gradient(130% 100% at 50% 50%,#0000 50%,#000c 100%);mix-blend-mode:normal}
+.dof{position:fixed;inset:0;pointer-events:none;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);mask-image:linear-gradient(#000 0%,#0000 32%,#0000 72%,#000 100%);-webkit-mask-image:linear-gradient(#000 0%,#0000 32%,#0000 72%,#000 100%)}
+.dust{position:fixed;inset:0;pointer-events:none}
+.dust i{position:absolute;width:4px;height:4px;border-radius:50%;background:#ffe9b0;opacity:0;filter:blur(1px);animation:float var(--t) linear infinite;animation-delay:var(--d);left:var(--x);top:var(--y)}
+@keyframes float{0%{opacity:0;transform:translate(0,0)}15%{opacity:.7}85%{opacity:.5}100%{opacity:0;transform:translate(40px,-120px)}}
+.grain{position:fixed;inset:-50%;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .5s steps(4) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+.bars::before,.bars::after{content:"";position:fixed;left:0;right:0;height:7vh;background:#000;z-index:5;transition:height 1.2s}
+.bars::before{top:0}.bars::after{bottom:0}
+.fade{position:fixed;inset:0;background:#000;z-index:20;pointer-events:none;animation:fadein 1.6s ease-out forwards}
+@keyframes fadein{to{opacity:0}}
+
+/* ---------- 제목·단추 ---------- */
+.hud{position:fixed;inset:0;z-index:6;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5vh;padding:calc(7vh + 18px) 16px calc(7vh + 22px) clamp(24px,6vw,96px);pointer-events:none;background:linear-gradient(90deg,#0b0603e0 0%,#0b0603a0 28%,#0000 48%)}
+.rig{left:62%}
+.logo{text-align:left;animation:logo 1.2s 1.4s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes logo{from{opacity:0;transform:scale(1.6) translateY(-10px)}to{opacity:1;transform:none}}
+.logo small{display:block;font-size:17px;font-weight:800;letter-spacing:.4em;color:#f3d9a8;text-shadow:0 2px 6px #000}
+.logo h1{margin:2px 0 0;font-size:clamp(64px,11vw,128px);line-height:1;font-weight:900;letter-spacing:.06em;
+  background:linear-gradient(#fff6c8 0%,#ffd25a 45%,#d38b0e 55%,#ffd76a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:2px #5a3010;filter:drop-shadow(0 6px 0 #3a1e08) drop-shadow(0 14px 24px #000c)}
+.logo p{margin:6px 0 0;font-size:20px;font-weight:800;color:#fff3d6;text-shadow:0 2px 8px #000}
+.menu{display:flex;flex-direction:column;align-items:flex-start;gap:10px;pointer-events:auto;animation:menu .8s 2.4s ease-out both}
+@keyframes menu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.play{min-width:320px;height:76px;border:0;border-radius:999px;font-size:30px;font-weight:900;color:#3a2010;background:linear-gradient(#ffe48a,#f2b632 55%,#d99a12);box-shadow:0 7px 0 #8a5a08,0 14px 28px #000a,inset 0 2px 0 #fff8;animation:pulse 2.2s 3.4s ease-in-out infinite}
+.play:hover{filter:brightness(1.08)}.play:active{transform:translateY(4px);box-shadow:0 3px 0 #8a5a08,0 8px 18px #000a}
+@keyframes pulse{50%{box-shadow:0 7px 0 #8a5a08,0 14px 28px #000a,0 0 0 10px #f2b63233}}
+.menu .item{width:320px;white-space:nowrap;height:54px;display:flex;align-items:center;gap:10px;padding:0 22px;border-radius:14px;font-size:21px;font-weight:900;color:#fff3d6;background:linear-gradient(#2b1a0cd8,#1a0e06d8);border:2px solid #c99a5b;box-shadow:0 4px 0 #0008;backdrop-filter:blur(4px);text-align:left}
+.menu .item small{margin-left:auto;font-size:15px;font-weight:700;color:#f3d9a8b0}
+.menu .item:hover,.menu .item:focus-visible{background:linear-gradient(#5a3518e8,#3a2010e8);border-color:var(--gold);outline:none;transform:translateX(4px)}
+.menu .item:hover::before,.menu .item:focus-visible::before{content:"⚓";position:absolute;margin-left:-44px;color:var(--gold)}
+/* 설정 창(나무 판) */
+.panel{position:fixed;left:50%;top:50%;z-index:25;width:min(440px,calc(100vw - 32px));transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;transition:.25s;padding:20px 22px;border-radius:18px;background:linear-gradient(#fffaf0,#f1e6c8);border:5px solid #8a5a2b;box-shadow:0 0 0 3px #c99a5b,0 30px 60px #000d;color:#3a2010}
+.panel.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.panel h2{margin:0 0 10px;font-size:26px}
+.panel .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:2px dashed #d9cfb4;font-size:19px;font-weight:800}
+.seg{display:flex;gap:4px}.seg button{height:42px;padding:0 14px;border-radius:999px;border:2px solid #c99a5b;background:#fffaf0;font-size:17px;font-weight:800;color:#6a4420}.seg .on{background:var(--gold);border-color:#b8860b;color:#2b1a08}
+.panel .close{margin-top:12px;width:100%;height:50px;border:0;border-radius:999px;background:#2f7d77;color:#fff;font-size:20px;font-weight:900;box-shadow:0 4px 0 #1f5f5a}
+.caption{position:fixed;right:20px;bottom:calc(7vh + 16px);z-index:6;font-size:15px;color:#f3d9a8aa;font-weight:700;letter-spacing:.05em}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:30;padding:18px 26px;border-radius:16px;background:#fffaf0;color:#3a2010;font-weight:900;font-size:20px;box-shadow:0 20px 40px #000c;display:none;text-align:center}
+.toast small{display:block;font-size:16px;color:#6a4420;font-weight:700;margin-top:6px}
+/* 시작하기 → 카메라가 보드로 쑥 내려간다 */
+.go .rig{animation:dive 1.4s cubic-bezier(.6,0,.4,1) forwards}
+@keyframes dive{to{transform:translateZ(700px) rotateX(10deg) rotateZ(0)}}
+.go .hud{transition:opacity .5s;opacity:0}.go .bars::before,.go .bars::after{height:0}
+@media (prefers-reduced-motion:reduce){.rig,.intro .rig{animation:none;transform:translateZ(-200px) rotateX(54deg) rotateZ(-6deg)}.ship{animation:none;offset-distance:50%}.grain,.dust{display:none}}
+@media (max-width:900px){.caption{display:none}.hud{align-items:center;justify-content:space-between;background:linear-gradient(#0b0603c0,#0000 35%,#0000 60%,#0b0603d0)}.logo{text-align:center}.menu{align-items:center}.rig{left:50%}}
+@media (max-width:700px){.board{transform:scale(.62)}.play,.menu .item{min-width:0;width:260px}.menu .item small{display:none}}
+@media (max-height:700px){.logo h1{font-size:72px}.play{height:62px}.menu .item{height:46px}.menu{gap:7px}}
+
+/* ===== 오프닝 영상 v2: 컷이 겹치며 이어진다. 카메라(.pic)와 전환(.cam)을 다른 층에서 움직여 서로 끊지 않는다 ===== */
+.cine{position:fixed;inset:0;z-index:40;background:#000;display:none;overflow:hidden}
+.cine.on{display:block}
+#shots{position:absolute;inset:0;z-index:0;isolation:isolate}   /* 컷 층 번호를 이 안에 가둬 효과 층(.fx)이 늘 위에 오게 */
+.shot{position:absolute;inset:0;visibility:hidden;overflow:hidden}
+.shot .cam{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform,opacity,filter}
+.shot .pic{position:absolute;inset:-6%;background-size:cover;background-position:center;will-change:transform}
+.shot .tint{position:absolute;inset:0;opacity:0;pointer-events:none}
+.cloud{position:absolute;width:95%;opacity:.95;pointer-events:none}
+.cloud.l{left:-18%;top:6%}.cloud.r{right:-18%;top:34%}
+.fleet{position:absolute;inset:0}
+.fleet img{position:absolute;left:0;top:0;width:13vw;filter:drop-shadow(0 8px 6px #0008)}
+.fx{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.fx .ov{position:absolute;pointer-events:none}
+.fx .pt{position:absolute;pointer-events:none;border-radius:50%}
+.cine .vig{position:absolute;inset:0;z-index:1;background:radial-gradient(120% 90% at 50% 50%,#0000 55%,#000b 100%);pointer-events:none}
+.cine::before,.cine::after{content:"";position:absolute;left:0;right:0;height:9vh;background:#000;z-index:2}.cine::before{top:0}.cine::after{bottom:0}
+.sub-line{white-space:pre-line;position:absolute;left:50%;bottom:calc(9vh + 28px);width:min(920px,calc(100% - 32px));margin:0;text-align:center;font-size:clamp(22px,2.6vw,34px);font-weight:900;color:#fff8e6;text-shadow:0 2px 0 #000,0 0 18px #000c;z-index:3;line-height:1.4;opacity:0;transform:translateX(-50%)}
+.chapter{position:absolute;left:50%;top:calc(9vh + 22px);z-index:3;display:flex;align-items:center;gap:14px;font-size:17px;font-weight:800;letter-spacing:.45em;color:#f3d9a8;text-shadow:0 2px 6px #000;white-space:nowrap;opacity:0;transform:translateX(-50%)}
+.chapter::before,.chapter::after{content:"";width:46px;height:1px;background:linear-gradient(90deg,#0000,#f3d9a8)}.chapter::after{transform:scaleX(-1)}
+.skip{position:absolute;right:20px;top:calc(9vh + 14px);z-index:5;height:48px;padding:0 20px;border-radius:999px;border:2px solid #fff8;background:#0008;color:#fff;font-size:18px;font-weight:800;backdrop-filter:blur(4px)}
+.skip.voice{right:auto;left:20px}.skip.voice[aria-pressed=false]{opacity:.6}
+.skip:hover{background:#000c;border-color:#fff}
+.skip kbd{font:inherit;font-size:15px;opacity:.7;margin-left:6px}
+.cbar{position:absolute;left:0;bottom:9vh;height:4px;background:var(--gold);z-index:3;width:0}
+.cine.on .cbar{animation:cbar var(--total) linear forwards}
+@keyframes cbar{to{width:100%}}
+.endlogo{position:absolute;inset:0;display:grid;place-items:center;z-index:2;opacity:0;pointer-events:none}
+.endlogo h1{margin:0;font-size:clamp(80px,13vw,160px);font-weight:900;background:linear-gradient(#fff6c8,#ffd25a 45%,#d38b0e 55%,#ffd76a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2px #5a3010;filter:drop-shadow(0 8px 0 #3a1e08) drop-shadow(0 18px 30px #000)}
+</style>
+</head>
+<body class="intro bars">
+<div class="scene" aria-hidden="true">
+  <div class="rig">
+    <div class="table"></div>
+    <!-- 탁자 위 소품(보드 밖) -->
+    <div class="coins" style="left:760px;top:120px">${COINS}</div>
+    <div class="card back" style="left:-920px;top:-160px;--r:-14deg"></div>
+    <div class="card back" style="left:-900px;top:-150px;--r:-6deg"></div>
+    <div class="card" style="left:-880px;top:-130px;--r:4deg"><span>발전 회의</span><b>🏭</b><span>공장 +1</span></div>
+    <div class="token" style="left:770px;top:-200px"><img src="../shared-art/trade/v6/goods/food.webp" alt=""></div>
+    <div class="token" style="left:850px;top:-150px"><img src="../shared-art/trade/v6/goods/oil.webp" alt=""></div>
+    <div class="token" style="left:790px;top:-90px"><img src="../shared-art/trade/v6/goods/tech.webp" alt=""></div>
+    <div class="token" style="left:880px;top:-40px"><img src="../shared-art/trade/v6/goods/steel.webp" alt=""></div>
+    <div class="token" style="left:-860px;top:150px"><img src="../shared-art/trade/v6/goods/cloth.webp" alt=""></div>
+    <div class="token" style="left:-790px;top:200px"><img src="../shared-art/trade/v6/goods/ore.webp" alt=""></div>
+
+    <div class="board">
+      <div class="edge"></div>
+      <svg class="routes" viewBox="0 0 1400 516" preserveAspectRatio="none">
+        <path class="mine" d="M680,470 C640,400 520,360 470,280"/>
+        <path class="mine" d="M690,470 C760,400 880,360 930,280"/>
+        <path d="M700,480 C900,470 1150,470 1260,400"/>
+        <path d="M660,480 C460,480 230,470 130,410"/>
+        <path d="M480,250 C600,180 800,180 920,250"/>
+      </svg>
+      <div class="stand flag home" style="left:690px;top:470px"><div class="up">🏠 우리 나라</div></div>
+      <div class="stand flag" style="left:450px;top:240px"><div class="up">숲의 나라</div></div>
+      <div class="stand flag" style="left:960px;top:240px"><div class="up">석유 왕국</div></div>
+      <div class="stand flag" style="left:1270px;top:380px"><div class="up">철의 나라</div></div>
+      <div class="stand flag" style="left:120px;top:390px"><div class="up">큰 시장국</div></div>
+      <!-- 배 기물: 항로(offset-path)를 따라 오간다 -->
+      <div class="stand ship" style="--c:#c8392b;--t:13s;offset-path:path('M680,470 C640,400 520,360 470,280')"><span class="base"></span><div class="up"><img src="../shared-art/trade/v6/ships/ship_0.webp" alt=""></div></div>
+      <div class="stand ship" style="--c:#2f6fc8;--t:15s;--d:-6s;offset-path:path('M690,470 C760,400 880,360 930,280')"><span class="base"></span><div class="up"><img src="../shared-art/trade/v6/ships/ship_1.webp" alt=""></div></div>
+      <div class="stand ship" style="--c:#21894a;--t:19s;--d:-3s;offset-path:path('M700,480 C900,470 1150,470 1260,400')"><span class="base"></span><div class="up"><img src="../shared-art/trade/v6/ships/ship_2.webp" alt=""></div></div>
+      <div class="stand ship" style="--c:#8a6a4a;--t:17s;--d:-9s;offset-path:path('M480,250 C600,180 800,180 920,250')"><span class="base"></span><div class="up"><img src="../shared-art/trade/v6/ships/ship_npc.webp" alt="" style="width:110px"></div></div>
+    </div>
+  </div>
+</div>
+<div class="dof"></div>
+<div class="lamp"></div>
+<div class="dust">${DUST}</div>
+<div class="grain"></div>
+<div class="fade"></div>
+
+<div class="hud">
+  <div class="logo"><small>6학년 사회 · 무역 보드게임</small><h1>무역왕</h1><p>잘 만드는 건 팔고, 모자란 건 사 오세요.</p></div>
+  <nav class="menu" aria-label="시작 메뉴">
+    <button class="play" id="play">▶ 게임 시작</button>
+    <button class="item" id="codex">📖 도감 <small>모은 나라·사건·배지</small></button>
+    <button class="item" id="set">⚙️ 설정</button>
+  </nav>
+</div>
+<p class="caption">시안 · 카메라가 30초마다 보드판을 한 바퀴 훑어요</p>
+<div class="panel" id="panel" role="dialog" aria-label="설정"><h2>⚙️ 설정</h2>
+  <div class="row">🔊 소리<span class="seg"><button class="on">켜기</button><button>끄기</button></span></div>
+  <div class="row">⏩ 처음 속도<span class="seg"><button>천천히</button><button class="on">보통</button><button>빠르게</button></span></div>
+  <div class="row">🔠 글자 크기<span class="seg"><button class="on">크게</button><button>아주 크게</button></span></div>
+  <div class="row">🎬 화면 움직임<span class="seg"><button class="on">켜기</button><button>줄이기</button></span></div>
+  <div class="row">🧭 도우미 설명<span class="seg"><button class="on">켜기</button><button>끄기</button></span></div>
+  <div class="row">🎬 오프닝 영상<span class="seg"><button id="replay">다시 보기</button></span></div>
+  <button class="close" id="close">닫기</button></div>
+
+<div class="cine" id="cine" role="dialog" aria-label="오프닝 영상">
+  <div id="shots"></div>
+  <div class="fx" id="fx"></div>
+  <div class="vig"></div>
+  <p class="chapter" id="chapter"></p>
+  <p class="sub-line" id="line"></p>
+  <div class="cbar"></div>
+  <button class="skip voice" id="voice" aria-pressed="true">🔊 내레이션</button><button class="skip" id="skip">건너뛰기 ▶▶<kbd>Esc</kbd></button>
+</div>
+<div class="toast" id="toast">카메라가 보드판으로 내려가며<br>나라 고르기로 이어집니다<small>(시안이라 여기까지예요 · 다시 보려면 새로 고침)</small></div>
+
+<script>
+// 동전 더미·떠다니는 먼지를 채운다(시안용 장식)
+document.querySelector('.coins').innerHTML = Array.from({length: 7}, (_, k) => `<i style="--k:${k}"></i>`).join('') + Array.from({length: 4}, (_, k) => `<i style="--k:${k};left:52px;top:10px"></i>`).join('');
+document.querySelector('.dust').innerHTML = Array.from({length: 26}, (_, i) => `<i style="--x:${(i * 37) % 100}%;--y:${20 + (i * 53) % 70}%;--t:${7 + i % 6}s;--d:-${i * .7}s"></i>`).join('');
+setTimeout(() => document.body.classList.remove('intro'), 3300);
+// ---- 오프닝 영상 v2: 파트마다 내용에 맞는 전환 + 끊김 없는 카메라 ----
+const A = '../shared-art/trade/', C = A + 'v6/cine/';
+// cam: [시작 배율, x%, y%] → [끝 배율, x%, y%] (x가 줄면 화면 내용이 왼쪽으로 = 카메라가 오른쪽으로)
+// tin: 들어올 때 전환 {t 종류, d 초, ...}, grade: 이 컷의 색감
+const SHOTS = [
+  {kind: 'clouds', len: 6.5, ch: '바다의 시대', line: '아주 오래전, 넓은 바다 위에 여러 나라가 있었습니다.', cam: [[1.25, 0, 4], [2.4, 0, -2]], o: '50% 58%', tin: {t: 'fadeblack', d: 1.6}},
+  {img: A + 'v6/home_1.webp', len: 4.5, line: '나라마다 잘하는 일이 달랐지요.', cam: [[1, 0, 0], [1.2, -1, -2]], o: '52% 60%', tin: {t: 'zoomthrough', d: 1.5}},
+  {img: C + 'res_food.webp', len: 2, ch: '기르고 · 캐내고', line: '땅에서 기르고, 캐내고,', cam: [[1.15, 4, 0], [1.15, -3, 0]], tin: {t: 'whip', d: .8}},
+  {img: C + 'res_oil.webp', len: 2, cam: [[1.15, 4, 0], [1.15, -3, 0]], tin: {t: 'whip', d: .8}},
+  {img: C + 'res_ore.webp', len: 2, cam: [[1.15, 4, 0], [1.15, -3, 0]], tin: {t: 'whip', d: .8}},
+  {img: C + 'res_cloth.webp', len: 2, ch: '만들고 · 다듬고', line: '만들고, 다듬었습니다.', cam: [[1.12, 3, 0], [1.12, -3, 0]], tin: {t: 'whip', d: .8}},
+  {img: C + 'res_steel.webp', len: 2.1, cam: [[1.05, 0, 0], [1.22, 1, 1]], o: '45% 45%', tin: {t: 'glow', d: 1, c: '#ff8a1e'}},
+  {img: C + 'res_tech.webp', len: 2.3, cam: [[1.22, 0, 0], [1.05, 0, 0]], tin: {t: 'glow', d: 1.1, c: '#ffb24a', c2: '#4aa8ff'}},
+  {img: A + 'end_island.webp', len: 4.8, ch: '', line: '하지만 필요한 것을 모두 혼자 만들 수 있는 나라는 없었습니다.', cam: [[1.12, 3, 0], [1.12, -2, 0]], grade: 'saturate(.68) brightness(.9)', tin: {t: 'slowdip', d: 1.9}},
+  {img: C + 'trade_deal.webp', len: 3.4, ch: '무역', line: '그래서 사람들은 약속을 맺고,', cam: [[1.05, 0, 0], [1.38, 0, -6]], o: '50% 76%', tin: {t: 'dissolve', d: 1.1}},
+  {img: C + 'trade_load.webp', len: 3, line: '남는 것을 배에 실어', cam: [[1.18, 0, -4], [1.18, 0, 4]], tin: {t: 'tiltup', d: 1}},
+  {img: C + 'trade_voyage.webp', len: 3.4, line: '먼 바다를 건넜습니다.', cam: [[1.2, 4, 0], [1.2, -4, 0]], tin: {t: 'push', d: 1.1}},
+  {img: C + 'trade_arrive.webp', len: 3.4, line: '그리고 모자란 것을 사 왔지요.', cam: [[1.2, 4, 0], [1.2, -3, 0]], tin: {t: 'push', d: 1.1}},
+  {kind: 'sea', len: 4.2, line: '수많은 배가 바다를 오갔습니다.', cam: [[1, 0, 0], [1.07, 0, 0]], tin: {t: 'pullback', d: 1.4}},
+  {img: C + 'ev_storm.webp', len: 2.5, ch: '시련', line: '바다는 늘 평온하지 않았습니다.', cam: [[1.08, 0, 0], [1.2, 0, 0]], grade: 'brightness(.92)', tin: {t: 'lightning', d: 1}, again: 1.5},
+  {img: C + 'ev_pirates.webp', len: 2.5, cam: [[1.05, 0, 0], [1.2, 2, 0]], o: '30% 40%', grade: 'brightness(.92)', tin: {t: 'fog', d: 1.7}},
+  {img: C + 'ev_fire.webp', len: 2.5, cam: [[1.15, -2, 0], [1.15, 2, 0]], tin: {t: 'smoke', d: 1.6}},
+  {img: C + 'ev_invention.webp', len: 2.3, ch: '기회', line: '하지만 뜻밖의 기회도 찾아왔지요.', cam: [[1.25, 0, 0], [1.05, 0, 0]], tin: {t: 'sunray', d: 1.5}},
+  {img: C + 'ev_market.webp', len: 2.1, cam: [[1.15, 3, 0], [1.15, -3, 0]], tin: {t: 'confetti', d: .8}},
+  {img: C + 'ev_festival.webp', len: 2.5, cam: [[1.05, 0, 0], [1.2, 0, -2]], o: '70% 25%', tin: {t: 'firework', d: 1}},
+  {kind: 'grow', len: 7, ch: '번영', line: '배가 오갈수록 작은 항구는 도시가 되었고,', cam: [[1, 0, 0], [1.12, 0, -1]], tin: {t: 'dissolve', d: 1.3}},
+  {img: A + 'end_king.webp', len: 4, line: '사람들의 식탁은 풍요로워졌습니다.', cam: [[1.05, 0, 0], [1.22, 0, 1]], tin: {t: 'warm', d: 1.3}},
+  {img: C + 'finale.webp', len: 6, line: '무역으로 함께 자란 나라. 바다의 무역왕.', cam: [[1.5, -4, 0], [1.03, 0, 0]], o: '60% 55%', tin: {t: 'dissolve', d: 1.6}},
+  {kind: 'title', len: 6.5, ch: '', line: '이제, 당신의 나라가 바다로 나아갈 차례입니다.', cam: [[1.25, 0, 2], [1.05, 0, 0]], tin: {t: 'dissolve', d: 1.3}},
+];
+const SPECIAL = {
+  clouds: `<div class="pic" style="background-image:url(${A}map_archipelago.webp)"></div><img class="cloud l" src="${A}fog_1.webp" alt=""><img class="cloud r" src="${A}fog_2.webp" alt="">`,
+  sea: `<div class="pic" style="background-image:url(${A}v6/map6.webp)"></div><div class="fleet">
+    <img src="${A}v6/ships/ship_0.webp" alt="" data-m="-20,62,40,42">
+    <img src="${A}v6/ships/ship_1.webp" alt="" data-m="105,55,60,28" data-f="-1">
+    <img src="${A}v6/ships/ship_2.webp" alt="" data-m="30,95,18,55">
+    <img src="${A}v6/ships/ship_3.webp" alt="" data-m="70,92,82,62" style="width:11vw">
+    <img src="${A}v6/ships/ship_npc.webp" alt="" data-m="-10,20,20,22" style="width:9vw"></div>`,
+  grow: `<div class="pic" style="background-image:url(${A}v6/home_1.webp)"></div><div class="pic p2" style="background-image:url(${A}v6/home_2.webp);opacity:0"></div><div class="pic p3" style="background-image:url(${A}v6/home_3.webp);opacity:0"></div><div class="tint" style="background:linear-gradient(#ff9a4a40,#7a3a8a30)"></div>`,
+  title: `<div class="pic" style="background-image:url(${A}title.webp)"></div><div class="endlogo"><h1>무역왕</h1></div>`,
+};
+const shotsEl = document.getElementById('shots'), fx = document.getElementById('fx');
+shotsEl.innerHTML = SHOTS.map(x => `<div class="shot"><div class="cam">${x.kind ? SPECIAL[x.kind] : `<div class="pic" style="background-image:url(${x.img})"></div>`}</div></div>`).join('');
+const cine = document.getElementById('cine'), shots = [...cine.querySelectorAll('.shot')], line = document.getElementById('line'), chapter = document.getElementById('chapter');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const IO = 'cubic-bezier(.45,.05,.55,.95)', OUT = 'cubic-bezier(.2,.7,.3,1)', SNAP = 'cubic-bezier(.75,0,.25,1)';
+let timers = [], anims = [];
+const later = (sec, f) => timers.push(setTimeout(f, sec * 1000));
+const anim = (el, kf, o) => { const a = el.animate(kf, Object.assign({fill: 'both'}, o)); anims.push(a); return a; };
+const tf = ([sc, x, y]) => `translate(${x}%,${y}%) scale(${sc})`;
+const rnd = (a, b) => a + Math.random() * (b - a);
+function overlay(css, kf, o) { const d = document.createElement('div'); d.className = 'ov'; d.style.cssText = css; fx.append(d); anim(d, kf, o).onfinish = () => d.remove(); return d; }
+function particles(n, make) { for (let i = 0; i < n; i++) { const d = document.createElement('i'); d.className = 'pt'; fx.append(d); const [css, kf, o] = make(i); d.style.cssText = css; anim(d, kf, o).onfinish = () => d.remove(); } }
+const showIn = (el, d, from = 0, to = 1, at0 = 0, at1 = 1) => anim(el, [{opacity: 0, offset: 0}, {opacity: 0, offset: at0}, {opacity: 1, offset: at1}, {opacity: 1, offset: 1}], {duration: d * 1000, easing: 'linear'});
+// ---- 전환들: inS 들어오는 컷, outS 나가는 컷(.cam을 움직인다), d 초 ----
+const TRANS = {
+  fadeblack: (i, o, d) => showIn(i, d),
+  dissolve: (i, o, d) => anim(i, [{opacity: 0}, {opacity: 1}], {duration: d * 1000, easing: IO}),
+  slowdip: (i, o, d) => { anim(i, [{opacity: 0}, {opacity: 1}], {duration: d * 1000, easing: IO}); if (o) anim(o.firstChild, [{filter: 'saturate(1) brightness(1)'}, {filter: 'saturate(.5) brightness(.6)'}], {duration: d * 1000, easing: IO}); },
+  zoomthrough: (i, o, d) => { anim(i, [{opacity: 0}, {opacity: 1}], {duration: d * 1000, easing: 'ease-out'}); anim(i.firstChild, [{transform: 'scale(.72)'}, {transform: 'scale(1)'}], {duration: d * 1000, easing: OUT}); if (o) anim(o.firstChild, [{transform: 'scale(1)'}, {transform: 'scale(1.9)'}], {duration: d * 1000, easing: 'cubic-bezier(.5,0,.75,1)'}); },
+  whip: (i, o, d) => strip(i, o, d, 'X', 1),
+  push: (i, o, d) => strip(i, o, d, 'X', 1),
+  tiltup: (i, o, d) => strip(i, o, d, 'Y', -1),
+  pullback: (i, o, d) => { showIn(i, d, 0, 1, .1, .75); anim(i.firstChild, [{transform: 'scale(2.3)'}, {transform: 'scale(1)'}], {duration: d * 1000, easing: OUT}); if (o) anim(o.firstChild, [{transform: 'scale(1)', opacity: 1}, {transform: 'scale(.4)', opacity: .2}], {duration: d * 1000, easing: 'cubic-bezier(.4,0,.6,1)'}); },
+  glow: (i, o, d, x) => { overlay(`inset:-20%;mix-blend-mode:screen;background:radial-gradient(closest-side,${x.c},#0000)`, x.c2 ? [{opacity: 0, background: `radial-gradient(closest-side,${x.c},#0000)`}, {opacity: .95, offset: .45}, {opacity: 0, background: `radial-gradient(closest-side,${x.c2},#0000)`}] : [{opacity: 0}, {opacity: .95, offset: .45}, {opacity: 0}], {duration: d * 1000, easing: 'ease-in-out'}); showIn(i, d, 0, 1, .35, .6); },
+  lightning: (i, o, d) => { overlay('inset:0;background:#eef4ff', [{opacity: 0}, {opacity: .9, offset: .06}, {opacity: 0, offset: .2}, {opacity: .55, offset: .3}, {opacity: 0, offset: .55}], {duration: d * 1000, easing: 'linear'}); showIn(i, d, 0, 1, .05, .07); shake(i.firstChild, .8); },
+  fog: (i, o, d) => { for (const [k, img] of [[0, 'fog_1'], [1, 'fog_2']]) overlay(`left:0;top:${10 + k * 30}%;width:170%;height:70%;background:url(${A}${img}.webp) center/contain no-repeat;filter:brightness(.85)`, [{transform: 'translateX(70%) scale(1.4)', opacity: 0}, {opacity: .95, offset: .35}, {opacity: .9, offset: .65}, {transform: 'translateX(-95%) scale(1.6)', opacity: 0}], {duration: d * 1000 * (1 + k * .15), easing: 'linear'}); overlay('inset:0;background:#8a96a0', [{opacity: 0}, {opacity: .5, offset: .45}, {opacity: 0}], {duration: d * 1000}); showIn(i, d, 0, 1, .38, .68); },
+  smoke: (i, o, d) => { overlay('left:-20%;right:-20%;top:20%;height:120%;background:radial-gradient(40% 35% at 30% 60%,#2a1a10e0,#0000),radial-gradient(45% 40% at 70% 55%,#3a2416d0,#0000),radial-gradient(60% 50% at 50% 80%,#1a0e08f0,#0000)', [{transform: 'translateY(60%)', opacity: 0}, {opacity: 1, offset: .4}, {opacity: .9, offset: .6}, {transform: 'translateY(-70%)', opacity: 0}], {duration: d * 1000, easing: 'ease-in-out'}); particles(36, () => { const x = rnd(5, 95), s = rnd(3, 7); return [`left:${x}%;bottom:-2%;width:${s}px;height:${s}px;background:#ffb04a;box-shadow:0 0 8px 2px #ff7a1a`, [{transform: 'translate(0,0)', opacity: 0}, {opacity: 1, offset: .2}, {transform: `translate(${rnd(-60, 60)}px,-${rnd(50, 90)}vh)`, opacity: 0}], {duration: rnd(1.2, 2.2) * 1000, delay: rnd(0, .6) * 1000, easing: 'ease-out'}]; }); showIn(i, d, 0, 1, .35, .62); },
+  sunray: (i, o, d) => { overlay('left:-150%;top:-20%;width:300%;height:140%;mix-blend-mode:screen;background:linear-gradient(100deg,#0000 38%,#ffe9a0aa 47%,#fff6d8ee 50%,#ffe9a0aa 53%,#0000 62%)', [{transform: 'translateX(-35%)'}, {transform: 'translateX(55%)'}], {duration: d * 1000, easing: 'cubic-bezier(.4,0,.3,1)'}); showIn(i, d, 0, 1, .3, .6); anim(i.firstChild, [{filter: 'brightness(1.7)'}, {filter: 'brightness(1)'}], {duration: d * 1000, easing: 'ease-out'}); sparkle(28, d); },
+  confetti: (i, o, d) => { anim(i, [{opacity: 0}, {opacity: 1}], {duration: d * 1000, easing: IO}); const cols = ['#e2533f', '#2b86d6', '#2e9e52', '#9a55cf', '#f2b632', '#ffffff']; particles(46, k => { const x = rnd(0, 100), w = rnd(6, 11); return [`left:${x}%;top:-4%;width:${w}px;height:${w * 1.6}px;border-radius:2px;background:${cols[k % cols.length]}`, [{transform: 'translate(0,0) rotate(0)'}, {transform: `translate(${rnd(-80, 80)}px,${rnd(80, 105)}vh) rotate(${rnd(360, 900)}deg)`}], {duration: rnd(1.6, 2.6) * 1000, delay: rnd(0, .5) * 1000, easing: 'cubic-bezier(.3,.1,.6,1)'}]; }); },
+  firework: (i, o, d) => { burst(50, 30, '#ffe08a', 1); overlay('inset:0;background:radial-gradient(circle at 50% 30%,#fff3c8,#0000 60%)', [{opacity: 0}, {opacity: .85, offset: .18}, {opacity: 0}], {duration: d * 1000}); showIn(i, d, 0, 1, .15, .45); later(.5, () => burst(25, 22, '#ff8ab0', .8)); later(.8, () => burst(76, 26, '#8ad8ff', .8)); },
+  warm: (i, o, d) => { overlay('inset:-10%;mix-blend-mode:screen;background:radial-gradient(closest-side,#ffb45a,#0000)', [{opacity: 0}, {opacity: .7, offset: .5}, {opacity: 0}], {duration: d * 1000, easing: 'ease-in-out'}); anim(i, [{opacity: 0}, {opacity: 1}], {duration: d * 1000, easing: IO}); },
+};
+// 방향 있는 페이드: 두 컷이 겹친 채 서서히 바뀌고, 그동안 같은 방향으로 살짝만 흘러간다(흐림·급가속 없음)
+function strip(i, o, d, axis, dir) {
+  const T = v => `translate${axis}(${v * dir}%)`, ms = d * 1000;
+  anim(i, [{opacity: 0}, {opacity: 1}], {duration: ms, easing: IO});
+  anim(i.firstChild, [{transform: T(7)}, {transform: T(0)}], {duration: ms * 1.4, easing: OUT});
+  if (o) anim(o.firstChild, [{transform: T(0)}, {transform: T(-7)}], {duration: ms * 1.4, easing: 'cubic-bezier(.3,0,.7,1)'});
+}
+function shake(el, sec) { anim(el, Array.from({length: 9}, (_, k) => ({transform: k === 8 ? 'translate(0,0)' : `translate(${rnd(-9, 9)}px,${rnd(-7, 7)}px)`})), {duration: sec * 1000, easing: 'linear', composite: 'add'}); }
+function sparkle(n, d) { particles(n, () => { const s = rnd(4, 9); return [`left:${rnd(5, 95)}%;top:${rnd(15, 80)}%;width:${s}px;height:${s}px;background:#fff6d8;box-shadow:0 0 12px 4px #ffd25a`, [{transform: 'scale(0)', opacity: 0}, {transform: 'scale(1.4)', opacity: 1, offset: .4}, {transform: 'scale(0)', opacity: 0}], {duration: rnd(.8, 1.4) * 1000, delay: rnd(.2, d) * 1000, easing: 'ease-out'}]; }); }
+function burst(xPct, yPct, color, size) { particles(26, k => { const ang = k / 26 * Math.PI * 2, r = rnd(14, 22) * size; return [`left:${xPct}%;top:${yPct}%;width:6px;height:6px;background:${color};box-shadow:0 0 10px 3px ${color}`, [{transform: 'translate(0,0) scale(1)', opacity: 1}, {transform: `translate(${Math.cos(ang) * r}vw,${Math.sin(ang) * r}vh) scale(.4)`, opacity: 0}], {duration: 1100, easing: 'cubic-bezier(.1,.8,.3,1)'}]; }); }
+// 컷 안쪽의 움직임(카메라·구름·배·성장·불꽃·제목)
+function inner(el, x, i) {
+  const dur = (x.len + (SHOTS[i + 1]?.tin.d || 1.4) + .3) * 1000, pic = el.querySelector('.pic');
+  el.querySelectorAll('.pic').forEach(p => { p.style.transformOrigin = x.o || '50% 50%'; if (x.grade) p.style.filter = x.grade; });
+  if (!reduce) el.querySelectorAll('.pic').forEach(p => anim(p, [{transform: tf(x.cam[0])}, {transform: tf(x.cam[1])}], {duration: dur, easing: x.len < 3 ? 'linear' : IO}));
+  if (x.kind === 'clouds') { anim(el.querySelector('.cloud.l'), [{transform: 'translateX(12%) scale(1.3)', opacity: .95}, {transform: 'translateX(-85%) scale(1.7)', opacity: 0}], {duration: 5600, easing: 'ease-in'}); anim(el.querySelector('.cloud.r'), [{transform: 'translateX(-12%) scale(1.3)', opacity: .95}, {transform: 'translateX(85%) scale(1.7)', opacity: 0}], {duration: 5600, easing: 'ease-in'}); }
+  if (x.kind === 'sea') el.querySelectorAll('.fleet img').forEach((im, k) => { const [x0, y0, x1, y1] = im.dataset.m.split(',').map(Number), f = im.dataset.f || 1; anim(im, [{transform: `translate(${x0}vw,${y0}vh) scaleX(${f})`}, {transform: `translate(${x1}vw,${y1}vh) scaleX(${f})`}], {duration: dur, delay: k * 120, easing: IO}); });
+  if (x.kind === 'grow') { anim(el.querySelector('.p2'), [{opacity: 0}, {opacity: 1}], {duration: 1100, delay: 2100, easing: IO}); anim(el.querySelector('.p3'), [{opacity: 0}, {opacity: 1}], {duration: 1100, delay: 4300, easing: IO}); anim(el.querySelector('.tint'), [{opacity: 0}, {opacity: 1}], {duration: 6500, easing: 'linear'}); }
+  if (x.again) later(x.again, () => { overlay('inset:0;background:#eef4ff', [{opacity: 0}, {opacity: .7, offset: .1}, {opacity: 0, offset: .3}, {opacity: .35, offset: .4}, {opacity: 0}], {duration: 700}); shake(el.firstChild, .5); });
+  if (x.kind === 'title') {
+    [[1, 28, 26, '#ffe08a'], [2.1, 72, 22, '#8ad8ff'], [3.2, 40, 18, '#ff8ab0'], [4.4, 62, 30, '#ffe08a']].forEach(([t, bx, by, c]) => later(t, () => burst(bx, by, c, 1)));
+    later(2.6, () => { const lg = el.querySelector('.endlogo'); anim(lg, [{opacity: 0, transform: 'scale(2.2)'}, {opacity: 1, transform: 'scale(.94)', offset: .7}, {opacity: 1, transform: 'scale(1)'}], {duration: 900, easing: 'cubic-bezier(.2,1.2,.4,1)'}); });
+  }
+}
+function setText(node, text, delay) {
+  if (text == null) return;
+  later(0, () => anim(node, [{opacity: getComputedStyle(node).opacity}, {opacity: 0, transform: 'translateX(-50%) translateY(-6px)'}], {duration: 280, easing: 'ease-in'}));
+  if (text) later(delay, () => { node.textContent = text; anim(node, [{opacity: 0, transform: 'translateX(-50%) translateY(10px)'}, {opacity: 1, transform: 'translateX(-50%) translateY(0)'}], {duration: 700, easing: OUT}); if (node === line) say(text); });
+}
+function playCine(done) {
+  stopAll(); cine._done = done;
+  const total = SHOTS.reduce((a, x) => a + x.len, 0) + 2.6;
+  cine.style.setProperty('--total', total + 's'); cine.style.opacity = 1; cine.classList.remove('on'); void cine.offsetWidth; cine.classList.add('on');
+  let t = 0;
+  SHOTS.forEach((x, i) => {
+    later(t, () => {
+      const el = shots[i], prev = shots[i - 1];
+      el.style.zIndex = i + 1; el.style.visibility = 'visible';
+      inner(el, x, i);
+      (reduce ? TRANS.dissolve : TRANS[x.tin.t])(el, prev, x.tin.d, x.tin);
+      if (prev) later(x.tin.d * 1.45 + .1, () => { prev.style.visibility = 'hidden'; prev.getAnimations({subtree: true}).forEach(a => a.cancel()); });
+      if (x.ch != null) setText(chapter, x.ch, .35);
+      if (x.line) setText(line, x.line, Math.min(.6, x.tin.d * .5));
+    });
+    t += x.len;
+  });
+  // 끝: 제목 위로 금빛 빛 번짐 → 영상이 걷히며 시작 화면 보드판으로
+  later(t - .4, () => { overlay('inset:-30%;mix-blend-mode:screen;background:radial-gradient(closest-side,#fff6d8,#ffd25a88 40%,#0000)', [{opacity: 0, transform: 'scale(.4)'}, {opacity: 1, transform: 'scale(1.3)', offset: .55}, {opacity: 0, transform: 'scale(1.6)'}], {duration: 1600, easing: 'ease-in-out'}); });
+  later(t + .5, () => endCine(true));
+}
+function stopAll() { timers.forEach(clearTimeout); timers = []; anims.forEach(a => a.cancel()); anims = []; fx.innerHTML = ''; shots.forEach(el => { el.style.visibility = 'hidden'; el.getAnimations({subtree: true}).forEach(a => a.cancel()); }); line.style.opacity = 0; chapter.style.opacity = 0; }
+let voiceOn = true;
+function say(text) {
+  if (!voiceOn || !text || !('speechSynthesis' in window)) return;
+  const v = speechSynthesis.getVoices().find(v => v.lang.startsWith('ko'));
+  if (!v) return;
+  speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = 'ko-KR'; u.rate = .9; u.pitch = .9; speechSynthesis.speak(u);
+}
+// soft: 끝까지 봤을 때는 천천히 걷히고, 건너뛰기는 빠르게
+function endCine(soft) {
+  if (!cine.classList.contains('on')) return;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  timers.forEach(clearTimeout); timers = [];
+  const d = cine._done; cine._done = null;
+  const fade = cine.animate([{opacity: 1}, {opacity: 0}], {duration: soft ? 1300 : 450, easing: 'ease-in-out', fill: 'forwards'});
+  if (d) setTimeout(d, soft ? 500 : 150);
+  fade.onfinish = () => { stopAll(); cine.classList.remove('on'); fade.cancel(); };
+}
+document.getElementById('skip').onclick = () => endCine(false);
+document.getElementById('voice').onclick = e => { voiceOn = !voiceOn; e.currentTarget.setAttribute('aria-pressed', voiceOn); e.currentTarget.textContent = voiceOn ? '🔊 내레이션' : '🔇 자막만'; if (!voiceOn) speechSynthesis.cancel(); };
+addEventListener('keydown', e => { if (e.key === 'Escape' && cine.classList.contains('on')) endCine(false); });
+let seen = false;   // 실제 게임에서는 localStorage에 '오프닝 봄'을 적어 처음 한 번만 자동 재생
+const toNations = () => { document.body.classList.add('go'); setTimeout(() => toast('나라 고르기로 이어집니다<small>(시안이라 여기까지예요 · 새로 고침)</small>'), 1300); };
+document.getElementById('play').onclick = () => { if (seen) return toNations(); seen = true; playCine(toNations); };
+var toast = (h) => { const t = document.getElementById('toast'); t.innerHTML = h; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2600); };
+document.getElementById('codex').onclick = () => toast('📖 도감 창이 열려요<small>(지금 게임의 도감 그대로)</small>');
+document.getElementById('set').onclick = () => document.getElementById('panel').classList.add('on');
+document.getElementById('replay').onclick = () => { document.getElementById('panel').classList.remove('on'); playCine(null); };
+document.getElementById('close').onclick = () => document.getElementById('panel').classList.remove('on');
+document.querySelectorAll('.seg').forEach(g => g.onclick = e => { if (e.target.tagName === 'BUTTON') { g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target)); } });
+</script>
+</body>
+</html>

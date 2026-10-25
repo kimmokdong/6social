@@ -1,0 +1,10 @@
+사회 게임 공용 녹음 효과음(모두 CC0 — 출처 표기 의무 없음, 기록용)
+click.mp3   "Classic Click" by adh.dreaming  https://freesound.org/people/adh.dreaming/sounds/671105/
+pop.mp3     "POP SFX Neutral" by ethernel0  https://freesound.org/people/ethernel0/sounds/776016/
+swipe.mp3   dave.des  https://freesound.org/people/dave.des/sounds/127197/
+paper.mp3   Freesound 393811  https://freesound.org/people/deleted_user_6479820/sounds/393811/
+card.mp3    MeanRaccoon  https://freesound.org/people/MeanRaccoon/sounds/830856/
+stamp.mp3   "es-stamp.wav" by eddies2000  https://freesound.org/people/eddies2000/sounds/448474/
+popup.mp3   Kenney Interface Sounds (maximize_001)  https://kenney.nl/assets/interface-sounds
+select.mp3  Kenney Interface Sounds (confirmation_001)  https://kenney.nl/assets/interface-sounds
+sparkle.mp3 "Sparkling Star 01.wav" by LilMati  https://freesound.org/people/LilMati/sounds/462095/

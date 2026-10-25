@@ -1,0 +1,5 @@
+#!/bin/bash
+# 성장 그림 2·3단계만 다시 만든다(건물·도로·차량도 현대화). home_1은 그대로 둔다.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT/shared-art" || exit 1
+codex exec --skip-git-repo-check -s workspace-write -C "$ROOT/shared-art" "Read TRADE-V6-GROWTH.md in this folder (it was just updated: the era must change across stages). Regenerate ONLY trade/v6/home_2 and trade/v6/home_3 with the built-in image generation tool, starting from trade/v6/raw/home_1.png as the base image so the island outline, coast and camera stay identical. Stage 2 = growing concrete town, stage 3 = modern city with glass towers, apartment blocks, asphalt roads with cars, container terminal — no old red-tile cottages left in the centre. Keep home_1 untouched. Write raw/home_2.png, raw/home_3.png and the 680x384 WebP (quality 85) home_2.webp, home_3.webp, plus 170px check copies. Pillow only to resize/convert. Open the results and verify at 170 px that stage 1, 2 and 3 clearly look like three different eras; regenerate if the buildings still look old. Append what you did to trade/v6/home-notes.md. Do not edit any file outside trade/v6/. Report briefly." 2>&1 | tail -20

@@ -38,6 +38,8 @@ window.TradeArt = (() => {
       arrowOut: line('M80 50H30M50 28 30 50l20 22', '#B8434F', 10),
       banana: `<path d="M20 30c-4 30 14 56 48 58 10 1 18-4 22-10-30 2-50-14-56-50-2-8-12-6-14 2Z" fill="#F5C542"/><path d="M26 30c4 24 20 42 48 48" fill="none" stroke="#C99A1E" stroke-width="5" stroke-linecap="round"/>`,
       oil: rect(26, 14, 48, 74, '#E8761E', 8) + rect(26, 30, 48, 8, '#B5561A') + rect(26, 62, 48, 8, '#B5561A') + `<ellipse cx="50" cy="14" rx="24" ry="7" fill="#F2A35A"/>`,
+      shirt: `<path d="M34 14 50 22l16-8 22 14-10 16-8-4v48H26V40l-8 4L8 28Z" fill="#D86A8E"/><path d="M34 14c4 10 28 10 32 0l-6 14H40Z" fill="#B24A6C"/>` + rect(44, 50, 12, 6, '#FFD5E1', 2),
+      robot: rect(20, 30, 60, 46, '#6F8FC8', 10) + rect(30, 42, 14, 12, '#FFFDF8', 3) + rect(56, 42, 14, 12, '#FFFDF8', 3) + `<circle cx="37" cy="48" r="4" fill="#24212B"/><circle cx="63" cy="48" r="4" fill="#24212B"/>` + rect(36, 62, 28, 6, '#24212B', 3) + line('M50 30V16', '#24212B', 5) + `<circle cx="50" cy="13" r="6" fill="#E0533C"/>` + rect(8, 40, 10, 24, '#4D6CA8', 4) + rect(82, 40, 10, 24, '#4D6CA8', 4) + rect(28, 76, 14, 12, '#4D6CA8', 3) + rect(58, 76, 14, 12, '#4D6CA8', 3),
       steel: rect(14, 52, 72, 14, '#B9C2CE', 3) + rect(20, 38, 72, 14, '#D2D9E2', 3) + rect(8, 66, 72, 14, '#98A3B1', 3),
       battery: rect(18, 26, 60, 50, '#2E9E6B', 8) + rect(78, 40, 8, 22, '#24212B', 2) + rect(26, 34, 14, 34, '#A8E6C4', 3) + rect(44, 34, 14, 34, '#A8E6C4', 3),
       box: cube(18, 36, 56, 44, 14, '#3B6FE0') + rect(40, 36, 12, 44, '#F5C542') + rect(18, 52, 56, 10, '#F5C542'),

@@ -19,3 +19,11 @@ art_compare.png
 # 그림 원본(큰 PNG) — 게임은 WebP 만 씀
 shared-art/raw/
 fake-traveler/assets/raw/
+
+# 7.x 그림 원본(raw PNG)·로컬 설정
+shared-art/trade/v6/raw/
+.claude/
+
+# 7.9 컷신·소리 원본(게임은 webp·압축 mp3만 씀)
+shared-art/trade/v6/cine/raw/
+shared-art/trade/v6/sound/src/

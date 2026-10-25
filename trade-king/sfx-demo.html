@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>무역왕 오프닝 효과음 시험</title>
+<!-- 효과음 24개를 하나씩 들어 보고, 체크한 것만 넣어 오프닝을 재생하며 어울리는지 본다.
+     영상 중에는 왼쪽 아래에 '🔊 이름' 빨간 표시가 뜬다 = 그 효과음이 지금 나는 중. 체크 상태는 저장된다(trade6.sfxdemo). -->
+<link rel="stylesheet" href="css/title6.css?v=7.3b">
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { background: #17212b; color: #f3e9d2; font: 16px/1.4 "Pretendard", "Noto Sans KR", system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { flex: none; display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #0f161e; border-bottom: 2px solid #3a2d1a; flex-wrap: wrap; }
+  header h1 { margin: 0 auto 0 0; font-size: 20px; color: #f3d9a8; }
+  header button, header label { font: inherit; font-weight: 800; }
+  header button { height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid #c9a24d; background: #2a2114; color: #fff3d6; cursor: pointer; }
+  header button.play { background: #c9a24d; color: #231a0c; font-size: 18px; }
+  header button:hover { filter: brightness(1.12); }
+  header label { display: flex; align-items: center; gap: 6px; }
+  header input { width: 20px; height: 20px; accent-color: #c9a24d; }
+  .note { flex: none; padding: 6px 18px; font-size: 15px; color: #c9b891; background: #121a23; }
+  .note b { color: #ff7b6b; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; padding: 10px 14px 14px; }
+  .card { position: relative; display: flex; flex-direction: column; min-height: 0; border-radius: 12px; background: #1f2b38; border: 2px solid #2e3d4d; overflow: hidden; transition: opacity .2s, box-shadow .2s, border-color .2s; }
+  .card.off { opacity: .42; }
+  .card.live { border-color: #ff6b57; box-shadow: 0 0 0 3px #ff6b5766, 0 0 24px #ff6b57aa; opacity: 1; }
+  .card .pic { flex: 1; min-height: 0; background: #0b1218 center/cover; display: grid; place-items: center; font-size: 34px; }
+  .card .pic .t { position: absolute; left: 8px; top: 6px; padding: 2px 8px; border-radius: 6px; background: #000a; color: #ffe9b8; font-size: 15px; font-weight: 800; }
+  .card .pic .now { position: absolute; right: 8px; top: 6px; padding: 2px 8px; border-radius: 6px; background: #c0392b; color: #fff; font-size: 15px; font-weight: 800; display: none; }
+  .card.live .pic .now { display: block; animation: pulse .6s ease-in-out infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
+  .card .body { flex: none; display: grid; grid-template-columns: 1fr auto auto; grid-template-areas: "name name name" "file prev put"; align-items: center; gap: 4px 6px; padding: 6px 8px; }
+  .card .name { grid-area: name; min-width: 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .file { grid-area: file; min-width: 0; font-size: 15px; color: #9fb0c0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card button { grid-area: prev; } .card label { grid-area: put; }
+  .card button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #c9a24d; background: #2a2114; color: #ffe9b8; font-size: 16px; cursor: pointer; }
+  .card button[aria-pressed=true] { background: #c9a24d; color: #231a0c; }
+  .card label { display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; cursor: pointer; }
+  .card input { width: 20px; height: 20px; accent-color: #c9a24d; }
+  #title { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔊 오프닝 효과음 시험</h1>
+  <span id="count"></span>
+  <button data-all="1">모두 넣기</button>
+  <button data-all="0">모두 빼기</button>
+  <label><input type="checkbox" id="music" checked> 배경음악도 함께</label>
+  <button class="play" data-play>▶ 체크한 효과음으로 오프닝 재생</button>
+</header>
+<p class="note">▶ 단추로 하나씩 들어 보고, 체크를 끄면 그 효과음은 영상에서 빠집니다. 영상이 나오는 동안 왼쪽 아래 <b>🔊 빨간 표시</b>가 지금 나는 효과음입니다. Esc로 건너뛰기.</p>
+<main id="grid"></main>
+<script src="js/opening6.js?v=7.1h"></script>
+<script src="js/title6.js?v=7.3b"></script>
+<script>
+(() => {
+  const OP = TRADE_OPENING, SH = OP.shots, NAMES = OP.sfxNames || {}, KEY = 'trade6.sfxdemo';
+  // 컷 시작 시각(내레이션 길이에 맞춰 늘어난 실제 값, sound/README.txt 시각표와 같다)
+  const START = [0, 7.3, 12.4, 14.4, 16.4, 18.4, 20.4, 22.5, 24.8, 32.4, 37.2, 40.2, 43.9, 48.2, 53.0, 55.5, 58.0, 60.5, 62.8, 64.9, 67.4, 74.4, 79.1, 85.1];
+  const KIND = {clouds: '☁️', sea: '🌊', grow: '🏙️', title: '👑'};
+  const SCENE = ['바다의 시대', '항구 마을', '식량 거두기', '석유', '철광석', '옷 짜기', '철강', '첨단기기', '혼자인 섬', '계약', '짐 싣기', '항해', '도착', '수많은 배', '태풍', '해적', '화재', '발명', '시장', '축제', '도시로', '풍요로운 식탁', '바다의 무역왕', '제목'];
+  const idx = SH.map((x, i) => x.sfx ? i : -1).filter(i => i >= 0);
+  let on; try { on = new Set(JSON.parse(localStorage.getItem(KEY)) || idx); } catch { on = new Set(idx); }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...on])); } catch {} };
+  const mmss = s => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+  const grid = document.getElementById('grid'), count = document.getElementById('count');
+  const cards = {};
+  for (const i of idx) {
+    const x = SH[i], t = START[i] + (x.sfxAt || 0);
+    const c = document.createElement('div'); c.className = 'card' + (on.has(i) ? '' : ' off'); c.dataset.i = i;
+    c.innerHTML = `<div class="pic" style="${x.img ? `background-image:url(${x.img})` : ''}">${x.img ? '' : KIND[x.kind] || ''}<span class="t">${mmss(t)}</span><span class="now">🔊 지금</span></div>
+      <div class="body"><div class="name">${NAMES[x.sfx] || x.sfx} <span style="font-weight:500;color:#c9b891">· ${SCENE[i]}</span></div><div class="file">${x.sfx}</div>
+      <button data-prev aria-label="들어 보기" aria-pressed="false">▶</button><label><input type="checkbox" ${on.has(i) ? 'checked' : ''}> 넣기</label></div>`;
+    grid.append(c); cards[i] = c;
+  }
+  const tally = () => { count.textContent = `${idx.length}개 중 ${on.size}개 넣음`; };
+  tally();
+  // 하나씩 들어 보기(한 번에 하나만)
+  let prev = null, prevBtn = null;
+  const stopPrev = () => { if (prev) { prev.pause(); prev = null; } if (prevBtn) { prevBtn.setAttribute('aria-pressed', 'false'); prevBtn.closest('.card').classList.remove('live'); prevBtn = null; } };
+  grid.addEventListener('click', e => {
+    const card = e.target.closest('.card'); if (!card) return; const i = +card.dataset.i;
+    if (e.target.closest('[data-prev]')) {
+      const b = e.target.closest('[data-prev]'); if (prevBtn === b) return stopPrev();
+      stopPrev(); prev = new Audio(OP.soundDir + SH[i].sfx); prev.volume = OP.volume?.sfx ?? .7; prevBtn = b; b.setAttribute('aria-pressed', 'true'); card.classList.add('live');
+      prev.onended = stopPrev; prev.play().catch(stopPrev);
+    }
+  });
+  grid.addEventListener('change', e => {
+    const card = e.target.closest('.card'); if (!card || e.target.type !== 'checkbox') return; const i = +card.dataset.i;
+    e.target.checked ? on.add(i) : on.delete(i); card.classList.toggle('off', !e.target.checked); save(); tally();
+  });
+  document.querySelectorAll('[data-all]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.all === '1'; on = new Set(v ? idx : []); save(); tally();
+    for (const i of idx) { cards[i].classList.toggle('off', !v); cards[i].querySelector('input').checked = v; }
+  }));
+  // 오프닝 재생: 체크한 효과음만, 화면에 표시, 카드도 같이 빛남
+  const timers = [];
+  document.querySelector('[data-play]').addEventListener('click', () => {
+    stopPrev(); timers.forEach(clearTimeout); timers.length = 0;
+    OP.soundtrack = document.getElementById('music').checked ? 'soundtrack.mp3' : null;
+    TradeTitle.set('voice', true);
+    TradeTitle.sfx({enabled: true, pick: i => on.has(i), mark: true, onPlay: (i, name, dur) => {
+      const c = cards[i]; if (!c) return; c.classList.add('live'); timers.push(setTimeout(() => c.classList.remove('live'), dur * 1000));
+    }});
+    TradeTitle.playOpening(() => { for (const c of Object.values(cards)) c.classList.remove('live'); });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>무역왕 게임 소리 고르기</title>
+<!-- 7.4 게임 효과음 17가지 × 후보 3개를 듣고 고른다. 고른 것은 이 브라우저에 저장(trade6.sfxdemo74)되고,
+     [설정 복사]로 나온 글을 js/sound74.js의 pick·gain에 붙여 넣으면 게임에 들어간다. 배경음악 장면 바뀜·줄어듦도 들어 볼 수 있다. -->
+<style>
+  body { margin: 0; background: #17212b; color: #f3e9d2; font: 16px/1.45 "Pretendard", "Noto Sans KR", system-ui, sans-serif; word-break: keep-all; }
+  header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 18px; background: #0f161e; border-bottom: 2px solid #3a2d1a; }
+  h1 { margin: 0 auto 0 0; font-size: 20px; color: #f3d9a8; }
+  button { font: inherit; font-weight: 800; cursor: pointer; border-radius: 999px; border: 2px solid #c9a24d; background: #2a2114; color: #fff3d6; min-height: 40px; padding: 0 14px; }
+  button.main { background: #c9a24d; color: #231a0c; }
+  button[aria-pressed=true] { background: #c9a24d; color: #231a0c; }
+  main { max-width: 1100px; margin: 0 auto; padding: 12px 18px 40px; }
+  h2 { font-size: 18px; color: #f3d9a8; margin: 22px 0 8px; }
+  .note { color: #c9b891; font-size: 15px; margin: 4px 0 10px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 6px 8px; border-bottom: 1px solid #2e3d4d; vertical-align: middle; }
+  td.name { font-weight: 800; width: 230px; }
+  td.name small { display: block; color: #9fb0c0; font-weight: 600; font-size: 15px; }
+  .cands { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cand { display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: #1f2b38; border: 2px solid #2e3d4d; font-size: 15px; }
+  .cand.on { border-color: #c9a24d; background: #2a2114; }
+  .cand button { width: 40px; padding: 0; }
+  .cand input { width: 20px; height: 20px; accent-color: #c9a24d; }
+  .cand.live { box-shadow: 0 0 0 3px #ff6b5788; }
+  td.vol { width: 170px; } td.vol input { width: 120px; accent-color: #c9a24d; } td.vol span { font-size: 15px; color: #c9b891; }
+  .music { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #state { font-size: 15px; color: #9fb0c0; }
+  #out { width: 100%; height: 150px; margin-top: 8px; background: #0b1218; color: #ffe9b8; border: 2px solid #2e3d4d; border-radius: 8px; font: 15px/1.4 ui-monospace, Consolas, monospace; display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎮 무역왕 게임 소리 고르기</h1>
+  <button class="main" data-allplay>▶ 고른 것 모두 차례로 듣기</button>
+  <button data-reset>처음 고른 것으로</button>
+  <button data-copy>설정 복사</button>
+</header>
+<main>
+  <h2>🎵 배경음악</h2>
+  <p class="note">게임 중에는 멈춤(⏸) 상태에서도 음악이 계속 나와요. 사건·회의 창이 뜨면 작아지고, 위기 사건이면 긴장 곡으로 바뀌어요(곡이 없으면 평소 곡을 작게).</p>
+  <div class="music">
+    <button data-scene="sail">평소 항해</button><button data-scene="storm">위기 사건</button><button data-scene="end">결과 책</button><button data-scene="">음악 끄기</button>
+    <button data-duck>창 열림(작아짐)</button>
+    <span id="state"></span>
+  </div>
+  <h2>🔊 효과음</h2>
+  <p class="note">▶로 들어 보고 동그라미로 하나를 고르세요. 오른쪽 막대는 그 소리 크기예요. 고른 것은 이 브라우저에 저장돼요.</p>
+  <table id="list"></table>
+  <textarea id="out" readonly></textarea>
+</main>
+<script src="js/sound74.js?v=7.4e"></script>
+<script>
+(() => {
+  const C = TradeSound74, A = TradeAudio, KEY = 'trade6.sfxdemo74';
+  let st; try { st = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { st = {}; }
+  const pick = {...C.pick, ...st.pick}, gain = {...C.gain, ...st.gain};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({pick, gain})); } catch {} };
+  const list = document.getElementById('list');
+  const short = f => f.replace(/^ui\//, '').replace(/\.mp3$/, '').replace(/^kenney-/, '').slice(0, 26);
+  list.innerHTML = C.events.map(([id, name, files]) => `<tr data-id="${id}"><td class="name">${name}<small>${id}</small></td>
+    <td><div class="cands">${files.map((f, k) => `<label class="cand${pick[id] === k ? ' on' : ''}" data-k="${k}"><button type="button" data-play="${k}" aria-label="${k + 1}번 듣기">▶</button><input type="radio" name="${id}" value="${k}" ${pick[id] === k ? 'checked' : ''}>${k + 1}. ${short(f)}</label>`).join('')}</div></td>
+    <td class="vol"><input type="range" min="0" max="1.5" step="0.05" value="${gain[id]}" aria-label="${name} 크기"> <span>${Math.round(gain[id] * 100)}%</span></td></tr>`).join('');
+  // 한 번에 하나: 들어 보는 동안 후보가 빨갛게
+  let cur = null;
+  function hear(id, k) {
+    return new Promise(done => {
+      cur?.a.pause(); cur?.el.classList.remove('live');
+      const el = list.querySelector(`tr[data-id="${id}"] .cand[data-k="${k}"]`), a = new Audio(C.dir + C.events.find(e => e[0] === id)[2][k]);
+      a.volume = Math.min(1, gain[id] * C.sfxVolume); el.classList.add('live'); cur = {a, el};
+      const end = () => { el.classList.remove('live'); done(); }; a.onended = end; a.onerror = end; a.play().catch(end);
+    });
+  }
+  list.addEventListener('click', e => { const b = e.target.closest('[data-play]'); if (!b) return; e.preventDefault(); hear(b.closest('tr').dataset.id, +b.dataset.play); });
+  list.addEventListener('change', e => {
+    const tr = e.target.closest('tr'), id = tr.dataset.id;
+    if (e.target.type === 'radio') { pick[id] = +e.target.value; tr.querySelectorAll('.cand').forEach(c => c.classList.toggle('on', +c.dataset.k === pick[id])); save(); hear(id, pick[id]); }
+  });
+  list.addEventListener('input', e => { if (e.target.type !== 'range') return; const id = e.target.closest('tr').dataset.id; gain[id] = +e.target.value; e.target.nextElementSibling.textContent = Math.round(gain[id] * 100) + '%'; save(); });
+  document.querySelector('[data-allplay]').addEventListener('click', async () => { for (const [id] of C.events) { await hear(id, pick[id]); await new Promise(r => setTimeout(r, 350)); } });
+  document.querySelector('[data-reset]').addEventListener('click', () => { try { localStorage.removeItem(KEY); } catch {} location.reload(); });
+  document.querySelector('[data-copy]').addEventListener('click', () => {
+    const o = document.getElementById('out'), j = o => JSON.stringify(o).replace(/"(\w+)":/g, '$1: ').replace(/,/g, ', ');
+    o.value = `  pick: ${j(pick)},\n  gain: ${j(gain)},`; o.style.display = 'block'; o.select();
+    navigator.clipboard?.writeText(o.value).catch(() => {});
+  });
+  // 배경음악: 게임과 같은 장치(TradeAudio)로
+  let ducked = false;
+  document.querySelectorAll('[data-scene]').forEach(b => b.addEventListener('click', () => { A.boot(); A.scene(b.dataset.scene || null); }));
+  document.querySelector('[data-duck]').addEventListener('click', e => { ducked = !ducked; A.duck('demo', ducked); e.target.setAttribute('aria-pressed', ducked); });
+  const NAME = {sail: '평소 항해', storm: '위기 사건', end: '결과 책'};
+  setInterval(() => { const s = A.state(); document.getElementById('state').textContent = s.cur ? `지금: ${NAME[s.want] || s.want}${s.want === 'storm' && s.cur === 'sail' ? '(위기 곡이 아직 없어 평소 곡을 작게)' : ''} · ${Math.floor(s.time)}초 · 크기 ${Math.round(s.duckGain * 100)}%` : '음악 꺼짐'; }, 300);
+})();
+</script>
+</body>
+</html>

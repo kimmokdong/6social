@@ -1,7 +1,7 @@
 # 무역왕 6.x 화면 검사(Playwright): 저장소 루트에서 python -m http.server 8080 을 켠 뒤 python trade-king/tests/check6.py <캡처 저장 폴더>
 import sys, os
 from playwright.sync_api import sync_playwright
-OUT = sys.argv[1]; URL = 'http://localhost:8080/trade-king/play6.html?debug'
+OUT = sys.argv[1]; URL = os.environ.get('URL', 'http://localhost:8080/trade-king/play6.html?debug')
 errs = []
 with sync_playwright() as p:
     b = p.chromium.launch()
@@ -16,26 +16,30 @@ with sync_playwright() as p:
     pg.screenshot(path=f'{OUT}/2-open.png')
     pg.click('[data-ok=open]')
     # 배 1: 끌어다 놓기
-    img = pg.locator('.shipcard[data-ship="0"] .no img').bounding_box()
+    img = pg.locator('.piece[data-ship="0"] .fig img').bounding_box()
     card = {'x': img['x'] - 40, 'y': img['y'] - 30}   # 카드 속 배 그림 위에서 끌기 시작
     isle = pg.locator('.isle:not(.world)').first.bounding_box()
     pg.mouse.move(card['x'] + 60, card['y'] + 50); pg.mouse.down()  # = 그림 중앙
     pg.mouse.move(card['x'] + 80, card['y'] + 20, steps=4)
     pg.mouse.move(isle['x'] + isle['width'] / 2, isle['y'] + isle['height'] / 2, steps=8); pg.mouse.up()
     pg.wait_for_selector('.dockpanel'); pg.screenshot(path=f'{OUT}/3-dock.png')
-    print('dock sign enabled:', pg.is_enabled('[data-sign]'))
+    first_sign_enabled = pg.is_enabled('[data-sign]')
+    print('dock sign enabled:', first_sign_enabled)
     if not pg.is_enabled('[data-sign]'):
         pg.locator('[data-step][data-d="1"]:not([disabled])').first.click()
     print('dock fill:', pg.evaluate('JSON.stringify([...document.querySelectorAll(".step")].map(e => e.innerText.replace(/\s+/g, " ")))'))
     pg.locator('[data-step][data-d="1"]:not([disabled])').first.click() if pg.locator('[data-step][data-d="1"]:not([disabled])').count() else None; pg.screenshot(path=f'{OUT}/3b-dock-step.png')
     print('after pick:', pg.is_enabled('[data-sign]'))
     pg.click('[data-sign]')
+    # 6.3 기준: 첫 계약까지 클릭 수(나라 고르기 → 배 보내러 가기 → 섬 → 계약하기) 5회 이하. 추천 짐이 비어 ＋를 눌렀으면 그만큼 더한다.
+    clicks = 4 + (0 if first_sign_enabled else 1)
+    print('clicks to first contract:', clicks); assert clicks <= 5, clicks
     # 배 2: 지도 위 배 그림을 섬으로 끌기
     sh = pg.locator('.ship.mine[data-k="1"]').bounding_box(); isle2 = pg.locator('.isle:not(.world)').nth(1).bounding_box()
     pg.mouse.move(sh['x'] + sh['width'] / 2, sh['y'] + sh['height'] / 2); pg.mouse.down()
     pg.mouse.move(isle2['x'] + isle2['width'] / 2, isle2['y'] + isle2['height'] / 2, steps=10); pg.mouse.up()
+    pg.wait_for_selector('.dockpanel', timeout=3000)   # 6.3: 말이 정박 자리에 내려앉는 연출(220ms) 뒤에 부두 창이 열린다
     print('map-ship drag opened dock:', pg.locator('.dockpanel').count() == 1)
-    pg.wait_for_selector('.dockpanel')
     if pg.is_enabled('[data-sign]'): pg.click('[data-sign]')
     else: pg.click('[data-close]')
     pg.click('[data-speed="1"]'); pg.wait_for_timeout(700)

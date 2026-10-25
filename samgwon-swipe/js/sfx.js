@@ -1,5 +1,8 @@
 /* 교실에서는 조용하게 시작해요. 소리는 사용자의 첫 조작 뒤에만 생성합니다. */
 window.SamgwonSfx = (() => {
+  /* 7.4 녹음 효과음(../shared/sfx, CC0)이 어울리는 것은 파일로, 나머지(멜로디 신호음)는 아래 합성음 그대로 */
+  const FILES = {tick: ['click.mp3', .6], select: ['select.mp3', .7], swipe: ['swipe.mp3', .7], flip: ['paper.mp3', .8], stamp: ['stamp.mp3', .8], power: ['sparkle.mp3', .7]};
+  window.SfxFiles?.preload(Object.values(FILES).map(f => f[0]));
   let context, enabled = false;
   const tunes = {
     tick: [[520, 0, .045]], flip: [[320, 0, .07], [480, .04, .08]],
@@ -18,6 +21,7 @@ window.SamgwonSfx = (() => {
   };
   function play(name) {
     if (!enabled) return;
+    if (FILES[name] && window.SfxFiles?.play(...FILES[name])) return;
     try {
       const Audio = window.AudioContext || window.webkitAudioContext;
       if (!Audio) return;
