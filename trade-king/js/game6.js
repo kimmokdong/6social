@@ -18,9 +18,12 @@
   const GOODS = E.GOODS, first = a => { const g = a ? a.findIndex(v => v > 0) : -1; return g < 0 ? null : g; };
   // 바닷길: 지도 그림(shared-art/trade/v6/map6.webp)에서 바다인 갈림목(%)을 잇고, 두 곳 사이는 가장 짧은 길을 부드럽게 휘어 간다.
   // 6.3b: 항로는 우리 섬 그림이 아니라 그 앞바다의 부두 받침 줄(H = 50,57)에서 시작한다. 배가 받침에서 떠나 수로(hub)를 지나 나간다.
-  const NODES = {H: [50, 57], NL: NEAR[0], NR: NEAR[1], FL: FAR[0], FR: FAR[1], W: WORLD,
+  // 8.1 거리 비대칭: 왕복 달수마다 왼쪽(L)·오른쪽(R) 자리 하나씩. 한쪽에 가까운 섬 하나·먼 섬 하나라 겹치지 않는다(NL·NR·FL·FR은 옛 저장용 이름)
+  const SEATS = {1: [31, 67], 2: NEAR[0], 3: FAR[0], 4: [12, 43]};   // 4달 자리 x 10이면 768px 폭에서 정보 단추가 1px 넘침
+  const SEAT_NODES = Object.fromEntries(Object.entries(SEATS).flatMap(([m, [x, y]]) => [['L' + m, [x, y]], ['R' + m, [100 - x, y]]]));
+  const NODES = {H: [50, 57], NL: NEAR[0], NR: NEAR[1], FL: FAR[0], FR: FAR[1], W: WORLD, ...SEAT_NODES,
     hub: [50, 64], sl: [35, 72], sr: [65, 72], lb: [44.5, 52], lt: [44.5, 22], rb: [55.8, 52], rt: [55.8, 22], tl: [28, 15], tr: [72, 15], tm: [50, 15]};
-  const EDGES = 'H-hub sl-NL sr-NR sl-hub sr-hub hub-lb hub-rb lb-lt rb-rt lt-tm rt-tm tm-W lt-tl rt-tr tl-FL tr-FR tl-tm tr-tm'.split(' ').map(e => e.split('-'));
+  const EDGES = 'H-hub sl-NL sr-NR sl-hub sr-hub hub-lb hub-rb lb-lt rb-rt lt-tm rt-tm tm-W lt-tl rt-tr tl-FL tr-FR tl-tm tr-tm sl-L1 sr-R1 sl-L2 sr-R2 tl-L3 tr-R3 sl-L4 sr-R4'.split(' ').map(e => e.split('-'));
   // 우리 배 1~5의 색: 항로선·지도 번호·배 카드에 같은 색을 써서 어느 배가 어디 가는지 한눈에 보이게 한다.
   const SHIP_COLORS = ['#e2533f', '#2b86d6', '#2e9e52', '#9a55cf', '#e89a10'], tint = k => `--c:${SHIP_COLORS[k % SHIP_COLORS.length]}`;
   // 6.7 배 피규어: 색 원판 대신 배 몸체 색으로 구분(빨강·파랑·초록·보라·노랑), 다른 나라 배는 회색
@@ -62,7 +65,8 @@
       const s = JSON.parse(localStorage.getItem('trade6.save')), game = E.loadGame(s?.game);
       if (!game || game.over || !Number.isFinite(s.acc) || s.acc < 0 || s.acc >= 1 || s.slot?.[E.player(game).id] !== 'H' || s.slot.world !== 'W') return null;
       const keys = game.nations.slice(1).map(n => s.slot[n.id]);
-      if (new Set(keys).size !== 4 || game.nations.slice(1).some(n => !(game.dist[n.id] === 2 ? ['NL', 'NR'] : ['FL', 'FR']).includes(s.slot[n.id]))) return null;
+      const seatOk = (id, k) => k === 'L' + game.dist[id] || k === 'R' + game.dist[id] || (game.dist[id] === 2 ? ['NL', 'NR'] : game.dist[id] === 3 ? ['FL', 'FR'] : []).includes(k);
+      if (new Set(keys).size !== 4 || game.nations.slice(1).some(n => !seatOk(n.id, s.slot[n.id]))) return null;
       return {...s, game};
     } catch { return null; }
   }
@@ -161,8 +165,9 @@
     resumed = false; lastPend = null; AU?.scene('sail');
     G = E.newGame((Math.random() * 1e9) >>> 0, id);
     slot = {[P().id]: 'H', world: 'W'}; laneCache = {};
-    const near = Object.keys(G.dist).filter(k => G.dist[k] === 2), far = Object.keys(G.dist).filter(k => G.dist[k] !== 2);
-    near.forEach((k, i) => slot[k] = ['NL', 'NR'][i]); far.forEach((k, i) => slot[k] = ['FL', 'FR'][i]);
+    // 8.1 가까운 두 섬·먼 두 섬을 좌우에 하나씩 무작위로 나눈다
+    const ids = Object.keys(G.dist).sort((a, b) => G.dist[a] - G.dist[b] || Math.random() - .5), flip = () => Math.random() < .5;
+    for (const [a, b] of [ids.slice(0, 2), ids.slice(2)]) { const [l, r] = flip() ? [a, b] : [b, a]; slot[l] = 'L' + G.dist[l]; slot[r] = 'R' + G.dist[r]; }
     speed = 0; resume = 1; acc = 0; sel = null; dock = null; focusGood = null; report = null; endPage = 1; tip = null; slotKey = ''; resetWatch();
     // 7.0 도우미: 처음 하는 게임이면 공통 단계(+ 나라 소개), 다른 나라는 해 봤고 이 나라가 처음이면 나라 소개만
     coach = null;
@@ -214,16 +219,16 @@
   const isleBusy = o => G.nations.filter(n => n !== P() && n !== o && n.ships.some(s => s.route?.to === o.id)).length >= 2;
   const isleCut = o => !!(G.cut && G.cut.until > G.month && G.cut.source === o.id);
   function island(o) {
-    const [x, y] = NODES[slot[o.id]], me = P(), far = G.dist[o.id] !== 2, {getG, giveG} = isleGoods(o);
+    const [x, y] = NODES[slot[o.id]], me = P(), far = G.dist[o.id] >= 3, {getG, giveG} = isleGoods(o), lt = laneTrait(o.id);
     const refused = E.rel(G, me, o) === 0, match = focusGood !== null && E.sells(G, o, focusGood), open = tip?.kind === 'isle' && tip.id === o.id;
     const g = (g, buy) => { const a = E.priceSignal(G, g).arrow; return `<span class="g ${buy ? label(E.price(G, o, me, g), g).k : 'sell'}">${ico(g)}${a ? `<i class="trend ${a === '▲' ? 'up' : 'down'}" aria-hidden="true">${a}</i>` : ''}</span>`; };
     return `<button class="isle${refused ? ' refused' : ''}${far ? ' far' : ''}${sel !== null ? ' target' : ''}${focusGood !== null ? match ? ' match' : ' dim' : ''}" data-drop="${o.id}" style="left:${x}%;top:${y}%"
-        aria-label="${esc(o.name)}, 왕복 ${E.tripTime(G, me, o.id)}달${refused ? ', 거래 거절 · 새해에 다시' : ''}${isleCut(o) ? ', 분쟁 중' : isleBusy(o) ? ', 다른 나라 배도 많이 와요' : ''}" aria-describedby="${open ? 'tip' : ''}">
+        aria-label="${esc(o.name)}, 왕복 ${E.tripTime(G, me, o.id)}달${lt ? `, ${lt.name}: ${lt.text}` : ''}${refused ? ', 거래 거절 · 새해에 다시' : ''}${isleCut(o) ? ', 분쟁 중' : isleBusy(o) ? ', 다른 나라 배도 많이 와요' : ''}" aria-describedby="${open ? 'tip' : ''}">
       <span class="tile"><img src="${ART}port_${T.countries.find(c => c.id === o.id).portrait}.webp" alt="">
         ${isleCut(o) ? '<span class="badge cut" aria-hidden="true">🚫</span>' : isleBusy(o) ? '<span class="badge" aria-hidden="true">👥</span>' : ''}
         <span class="plank"><b>${esc(o.name)}</b><span class="hearts">${hearts(E.rel(G, me, o))}</span>${infoBtn(o.id, o.name, open && tip.pinned)}</span></span>
       ${refused ? '<span class="refusal">🚫 거래 거절 · 새해에 다시</span>' : match ? `<span class="quote">${ico(focusGood)} ${lbl(E.price(G, o, me, focusGood), focusGood)} <b>${E.price(G, o, me, focusGood)}억</b><small>재고 ${E.exportable(G, o, focusGood)}</small></span>`
-        : `<span class="icons"><small>⛵${E.tripTime(G, me, o.id)}달</small>${getG.map(x => g(x, true)).join('')}${getG.length && giveG.length ? '<i class="sep"></i>' : ''}${giveG.map(x => g(x, false)).join('')}</span>`}</button>`;
+        : `<span class="icons"><small>⛵${E.tripTime(G, me, o.id)}달${lt ? ` ${lt.icon}` : ''}</small>${getG.map(x => g(x, true)).join('')}${getG.length && giveG.length ? '<i class="sep"></i>' : ''}${giveG.map(x => g(x, false)).join('')}</span>`}</button>`;
   }
   // 7.6 ⓘ 단추: 동그라미 안 가운데 i(글꼴 i를 격자 가운데에)
   const infoBtn = (id, name, on) => `<span class="info" role="button" tabindex="0" data-info="${id}" aria-label="${esc(name)} 정보" aria-expanded="${!!on}"><i aria-hidden="true">i</i></span>`;
@@ -245,6 +250,7 @@
     return `<span class="tip-head">${esc(o.name)} <span class="hearts">${hearts(E.rel(G, me, o))}</span></span>
       <p class="trust-rule">${E.rel(G, me, o) === 0 ? '🚫 거래 거절 · 새해에 다시<br>지금 계약은 끝까지 이어져요.<br>' : ''}♥0 거래 거절 · ♥2 손님 배 · ♥3 할인·먼저 받기</p>
       <p class="line"><span>⛵ 왕복 ${E.tripTime(G, me, o.id)}달</span><span>${josa(gname(o.main), '을', '를')} 잘 만들어요</span>${isleBusy(o) ? '<span class="busy">👥 붐벼요</span>' : ''}${isleCut(o) ? '<span class="cut">🚫 분쟁 중</span>' : ''}</p>
+      ${laneTrait(o.id) ? `<p class="lane-note ${laneTrait(o.id).kind}">${laneTrait(o.id).icon} <b>${laneTrait(o.id).name}</b> · ${laneTrait(o.id).text}</p>` : ''}
       ${sec(`${josa(o.name, '이', '가')} 수출해요 <small>우리가 살 수 있어요</small>`, sells.map(g => deal(g, E.price(G, o, me, g), lbl(E.price(G, o, me, g), g), `<span>${'⭐'.repeat(o.quality[g])}</span><span>재고 ${E.exportable(G, o, g)}상자</span>${E.buys(G, me, g) ? '<span class="needtag">우리에게 필요</span>' : ''}`)).join('') || '<small>지금 팔 물건이 없어요</small>')}
       ${sec(`${josa(o.name, '이', '가')} 수입하고 싶어요 <small>초록은 우리가 팔 수 있어요</small>`, wants.length ? `<span class="wants">${wants.map(g => want(g, E.price(G, me, o, g))).join('')}</span>` : '<small>지금 모자란 물건이 없어요</small>')}
       ${bonus ? `<p class="perk"><b>🎁 단골 혜택</b> ${esc(bonus)}</p>` : ''}
@@ -285,6 +291,15 @@
     let i = 1; while (i < l.acc.length - 1 && l.acc[i] < d) i++;
     const f = (d - l.acc[i - 1]) / ((l.acc[i] - l.acc[i - 1]) || 1);
     return [0, 1].map(c => l.pts[i - 1][c] + (l.pts[i][c] - l.pts[i - 1][c]) * f);
+  }
+  // 8.1 항로 특징: 섬 꼬리표·지도 표시·계약서·툴팁이 같은 글을 쓴다
+  const laneTrait = id => E.S.laneTraits.find(t => t.id === G.lanes?.[id]) || null;
+  function laneMarks() {
+    return G.nations.slice(1).filter(o => laneTrait(o.id) && slot[o.id]).map(o => {
+      // 바닷길은 여러 섬이 함께 쓰므로, 표시는 그 섬 그림의 바다 쪽 위 모서리에 붙인다
+      const t = laneTrait(o.id), [sx, sy] = NODES[slot[o.id]], x = sx + (sx < 50 ? -5 : 5), y = sy - 9;
+      return `<span class="lane-mark ${t.kind}" style="left:${x}%;top:${y}%" tabindex="0"${tipA(`<b>${t.icon} ${t.name}</b> · ${esc(o.name)} 가는 길<br>${t.text}`, 1)} aria-label="${esc(o.name)} 가는 길 ${t.name}: ${t.text}">${t.icon}</span>`;
+    }).join('');
   }
   function lanes() {
     const npc = new Set(), me = P();
@@ -393,6 +408,7 @@
       </header>
       <section class="map" id="map">
         <svg class="lanes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lanes()}</svg>
+        ${laneMarks()}
         ${guidance()}
         ${smallCard()}
         <button class="isle world${focusGood !== null ? ' match' : ''}" data-drop="world" style="left:${WORLD[0]}%;top:${WORLD[1]}%" aria-label="${esc(E.S.world.name)}, ${esc(E.S.world.title)}, 왕복 ${X.worldTrip}달"><span class="land${CONTINENT_ART ? ' art' : ''}" aria-hidden="true"></span><span class="plank"><b>🗻 ${esc(E.S.world.name)}</b><small>${focusGood !== null ? `${gname(focusGood)} ${E.price(G, G.world, me, focusGood)}억 · ` : `${esc(E.S.world.title)} · `}⛵${X.worldTrip}달</small>${infoBtn('world', E.S.world.name, tip?.kind === 'isle' && tip.id === 'world' && tip.pinned)}</span></button>
@@ -596,7 +612,7 @@
   function showDelivery() {
     const d = P().ships[report.i].delivery, o = nameOf(d.to), pen = sum(d.penaltyIn.map(p => p.amount)) - sum(d.penaltyOut.map(p => p.amount));
     const goods = a => GOODS.filter(g => a[g]).map(g => `<span>${ico(g)}<b>${a[g]}</b><small>${gname(g)}</small></span>`).join('');
-    const notes = [...d.shortages.map(s => `<li class="warn">⚠ ${gname(s.good)} ${s.qty}상자 덜 받음 · ${esc(s.reason)}</li>`),
+    const notes = [...(d.laneNotes || []).map(t => `<li class="lane">${esc(t)}</li>`), ...d.shortages.map(s => `<li class="warn">⚠ ${gname(s.good)} ${s.qty}상자 덜 받음 · ${esc(s.reason)}</li>`),
       ...d.penaltyIn.map(p => `<li class="pin">📜 ${esc(josa(o, '이', '가'))} ${gname(p.good)} ${p.qty}상자를 못 줘서 위약금 <b class="plus">+${p.amount}억</b>을 받았어요${p.debt ? `<small> · 상대 금고가 모자라 ${p.debt}억은 빚이 됐어요</small>` : ''}</li>`),
       ...d.penaltyOut.map(p => `<li class="pout">📜 ${gname(p.good)} ${p.qty}상자를 못 실어 ${esc(o)}에 위약금 <b class="neg">−${p.amount}억</b>을 냈어요${p.debt ? `<small> · 금고가 모자라 ${p.debt}억은 빚이 됐어요</small>` : ''}</li>`)];
     modal(`<header class="rp-head"><span class="yr-seal" aria-hidden="true">⚓</span><div><p class="eyebrow">${Math.floor(d.month / 12) + 1}년째 ${d.month % 12 + 1}월 ${d.day}일 · ${esc(o)}</p><h2>배 ${report.i + 1}의 도착 결과</h2></div></header>
@@ -654,7 +670,7 @@
       <header class="dk-head"><img class="dk-pic mine" src="${homeImg(homeStage(me))}" alt=""><div class="dk-title"><small class="chapter">📜 배 ${dock.i + 1} · 무역 계약서</small>
         <h3 tabindex="-1">🏠 ${esc(me.name)} ⇄ ${esc(o.name)} 무역 계약</h3>
         <ul class="features" aria-label="이 항로의 특징"><li class="route">📅 ${yrs}년 계약 · ${dshort(from)} ~ ${dshort(until)}</li><li class="route">⛵ 왕복 ${t}달 · 약 ${trips}번 왕복</li><li>🔒 계약 동안 가격 고정</li>${feats.map(f => `<li>${f}</li>`).join('')}</ul></div>${pic}</header>
-      <div class="dockbody"><div class="trade-intro"><p class="muted">${s.route ? `지금 계약이 ${dshort(s.route.until)}에 끝나면 이 계약으로 떠나요. 예약할 때는 신뢰가 줄지 않아요.` : '추천 짐을 실어 뒀어요. 1년 동안 자동 왕복하고 끝나면 쉬어요. ♥0과는 새 계약을 못 해요.'}</p>
+      <div class="dockbody"><div class="trade-intro"><p class="muted">${s.route ? `지금 계약이 ${dshort(s.route.until)}에 끝나면 이 계약으로 떠나요. 예약할 때는 신뢰가 줄지 않아요.` : '추천 짐을 실어 뒀어요. 1년 동안 자동 왕복하고 끝나면 쉬어요. ♥0과는 새 계약을 못 해요.'}</p>${!o.world && laneTrait(o.id) ? `<p class="lane-note ${laneTrait(o.id).kind}">${laneTrait(o.id).icon} <b>${laneTrait(o.id).name}</b> · ${laneTrait(o.id).text}</p>` : ''}
         ${hiddenCount || dock.more ? `<button class="more" data-more aria-expanded="${dock.more}">${dock.more ? '추천만 보기 ▴' : `다 보기 (${hiddenCount}) ▾`}</button>` : ''}</div>
       <div class="cols${nG > 3 ? ' wide-give' : ''}${nR > 3 ? ' wide-get' : ''}">
         ${col('give', 'give', `수출 · ${esc(me.name)} ➜ ${esc(o.name)}`, '우리가 보내요 · 1상자에 받을 값', giveRows, nG, gives.length ? '추천 짐이 없어요. "다 보기"에서 담을 수 있어요.' : '여기에 팔 수 있는 게 없어요')}
@@ -885,6 +901,7 @@
     // 7.9b 증강체·작은 돌발·값 신호 · 8.0 누적 점수
     {key: 'small79', id: null, at: '.small-pop', when: () => !!$('.small-pop'), say: () => '지도 오른쪽 위 카드는 <b>작은 돌발</b>이야. 시간은 그대로 흘러. 단추가 붙어 있으면 7일 안에 눌러 봐!'},
     {key: 'trend79', id: null, at: '.isle .trend', when: () => G.month >= 4 && !!$('.isle .trend'), say: () => '물건 그림 옆 <b>▲</b>는 요즘 오르는 값, <b>▼</b>는 내리는 값이야. 계약서에서 <b>최근 6달 중 싼 편</b>일 때 맺으면 1년 동안 싸게 사. 배 한 척은 잠깐 기다려도 돼.'},
+    {key: 'lane81', id: null, at: '.lane-mark', when: () => G.month >= 1 && !!$('.lane-mark'), say: () => '바닷길 위 그림은 <b>항로의 특징</b>이야. 🌊 해류·🐟 어장은 좋은 길, 🏴‍☠️ 해적·⛈ 폭풍 바다는 값이 좋은 대신 가끔 손해를 봐. 그림을 눌러 봐!'},
     {key: 'sum80', id: null, at: '.forecast', when: () => G.month >= 12, say: () => `점수는 해마다 <b>쌓여</b>! 나라가 커지면 정산이 ${E.S.rules79.overFrom}점을 넘을 수도 있어. 다만 <b>${E.S.rules79.overFrom}점 위는 절반만</b> 쌓이니까 한 가지만 잔뜩 모으기보다 고루 채워 봐.`},
     {key: 'aug79', id: null, at: '.home', when: me => me.augments.length === 1, say: () => '고른 증강체는 우리 섬을 누르면 <b>🧩 증강체</b> 칸에 모여. 같은 콘셉트를 <b>2장·3장</b> 모으면 보너스가 켜져!'}
   ];

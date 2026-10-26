@@ -159,9 +159,12 @@
     if (modSum(G, buyer, 'exchange', -1)) p = p * 1.5;
     if (modSum(G, seller, 'exchange', -1)) p = p * 1.2;
     if (modSum(G, seller, 'retaliated', -1)) p = p * .9;
-    p *= tm * (has(seller, 'artisan') && seller.quality[g] === 3 ? XT.luxBonus : 1) * (has(buyer, 'market') ? XT.marketDiscount : 1) * (owned(seller,'survey')?1+V.survey:1) * (owned(buyer,'survey')?1-V.survey:1) * (owned(buyer,'autarky')?V.autarkyPrice:1);
+    p *= laneMul(G, seller, buyer) * tm * (has(seller, 'artisan') && seller.quality[g] === 3 ? XT.luxBonus : 1) * (has(buyer, 'market') ? XT.marketDiscount : 1) * (owned(seller,'survey')?1+V.survey:1) * (owned(buyer,'survey')?1-V.survey:1) * (owned(buyer,'autarky')?V.autarkyPrice:1);
     return Math.max(1, Math.round(p));
   }
+  // 8.1 항로 특징(우리 배만): 해적 바다 섬에서 사면 싸고, 폭풍 바다 섬에 팔면 비싸다
+  const laneOf = (G, n, to) => n === player(G) ? G.lanes?.[to] || null : null;
+  const laneMul = (G, seller, buyer) => laneOf(G, buyer, seller.id) === 'pirates' ? 1 - V.lanePrice : laneOf(G, seller, buyer.id) === 'storm' ? 1 + V.lanePrice : 1;
   const benefitRel = (G,a,b) => rel(G,a,b)>=2&&(on(a,'diplomat',2)||on(b,'diplomat',2))?3:rel(G,a,b);
   // 7.9 달마다 실제 세계값 여섯 개만 보관한다.
   function recordPrices(G) { for(const g of GOODS){ const a=G.priceHistory[g], p={month:G.month,price:worldPrice(G,g)}; if(a.at(-1)?.month===G.month)a[a.length-1]=p;else a.push(p);while(a.length>6)a.shift(); } }
@@ -277,7 +280,11 @@
     for (const g of GOODS) if (r.give[g]) penalty(G, n, o, g, Math.max(0, Math.min(r.give[g], o.world ? 999 : Math.floor(o.money / r.gp[g])) - load[g]), r.gp[g], penaltyOut);
     ship.cargo = {give: GOODS.map(g => take(n, g, load[g]).qty), get: none(), q: GOODS.map(() => 2), sold: none(), earned: 0, spent: 0, shortages: [], penaltyIn: [], penaltyOut};
     ship.retry = 0;
-    ship.waited = 0; ship.state = 'sea'; ship.t = 0; ship.tripMonths = tripTime(G, n, r.to); ship.T = tripDays(G, ship.tripMonths); ship.arrive = Math.ceil(ship.T / 2);
+    ship.waited = 0; ship.state = 'sea'; ship.t = 0; ship.tripMonths = tripTime(G, n, r.to); ship.T = tripDays(G, ship.tripMonths);
+    const lane = laneOf(G, n, r.to);
+    if (lane === 'current') ship.T = Math.max(2, ship.T - V.laneFast);
+    if (lane === 'storm' && random(G) < V.stormChance) { ship.T += V.stormDelay; ship.cargo.laneNotes = [`⛈ 폭풍을 만나 ${V.stormDelay}일 늦어요`]; news(G, `⛈ ${o.name} 가는 길에 폭풍! 배가 ${V.stormDelay}일 늦어요.`, 'warn'); }
+    ship.arrive = Math.ceil(ship.T / 2);
   }
   function trade(G, n, ship) {
     const r = ship.route, o = nation(G, r.to), c = ship.cargo;
@@ -310,12 +317,18 @@
       c.spent += qty * r.bp[g];
       r.traded += qty; r.stake += Math.abs(r.bp[g] - price(G, o, n, g)) * qty;
     }
+    const got = GOODS.filter(g => c.get[g] > 0);
+    if (laneOf(G, n, r.to) === 'pirates' && got.length && random(G) < V.pirateChance) {
+      const g = pick(G, got); c.get[g]--;
+      (c.laneNotes ??= []).push(`🏴‍☠️ 해적에게 ${GN(g)} 1상자를 빼앗겼어요`); news(G, `🏴‍☠️ ${o.name}에서 오는 길에 해적! ${GN(g)} 1상자를 빼앗겼어요.`, 'warn');
+    }
   }
   const exportBonus = n => (owned(n,'bonus')?V.bonus:0)+(owned(n,'interest')?V.interestBonus:0);
   function comeHome(G, n, ship) {
     const r = ship.route, c = ship.cargo;
     // 계약 예정량과 실제 받은 양을 구분하고, 같은 날 재출항·새 계약 뒤에도 결과를 남긴다.
-    if (n === player(G)) ship.delivery = {month: G.month, day: G.day, to: r.to, get: [...c.get], sold: [...c.sold], earned: c.earned, spent: c.spent, shortages: c.shortages, penaltyIn: c.penaltyIn, penaltyOut: c.penaltyOut};
+    if (laneOf(G, n, r.to) === 'fish') { add(n, 0, V.laneFish, 2); (c.laneNotes ??= []).push(`🐟 어장에서 식량 ${V.laneFish}상자를 잡았어요`); }
+    if (n === player(G)) ship.delivery = {month: G.month, day: G.day, to: r.to, get: [...c.get], sold: [...c.sold], earned: c.earned, spent: c.spent, shortages: c.shortages, penaltyIn: c.penaltyIn, penaltyOut: c.penaltyOut, laneNotes: c.laneNotes || []};
     for (const g of GOODS) {
       add(n, g, c.give[g], n.quality[g]);   // 못 판 짐은 다시 창고로
       if (c.get[g]) { add(n, g, c.get[g], c.q[g]); n.year.tradeImp[g] += c.get[g]; n.year.imp[g][r.to] = (n.year.imp[g][r.to] || 0) + c.get[g]; n.importedFrom[r.to] = (n.importedFrom[r.to] || 0) + c.get[g]; n.spentTotal += c.get[g] * r.bp[g]; }
@@ -395,7 +408,7 @@
       if (has(n, 'ironland')) { pollution = Math.floor((levelOf(G, n, 4) + levelOf(G, n, 5)) / XT.pollutionPer); if (T7.cleaner) pollution = Math.floor(pollution / 2); pollution=Math.max(0,pollution-(owned(n,'modernSteel')?V.pollutionReduction:0)); T7.pollution += pollution; }
       if (has(n, 'forest')) { tour = forestTour(G, n); cash(G, n, tour); T7.tourism += tour; }
       qual+=n.smallBonus.quality+(on(n,'artisan',2)?V.c2.artisan:0);
-      // 풍요: 먹고 남은 물건이 다음 계절 필요량 이상(곡간 관리는 절반) · 비축가 2장 +2.5 · 풍요의 나라 2배(최대 15)
+      // 풍요: 먹고 남은 물건이 다음 계절 필요량 이상(곡간 관리는 절반) · 비축가 2장 +2.5 · 풍요의 나라 2배
       const keep=owned(n,'granaryKeep')?V.keepHalf:1, abundanceBy=CONSUMER.map(g=>({good:g,stock:count(n,g),need:Math.ceil(needs(G,n)[g]*keep),points:abundancePoints(Math.floor(count(n,g)/Math.max(1,Math.ceil(needs(G,n)[g]*keep))))})), abundancePort=V.abundancePort[homeStage(n)];
       // 8.0 풍요는 합계 한도 없이 물건마다 다음 계절 필요량의 몇 배를 쌓았는지로 센다
       const abundance=(sum(abundanceBy.map(x=>x.points))+abundancePort+(on(n,'hoarder',2)?V.c2.hoarder:0))*(owned(n,'plenty')?V.plentyMult:1);
@@ -1011,8 +1024,11 @@
     for (const n of G.nations) if (has(n, 'plains')) n.trait.next = weatherDraw(G, n);
     for (const a of G.nations) { G.rel[a.id] = {}; for (const b of G.nations) if (a !== b) G.rel[a.id][b.id] = X.relStart; }
     for (const n of G.nations) n.strategy = n.npc ? (random(G) < .5 ? 'focus' : 'balanced') : null;
-    const slots = shuffle(G, X.tripMonths);
+    const slots = shuffle(G, pick(G, X.tripSets));
     G.dist = Object.fromEntries(others.map((id, k) => [id, slots[k]]));
+    // 8.1 항로 개성: 섬 두 곳에 좋은 특징 하나와 위험한 특징 하나
+    const kinds = k => S.laneTraits.filter(t => t.kind === k).map(t => t.id), [a, b] = shuffle(G, others);
+    G.lanes = {[a]: pick(G, kinds('good')), [b]: pick(G, kinds('risk'))};
     G.startShips = opts.startShips ?? X.openShips;
     const P = player(G);
     for (let k = 0; k < shipsAt(G, 0); k++) P.ships.push(newShip());
@@ -1038,7 +1054,10 @@
       const shape = (v, t) => t === null ? true : Array.isArray(t) ? Array.isArray(v) && (!t.length || v.length === t.length && v.every((x, i) => shape(x, t[i]))) : typeof t === 'object' ? v && typeof v === 'object' && !Array.isArray(v) && Object.keys(t).every(k => Object.hasOwn(v, k) && shape(v[k], t[k])) : typeof v === typeof t;
       if (!Array.isArray(G.nations) || G.nations.length !== 5 || new Set(G.nations.map(n => n?.id)).size !== 5 || G.nations.some(n => !S.countries[n?.id])) return null;
       const base = newGame(G.seed, G.nations[0].id);
-      for (const k of ['nations', 'dist', 'rel', 'queue', 'pending', 'plan']) delete base[k];
+      for (const k of ['nations', 'dist', 'rel', 'queue', 'pending', 'plan', 'lanes']) delete base[k];
+      // 8.1 항로 특징: 8.0 저장에는 없으니 빈 것으로 받는다
+      G.lanes ??= {};
+      if (!G.lanes || typeof G.lanes !== 'object' || Array.isArray(G.lanes) || Object.entries(G.lanes).some(([id, t]) => !G.nations.slice(1).some(n => n.id === id) || !S.laneTraits.some(x => x.id === t))) return null;
       base.news = [];base.priceHistory=GOODS.map(()=>[]);
       if (!shape(G, base) || !shape(G.world, makeWorld())) return null;
       const ids = G.nations.map(n => n.id), target = id => id === 'world' || ids.includes(id), vector = a => Array.isArray(a) && a.length === GOODS.length && a.every(x => typeof x === 'number' && x >= 0);
@@ -1051,7 +1070,7 @@
         for (const h of n.history || []) if (![h.debt, h.penaltyDebt].every(v => Number.isInteger(v) && v >= 0)) return null;
         if (!shape(n, makeNation(n.id, n.npc)) || n.npc !== (n !== G.nations[0]) || !n.ships.length || n.ships.length > maxShips(n) || !G.rel?.[n.id]) return null;
         for (const o of G.nations) if (o !== n && (!Number.isInteger(G.rel[n.id][o.id]) || G.rel[n.id][o.id] < 0 || G.rel[n.id][o.id] > X.relMax)) return null;
-        if (n !== G.nations[0] && ![2, 3].includes(G.dist?.[n.id])) return null;
+        if (n !== G.nations[0] && ![1, 2, 3, 4].includes(G.dist?.[n.id])) return null;
         for (const s of n.ships) {
           if (!shape(s, newShip()) || !['port', 'sea'].includes(s.state) || !route(s.route) || !route(s.next) || !Number.isInteger(s.retry) || s.retry < 0 || !Number.isInteger(s.tripMonths) || s.tripMonths < 0) return null;
           if (s.route && (!vector(s.route.gp) || !vector(s.route.bp) || !Number.isInteger(s.route.done) || s.route.done < 0 || !Number.isInteger(s.route.trips) || s.route.trips < 0 || !Number.isInteger(s.route.until) || !['signed', 'traded', 'stake'].every(k => typeof s.route[k] === 'number'))) return null;

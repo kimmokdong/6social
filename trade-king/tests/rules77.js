@@ -4,7 +4,7 @@ const E = require('../js/engine6.js');
 const P = E.player;
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log('PASS', name); }
-const quiet = G => { for (const n of G.nations.slice(1)) n.ships = []; G.plan = []; G.small.next=1e9; return G; };
+const quiet = G => { for (const n of G.nations.slice(1)) n.ships = []; G.plan = []; G.small.next=1e9; G.dist=Object.fromEntries(G.nations.slice(1).map((n,k)=>[n.id,E.X.tripMonths[k]])); G.lanes={}; return G; };   // 1년 계약 검사는 기존 2·3달 거리에서 항로 특징 없이 진행한다.
 const toOpen = G => { while (G.pending) E.choose(G, null); return G; };
 // 하루씩 가며 멈춤(회의·1년 결과)은 그냥 넘긴다. 매일 f(G)를 부른다.
 const days = (G, k, f) => { while (k > 0 && !G.over) { while (G.pending) E.choose(G, null); if (E.advance(G, 1)) { k--; f?.(G); } } };

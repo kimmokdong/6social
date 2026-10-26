@@ -127,7 +127,7 @@ test('🌱 녹색 성장: 전등·재생 에너지·녹색 혁명(생활 +2)',()
   const [A,B]=twin('market',G=>take(G,'greenRev'));toSeason(A);toSeason(B);assert.equal(P(B).last.extra-P(A).last.extra,2);
 });
 test('🎲 모험가: 행운의 부적·시장 조사·보물선(빚 가능, 1년 뒤 300~500억)',()=>{
-  const share=charm=>{const G=game();if(charm)take(G,'charm');let good=0,all=0;for(let i=0;i<1500;i++){clear(G);G.small.next=E.today(G)+1;E.tickDay(G);const e=G.small.log.at(-1);if(!e)continue;all++;good+=V.goodSmall.includes(e.id);G.small.log=[];}return good/all;};
+  const share=charm=>{const G=game();if(charm)take(G,'charm');let good=0,all=0;for(let i=0;i<1500;i++){while(G.pending)E.choose(G,G.pending.type==='meeting'?false:G.pending.type==='event'?0:null);G.small.next=E.today(G)+1;E.tickDay(G);const e=G.small.log.at(-1);if(!e)continue;all++;good+=V.goodSmall.includes(e.id);G.small.log=[];}return good/all;};   // 비교군에 행운 카드가 자동 추가되지 않도록 표본 수집 중 회의는 건너뛴다.
   const plain=share(false),lucky=share(true),odds=p=>p/(1-p);assert.ok(odds(lucky)/odds(plain)>1.3,`${plain} → ${lucky}`);   // 7.9c 단추 돌발이 잦아 비율로 비교
   const G=game(),n=P(G),o=G.nations.slice(1).find(o=>E.sells(G,o,0)),base=E.price(G,o,n,0);take(G,'survey');assert.equal(E.price(G,o,n,0),Math.round(base*.95));assert.equal(E.priceSignal(G,0).horizon,2);
   const T=game('forest'),t=P(T);t.money=0;take(T,'treasure');assert.equal(t.debt,150);assert.equal(t.investment.length,1);const back=t.investment[0].money;assert.ok(back>=300&&back<=500);

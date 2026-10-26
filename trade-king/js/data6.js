@@ -103,7 +103,7 @@
     ['brand','세계적 브랜드','artisan','prism',0,'대표 물건 ⭐3 · 그 물건 값 +20% · 사려는 나라 +1',1],
     ['warehouse','비축 창고','hoarder','silver',0,'창고에 두 배까지 쌓아요',1],
     ['granaryKeep','곡간 관리','hoarder','gold',0,'다음 계절 필요량의 절반만 남아도 풍요로 쳐요',1],
-    ['plenty','풍요의 나라','hoarder','prism',0,'풍요 점수 2배(최대 15점) · 창고 세 배',1],
+    ['plenty','풍요의 나라','hoarder','prism',0,'풍요 점수 2배 · 창고 세 배',1],
     ['protect','약한 산업 지키기','self','silver',0,'고른 산업 +1 · 수입값 +20% · 생활 −2',1],
     ['selfReliance','자급자족','self','gold',0,'가장 많이 사 오는 생활 물건 +2단계',1],
     ['autarky','자립 경제','self','prism',0,'모자란 생활 물건마다 +1단계 · 대신 수입값 +20%',1],
@@ -126,6 +126,13 @@
     ['modernSteel','제철소 현대화','factory','gold',0,'공해 −1점 · 철강 +1단계',1,'ironland']
   ].map(([id,name,concept,tier,cost,text,immediate,only=null])=>({id,name,concept,tier,cost,text,immediate:!!immediate,only}));
   for(const c of augment){const old=cards.find(x=>x.id===c.id);if(old)Object.assign(old,c);else cards.push(c);}
+  // 8.1 항로 개성: 판마다 섬 두 곳의 항로에 좋은 특징 하나(good) + 값과 위험을 맞바꾸는 특징 하나(risk)를 붙인다. 우리 배에만 적용
+  const laneTraits = [
+    {id: 'current', icon: '🌊', name: '해류', kind: 'good', text: '물살을 타고 가요 · 왕복 15일 빨라요'},
+    {id: 'fish', icon: '🐟', name: '어장', kind: 'good', text: '지나는 길에 고기를 잡아요 · 돌아올 때마다 식량 +1상자'},
+    {id: 'pirates', icon: '🏴‍☠️', name: '해적 바다', kind: 'risk', text: '다른 상인이 꺼려 사는 값 10% 싸요 · 5번 중 1번 받은 상자 1개를 빼앗겨요'},
+    {id: 'storm', icon: '⛈', name: '폭풍 바다', kind: 'risk', text: '오는 배가 드물어 파는 값 10% 비싸요 · 4번 중 1번 15일 늦어요'}
+  ];
   const smallEvents = [
     ['tailwind','순풍','배 하나 3일 일찍 도착'],['headwind','역풍','배 하나 5일 늦음'],['fog','짙은 안개','모든 배 2일 늦음'],
     ['lost','유실물','옷 +1상자'],['fish','풍어','식량 +2상자'],['mice','창고 쥐','식량 −1상자'],['exchangeTech','기술 교류','다음 정산 첨단기기 +1상자'],
@@ -136,7 +143,7 @@
     ['festivalPrep','축제 준비','다음 정산 옷 필요 +1'],['students','견학 온 학생들','다음 정산 생활 +1점']
   ].map(([id,name,text,action=null])=>({id,name,text,action}));
   const rules79 = {tiers:['silver','gold','prism'],tierNames:{silver:'실버',gold:'골드',prism:'프리즘'},odds:[[1,0,0],[.4,.5,.1],[.1,.6,.3],[.1,.5,.4],[.2,.6,.2]],
-    overFrom:100,overRate:.5,richYear:82,survivorYear:72,rerollCost:50,catchupChance:.5,fund:150,bonus:3,interestBonus:2,survey:.05,navigator:1,regular:.05,regularMax:.15,
+    overFrom:100,overRate:.5,laneFast:15,laneFish:1,lanePrice:.1,pirateChance:.2,stormChance:.25,stormDelay:15,richYear:82,survivorYear:72,rerollCost:50,catchupChance:.5,fund:150,bonus:3,interestBonus:2,survey:.05,navigator:1,regular:.05,regularMax:.15,
     revolution:2,factoryBoxes:1,revolutionBoxes:2,armadaSlots:1,armadaFrom:3,interest:.08,interestMax:60,brandPrice:.2,refinery:.1,shopping:2,ecotour:1.5,relay:.25,
     industryStep:1,qualityStep:1,envoyRel:1,automation:.5,semiconductorPer:1/3,granaryFloor:1,refineryStages:1,luxMax:3,modernSteelLevel:1,pollutionReduction:1,relaySlots:1,brandQuality:3,ftaPartners:2,ftaFloor:1,
     schoolGoods:2,selfReliance:2,autarkyPrice:1.2,innovation:2,lamps:1,greenRev:3,greenScore:2,charm:2,treasure:150,treasureMin:300,treasureMax:500,keepHalf:.5,plentyMult:2,plentySeasons:6,
@@ -221,10 +228,10 @@
     '관세 때문에 한 해에 물건 한 가지당 8상자까지만 받아 줘요.'
   ]};
   return {
-    version: 7, goods, countries, cards, concepts, smallEvents, rules79, events, badges, lessons, ranks, eventArt, world,
+    version: 7, goods, countries, cards, concepts, smallEvents, rules79, laneTraits, events, badges, lessons, ranks, eventArt, world,
     economy: {
       debtStep: 50, debtPoints: 2, debtMax: 10,   // 빚 50억마다(올림) 정산 감점, 최대 10점
-      startMoney: 200, taxPerPop: 10, contractTrips: 4, tripMonths: [2, 2, 3, 3], worldTrip: 4,
+      startMoney: 200, taxPerPop: 10, contractTrips: 4, tripMonths: [2, 2, 3, 3], tripSets: [[2, 2, 3, 3], [1, 2, 3, 4], [1, 2, 3, 4]], worldTrip: 4,   // 8.1 판마다 거리 묶음 하나를 뽑는다(합 10 유지)
       cutMonths: 9, crisisPoints: 15, relStart: 1, relMax: 3, visitRel: 2, missLimit: 2, storeSeasons: 2, warehouseSeasons: 4, declineYears: 1,
       worldBuy: .7, worldSell: 1.4, worldLimit: 8, shipSlots: 4, bigShipSlots: 2, playerShips: 3, openShips: 3, npcShips: 3, npcTripExtra: 2, maxShips: 5,
       // 점수: 생활 물건 70 + 품질 15 + 풍요 15 = 100

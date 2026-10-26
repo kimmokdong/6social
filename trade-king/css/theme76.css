@@ -454,3 +454,12 @@ em.tier.silver{background:#eef0f3}em.tier.gold{background:#ffe9a8}em.tier.prism{
 /* 7.9c 값 신호의 b는 물건 이름(.what b, 블록) 모양을 받지 않음 */
 .dockpanel .step .what .six b{display:inline;font-size:inherit;margin:0}
 html.huge-text .dockpanel .step .what .six b{font-size:inherit}
+
+/* 8.1 항로 특징: 지도 위 표시 · 계약서·툴팁 한 줄 · 도착 결과 */
+.lane-mark{position:absolute;z-index:3;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:21px;line-height:1;background:#fffaf0;border:3px solid #2e8a5a;box-shadow:0 2px 6px #0006;cursor:help}
+.lane-mark.risk{border-color:#c2582c}
+.lane-mark:focus-visible{outline:3px solid #ffd45a;outline-offset:2px}
+.lane-note{margin:4px 0 0;padding:4px 8px;border-radius:8px;font-size:15px;font-weight:700;background:#e5f3e8;color:#235c3c}
+.lane-note.risk{background:#fbe9df;color:#8a3a18}
+.rp-notes li.lane,li.lane{color:#235c3c;font-weight:700}
+@media (max-width:900px){.lane-mark{width:30px;height:30px;font-size:17px;border-width:2px}}
