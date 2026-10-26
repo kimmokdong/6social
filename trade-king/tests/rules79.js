@@ -97,7 +97,7 @@ test('✨ 명품 장인: 품질 높이기·장인 학교·세계적 브랜드',(
   take(B,'brand');assert.equal(b.quality[b.main],3);assert.equal(E.price(B,b,o,b.main),Math.max(1,Math.round(p*1.2))||E.price(B,b,o,b.main));assert.ok(E.price(B,b,o,b.main)>=Math.round(p*1.19));
   assert.equal(B.nations.filter(o=>o!==b&&E.buys(B,o,b.main)).length,Math.min(4,buyers+1));
 });
-test('🏚 비축가: 비축 창고·곡간 관리·풍요의 나라',()=>{
+test('🏚 비축가: 비축 창고·곳간 관리·풍요의 나라',()=>{
   const G=game('plains'),n=P(G),c0=E.cap(G,n,0);take(G,'warehouse');assert.ok(n.warehouse);assert.equal(E.cap(G,n,0)-E.produces(G,n,0),(c0-E.produces(G,n,0))*2);
   const setup=G=>{const n=P(G);for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,0,0,E.needs(G,n)[g]+Math.ceil(E.needs(G,n)[g]/2)];}};
   const [A,B]=twin('plains',G=>take(G,'granaryKeep'),setup);toSeason(A);toSeason(B);
@@ -184,9 +184,9 @@ test('작은 돌발 20종·20~34일 평균 27(7.9c)·큰 사건 같은 주 회�
   const mean=gaps.reduce((a,b)=>a+b,0)/gaps.length;assert.ok(mean>25&&mean<30,`평균 ${mean}`);assert.ok(actions/count>.55&&actions/count<.8,`단추 ${actions/count}`);console.log(`돌발 ${count}번 · 평균 ${mean.toFixed(2)}일 · 단추 ${(100*actions/count).toFixed(2)}%`);
   const G=game();for(const e of E.S.smallEvents){const before=G.pending;E.smallEvent(G,e.id);assert.equal(G.pending,before);assert.ok(G.news.at(-1).text.includes(e.name));}
 });
-test('단추 선택은 한 번·7일 안·기본은 지나감·저장 복원',()=>{
+test('단추 선택은 한 번·기한(actionDays) 안·기본은 지나감·저장 복원',()=>{
   const G=game(),n=P(G);n.box[n.main][3]=20;const money=n.money,a=E.smallEvent(G,'merchant');assert.ok(E.takeSmallAction(G,a.day));assert.equal(n.money,money+2*E.worldPrice(G,n.main));assert.equal(E.takeSmallAction(G,a.day),false);
-  days(G,1);const b=E.smallEvent(G,'request'),before=E.count(n,n.main);days(G,8);assert.equal(E.takeSmallAction(G,b.day),false);assert.equal(E.count(n,n.main),before);
+  days(G,1);const b=E.smallEvent(G,'request'),before=E.count(n,n.main);days(G,E.S.rules79.actionDays+1);assert.equal(E.takeSmallAction(G,b.day),false);assert.equal(E.count(n,n.main),before);
   const H=E.newGame(19);clear(H);E.smallEvent(H,'merchant');const L=E.loadGame(E.saveGame(H));assert.ok(L);assert.deepEqual(E.smallActions(L),E.smallActions(H));
 });
 test('품질·풍요 한도 없이 모든 가감점의 원점수·초과 점수·누적 순위',()=>{

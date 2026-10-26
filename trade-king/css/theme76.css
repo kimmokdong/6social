@@ -496,3 +496,39 @@ html.huge-text .dockpanel .step .what .six b{font-size:inherit}
 .tab-augs .bk-augs.traits{grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;align-items:start}.tab-augs .bk-augs.traits li{padding:4px 8px;min-height:0;height:auto}
 @media(max-width:1100px){.bk-augs2{gap:4px 12px}.bk-augs2 li{grid-template-columns:24px 1fr;}.bk-augs2 .acs{grid-column:1/-1}.bk-augs.traits{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:820px){.bk-augs2{grid-template-columns:1fr}.bk-augs2 li{grid-template-columns:28px 112px 1fr}.bk-augs2 .acs{grid-column:auto}}
+
+/* 8.5 초6 첫 경험: 도착 알림(채운 물건 먼저) · 창고 +n · 계약서 세 줄 · 결과 책 최고의 순간 */
+.arrival button{display:flex;align-items:center;gap:10px;border-left:6px solid var(--c,#70b27a)}
+.arrival .arr-goods{display:flex;align-items:center;gap:2px;font-size:20px;color:var(--ink)}.arrival .arr-goods .ico{width:32px;height:32px}.arrival .arr-goods i{font-style:normal;font-weight:900;font-size:20px;margin-right:4px}
+.arrival .arr-txt{display:flex;flex-direction:column;min-width:0;font-size:15px;word-break:keep-all;overflow-wrap:break-word}.arrival .arr-txt b{font-size:18px;color:var(--green)}.arrival .arr-txt small{font-size:15px;color:var(--muted)}.arrival .arr-txt .plus{font-style:normal;color:var(--green);font-weight:900}
+.stock.received{animation:stock-received85 1.8s ease-out both;animation-delay:var(--rd,0s)}
+@keyframes stock-received85{0%{box-shadow:0 0 0 6px #f2b632;transform:translateY(-5px)}25%{box-shadow:0 0 0 5px #f2b632;transform:translateY(0)}50%{box-shadow:0 0 0 5px #f2b63299}100%{box-shadow:0 3px 0 var(--line)}}
+.stock{position:relative}.stock .gain{position:absolute;top:-6px;right:-4px;font-style:normal;font-weight:900;font-size:20px;color:#fff;background:var(--green);border-radius:999px;padding:0 8px;box-shadow:0 2px 0 #1d4a2a;pointer-events:none;animation:gain85 1.8s ease-out both;animation-delay:var(--rd,0s)}
+@keyframes gain85{0%{opacity:0;transform:translateY(10px) scale(.6)}15%{opacity:1;transform:translateY(0) scale(1.15)}30%{transform:scale(1)}80%{opacity:1;transform:translateY(-8px)}100%{opacity:0;transform:translateY(-16px)}}
+.report-modal .receipt-goods.got>span{gap:2px}.report-modal .receipt-goods .fill{font-style:normal;font-size:15px;color:var(--red);font-weight:800}.report-modal .receipt-goods .fill.ok{color:var(--green)}
+.report-modal .rp-head h2{color:var(--green)}
+
+.dockpanel.simple{width:min(720px,100%)}
+.dockpanel.simple .dockbody{display:flex;flex-direction:column;gap:12px;padding:16px 24px}
+.dockpanel.simple .effect{margin:0;font-family:var(--title-font);font-size:28px;line-height:1.25;color:var(--teal2)}.dockpanel.simple .effect b{color:#fff;background:var(--green);border-radius:999px;padding:0 12px;font-weight:400;white-space:nowrap}
+.dockpanel.simple .effect.bad{color:var(--red)}.dockpanel.simple .effect.bad b{background:var(--red)}
+.dockpanel.simple .srows{display:flex;flex-direction:column;gap:8px}
+.dockpanel.simple .srow{margin:0;display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;border-radius:12px;background:#fffaf0;border:1px solid var(--line);font-size:18px}
+.dockpanel.simple .srow em{font-style:normal;font-weight:900;min-width:124px}.dockpanel.simple .srow.give em{color:var(--green)}.dockpanel.simple .srow.get em{color:var(--blue)}
+.dockpanel.simple .sg{display:inline-flex;align-items:center;gap:4px}.dockpanel.simple .sg .ico{width:36px;height:36px}.dockpanel.simple .sg b{font-size:24px}.dockpanel.simple .sg small{font-size:16px;color:var(--muted)}
+.dockpanel.simple .srow .plus{color:var(--green)}.dockpanel.simple .srow .none{color:var(--muted)}
+.dockpanel.simple .snote{margin:0;font-size:16px;color:var(--muted)}.dockpanel.simple .snote.warn{color:var(--red);font-weight:800}
+.dockpanel.simple .dockactions{justify-content:flex-end}.dockpanel.simple .dockactions .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.dockpanel [data-edit].coach-locked{opacity:.45;cursor:not-allowed}
+
+.ending .best{display:flex;align-items:center;gap:14px;padding:10px 16px;border-radius:16px;background:linear-gradient(#fff3c8,#ffe49a);border:3px solid #e2a92e;box-shadow:0 4px 0 #b47b17;animation:pop .5s ease-out both}
+.ending .best .best-ico{font-size:44px;line-height:1;display:flex}.ending .best .best-ico img{width:84px;height:54px;object-fit:contain}.ending .best .best-ico .ico{width:52px;height:52px}
+.ending .best small{display:block;font-size:15px;font-weight:800;color:#8a5a12}.ending .best b{display:block;font-family:var(--title-font);font-weight:400;font-size:26px;line-height:1.2;color:#4a2c0c}
+.ending .result{position:relative}
+.ending .got-open{align-self:flex-start;font-size:17px;min-height:44px;padding:4px 14px}.ending .got-none{margin:0;font-size:16px}
+.ending .got-pop{position:absolute;left:16px;right:16px;bottom:12px;z-index:3;display:flex;flex-direction:column;gap:10px;padding:14px 16px;background:var(--parch);border:3px solid var(--wood);border-radius:14px;box-shadow:0 10px 30px #0006}
+.ending .got-pop>button{align-self:flex-end;min-height:44px;font-size:16px}
+@media (max-width:1100px){.dockpanel.simple .effect{font-size:24px}.ending .best b{font-size:22px}.ending .best .best-ico img{width:64px;height:42px}}
+.arrival{align-items:stretch}.arrival button.mini{flex:none;padding:6px 10px;gap:4px;border-left-width:4px}.arrival button.mini .num{font-size:18px;color:var(--ink)}.arrival button.mini .arr-goods .ico{width:26px;height:26px}
+.report-modal.fit1 .receipt-goods>span{padding:4px 10px}.report-modal.fit1 .receipt-goods .ico{width:32px;height:32px}.report-modal.fit1 .receipt-goods b{font-size:24px}
+.report-modal.fit2 .rp-head{padding-top:6px;padding-bottom:6px}.report-modal.fit2 .rp-cols{gap:10px}

@@ -51,7 +51,7 @@
       {img: A + 'end_island.webp', len: 4.8, ch: '', line: '하지만 필요한 것을 모두 혼자 만들 수 있는 나라는 없었습니다.', voice: 'op_05.mp3', sfx: 'sfx_wind.mp3', cam: [[1.12, 3, 0], [1.12, -2, 0]], grade: 'saturate(.68) brightness(.9)', tin: {t: 'slowdip', d: 1.9}},
       {img: C + 'trade_deal.webp', len: 3.4, ch: '무역', line: '그래서 사람들은 약속을 맺고,', voice: 'op_06.mp3', sfx: 'sfx_stamp.mp3', sfxAt: 0.6, cam: [[1.05, 0, 0], [1.38, 0, -6]], o: '50% 76%', tin: {t: 'dissolve', d: 1.1}},
       {img: C + 'trade_load.webp', len: 3, line: '남는 것을 배에 실어', voice: 'op_07.mp3', sfx: 'sfx_crates.mp3', cam: [[1.18, 0, -4], [1.18, 0, 4]], tin: {t: 'tiltup', d: 1}},
-      {img: C + 'trade_voyage.webp', len: 3.4, line: '먼 바다를 건넜습니다.', voice: 'op_08.mp3', sfx: 'sfx_horn.mp3', cam: [[1.2, 4, 0], [1.2, -4, 0]], tin: {t: 'push', d: 1.1}},
+      {img: C + 'trade_voyage.webp', len: 3.4, line: '먼바다를 건넜습니다.', voice: 'op_08.mp3', sfx: 'sfx_horn.mp3', cam: [[1.2, 4, 0], [1.2, -4, 0]], tin: {t: 'push', d: 1.1}},
       {img: C + 'trade_arrive.webp', len: 3.4, line: '그리고 모자란 것을 사 왔습니다.', voice: 'op_09.mp3', sfx: 'sfx_bell.mp3', cam: [[1.2, 4, 0], [1.2, -3, 0]], tin: {t: 'push', d: 1.1}},
       {kind: 'sea', len: 4.2, line: '수많은 배가 바다를 오갔습니다.', voice: 'op_10.mp3', sfx: 'sfx_sea.mp3', cam: [[1, 0, 0], [1.07, 0, 0]], tin: {t: 'pullback', d: 1.4}},
       {img: C + 'ev_storm.webp', len: 2.5, ch: '시련', line: '바다는 늘 평온하지 않았습니다.', voice: 'op_11.mp3', sfx: 'sfx_thunder.mp3', cam: [[1.08, 0, 0], [1.2, 0, 0]], grade: 'brightness(.92)', tin: {t: 'lightning', d: 1}, again: 1.5},

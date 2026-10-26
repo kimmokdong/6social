@@ -37,7 +37,7 @@
   let sheet = null;   // 7.7 설정 창·우리 나라 창: {kind: 'set'|'home', tab, page, per, fit, beforeSpeed}
   let tip = null, tipTimer = 0;   // 배 툴팁: {i, pinned}. 마우스를 올리면 잠깐, 누르면 고정.
   // 7.9b 작은 돌발 카드(지도 오른쪽 위 6초) · 자동 멈춤(배가 쉬게 될 때, 예상 점수가 10점 넘게 떨어질 때)
-  let smallPop = null, smallSeen = 0, autoPause = {idle: true, drop: true}, pauseNote = null, lastForecast = null;
+  let smallPop = null, smallSeen = 0, autoPause = {idle: true, drop: true, choice: true}, pauseNote = null, lastForecast = null;
 
   const P = () => E.player(G);
   // 7.0 나라 특성(NATIONS-v7.md): 숫자는 엔진의 economy.trait, 글은 data6 countries[id].trait
@@ -49,6 +49,8 @@
   let slotKey = '', slotFlash = 0;   // 나라 칸 값이 바뀌면 한 번 반짝
   // 7.6e 화면은 하루마다 다시 그린다. 나타나는 효과(도착 알림·받은 상자·나라 칸 반짝)는 처음 그릴 때 한 번만 붙여 깜빡이지 않게 한다.
   const played = new Set(), once = k => !played.has(k) && !!played.add(k);
+  // 8.5 한 번 재생하는 효과를 하루마다 다시 그려도 끊기지 않게: 처음 본 때부터 지난 시간(ms)을 animation-delay 음수로 이어 붙인다. 끝나면 null
+  const began = new Map(), lasting = (k, ms) => { const now = performance.now(); if (!began.has(k)) began.set(k, now); const t = now - began.get(k); return t < ms ? t : null; };
   const nameOf = id => E.nation(G, id).name;
   const hearts = r => '♥'.repeat(r) + `<i>${'♥'.repeat(3 - r)}</i>`;
   const avg = a => a.length ? Math.round(sum(a) / a.length) : 0;
@@ -74,7 +76,7 @@
   function continueGame() {
     const s = readSave(); if (!s) return false;
     G = s.game; slot = s.slot; laneCache = {}; acc = s.acc * dayMs(); last = 0; speed = 0; resume = G.pending ? 0 : 1; resetWatch();
-    sel = dock = drag = focusGood = report = tip = coach = null; resumed = true; coachEl.hidden = true; endPage = 1; slotKey = ''; ticker.dataset.key = ''; lastPend = null;
+    sel = dock = drag = focusGood = report = tip = coach = null; resumed = true; coachEl.hidden = true; endPage = 1; endMore = false; slotKey = ''; ticker.dataset.key = ''; lastPend = null;
     AU?.scene('sail'); render(); return true;
   }
   function updateClock() {
@@ -91,8 +93,25 @@
   // 7.6c 돈 단위는 '억'. 들어온·나간 돈이 0이면 '−0억' 대신 '없음'
   const amt = (n, s) => n ? `${s}${n}억` : '<span class="none">없음</span>';
   const cargoText = a => GOODS.filter(g => a[g]).map(g => `${gname(g)} ${a[g]}상자`).join(' · ') || '없음';
+  // 8.5 도착 알림·결과 창: 무엇을 채웠는지 먼저, 돈은 다음. 사 오는 거래는 빨간 '−' 대신 '물건값 n억'(손해가 아니라 산 값)
+  function gotLine(me, d) {
+    const got = GOODS.filter(g => d.get[g]), lack = got.filter(g => E.buys(G, me, g)), sold = GOODS.filter(g => d.sold[g]);
+    if (!got.length) return sold.length ? `📤 ${sold.map(g => `${gname(g)} ${d.sold[g]}상자`).join(' · ')} 팔았어요!` : '빈 배로 돌아왔어요';
+    return lack.length ? `모자란 ${josa(lack.map(gname).join('·'), '을', '를')} 채웠어요!` : `${got.map(g => `${gname(g)} ${d.get[g]}상자`).join(' · ')} 채웠어요!`;
+  }
+  const moneyLine = d => { const net = d.earned - d.spent; return net > 0 ? `<em class="plus">+${net}억</em>` : net < 0 ? `물건값 ${-net}억` : '±0억'; };
+  // 8.5 가장 최근 도착 하나만 크게, 나머지는 작은 칩(배 번호 + 받은 물건). 여러 척이 한꺼번에 와도 지도 구석을 넘지 않게
+  function arrivals(me) {
+    const list = me.ships.map((s, i) => ({s, i, d: s.delivery})).filter(a => a.d && G.month - a.d.month <= 1).sort((a, b) => b.d.month - a.d.month || b.d.day - a.d.day);
+    if (!list.length) return '';
+    return `<div class="arrival" role="status">${list.map(({i, d}, k) => `<button data-report="${i}" style="${tint(i)}" class="${k ? 'mini' : ''}${once(`arr${i}:${d.month}.${d.day}`) ? ' new' : ''}"${k ? ` aria-label="배 ${i + 1} 도착 · 결과 보기"` : ''}>${k ? `<b class="num">⚓${i + 1}</b>` : arrivalText(me, i, d)}</button>`).join('')}</div>`;
+  }
+  const arrivalText = (me, i, d) => `<span class="arr-goods" aria-hidden="true">${GOODS.filter(g => d.get[g]).map(g => `${ico(g)}<i>${d.get[g]}</i>`).join('') || GOODS.filter(g => d.sold[g]).slice(0, 2).map(g => ico(g)).join('')}</span>
+    <span class="arr-txt"><b>${gotLine(me, d)}</b><small>⚓ 배 ${i + 1} · ${moneyLine(d)} · 결과 보기 ›</small></span>`;
   // 7.6 받침에 맞는 조사: josa('다온국', '이', '가') → 다온국이, josa('숲의 나라', '이', '가') → 숲의 나라가
-  const josa = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
+  // 8.5 숫자로 끝나면 읽는 소리로(1 일·3 삼·6 육·7 칠·8 팔·0 영은 받침). ro: 받침이 ㄹ이거나 없으면 '로', 아니면 '으로'(숲의 나라로 · 대평원국으로 · 배 1로)
+  const jong = w => { const d = '0123456789'.indexOf(w.at(-1)); if (d >= 0) return [21, 8, 0, 16, 0, 0, 1, 8, 8, 0][d]; const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c < 11172 ? c % 28 : 0; };
+  const josa = (w, a, b) => w + (jong(w) ? a : b), ro = w => w + (jong(w) && jong(w) !== 8 ? '으로' : '로');
   // 7.6 철광석·철강이 공장에서 무엇이 되는지(economy.chain: [재료, 제품])
   const becomes = g => E.CHAIN.find(c => c[0] === g)?.[1] ?? null;
   const netText = v => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${Math.abs(v)}`;
@@ -168,12 +187,17 @@
     // 8.1 가까운 두 섬·먼 두 섬을 좌우에 하나씩 무작위로 나눈다
     const ids = Object.keys(G.dist).sort((a, b) => G.dist[a] - G.dist[b] || Math.random() - .5), flip = () => Math.random() < .5;
     for (const [a, b] of [ids.slice(0, 2), ids.slice(2)]) { const [l, r] = flip() ? [a, b] : [b, a]; slot[l] = 'L' + G.dist[l]; slot[r] = 'R' + G.dist[r]; }
-    speed = 0; resume = 1; acc = 0; sel = null; dock = null; focusGood = null; report = null; endPage = 1; tip = null; slotKey = ''; resetWatch();
+    speed = 0; resume = 1; acc = 0; sel = null; dock = null; focusGood = null; report = null; endPage = 1; endMore = false; tip = null; slotKey = ''; resetWatch();
     // 7.0 도우미: 처음 하는 게임이면 공통 단계(+ 나라 소개), 다른 나라는 해 봤고 이 나라가 처음이면 나라 소개만
     coach = null;
     if (hintsOn()) {
       const intro = !natSeen(id).intro;
-      if (helperWanted()) coach = {step: 0, common: true, list: COACH.flatMap((c, k) => k === 1 && intro ? [c, INTRO_STEP] : [c])};
+      // 8.5 나라 소개는 첫 거래 뒤(때 맞춤 도움말 intro85)로 미룬다. 가리킬 물건 = 다음 정산 예상에서 가장 모자란 생활 물건
+      // 추천 짐에 그 물건이 실제로 실리는 섬이 있는 물건을 먼저 고른다(빛나는 섬을 눌렀는데 짐이 없으면 첫 거래가 막힌다)
+      if (helperWanted()) { const me = P(), f = E.forecast(G), lack = f.slotsBy.filter(b => b.got < b.need).sort((a, b) => (b.need - b.got) / b.need - (a.need - a.got) / a.need).map(b => b.good);
+        const isleFor = g => G.nations.slice(1).filter(o => E.rel(G, me, o) && E.sells(G, o, g) && E.plan(G, me, me.ships[0], o).get[g] > 0).sort((a, b) => E.tripTime(G, me, a.id) - E.tripTime(G, me, b.id))[0]?.id;
+        const good = lack.find(isleFor) ?? lack[0] ?? GOODS.find(g => E.buys(G, me, g)) ?? 0;
+        coach = {step: 0, common: true, good, isle: isleFor(good) || null, list: [...COACH]}; }
       else if (intro) coach = {step: 0, list: [{...INTRO_STEP, last: true}]};
     }
     if (coach && G.pending?.type === 'open') E.choose(G, null);
@@ -185,19 +209,25 @@
     return [...G.nations].map(n => ({n, s: n.years.length ? E.totalScore(n) : avg(n.seasons)})).sort((a, b) => b.s - a.s);
   }
   function guidance() {
-    const me = P(), idle = me.ships.findIndex(s => !s.route), need = E.needs(G, me);
-    const lacking = GOODS.filter(g => E.buys(G, me, g)).sort((a, b) => (need[b] - E.produces(G, me, b)) / need[b] - (need[a] - E.produces(G, me, a)) / need[a]);
-    const g = focusGood ?? lacking[0];
+    const me = P(), idle = me.ships.findIndex(s => !s.route);
+    // 8.5 모자란 물건은 맺은 계약까지 넣어 센다: 다음 정산 예상(지금 계약 그대로)에서 모자라고, 우리 배가 사 오기로 한 적도 없는 물건
+    const f = E.forecast(G), coming = g => me.ships.some(s => s.route?.get[g] || s.next?.get[g]);
+    const lacking = f.slotsBy.filter(b => b.got < b.need && !coming(b.good)).sort((a, b) => (b.need - b.got) / b.need - (a.need - a.got) / a.need).map(b => b.good);
+    const full = !lacking.length && f.reasons[0] === '다 채워요';
+    const g = focusGood ?? lacking[0] ?? (full && idle >= 0 && E.canGive(G, me, me.main) ? me.main : null);
     let message = me.debt ? `빚 ${me.debt}억 · 들어오는 돈으로 먼저 갚아요. 지금 빚이면 정산 −${E.debtLoss(me)}점이에요.` : '다음 정산 예상을 보고, 모자란 생활 물건을 채워요.';
-    if (sel !== null) message = `배 ${sel + 1}을 보낼 섬을 고르세요. 기존 계약이 있으면 다음 항로를 예약해요.`;
+    if (sel !== null) message = `${josa(`배 ${sel + 1}`, '을', '를')} 보낼 섬을 고르세요. 기존 계약이 있으면 다음 항로를 예약해요.`;
     else if (focusGood !== null) message = E.canGive(G, me, g) ? `${josa(gname(g), '을', '를')} 파는 섬(팔아요)과 필요로 하는 섬(사 줘요)이 밝게 보여요. 값과 왕복 시간을 비교하세요.` : `${josa(gname(g), '을', '를')} 파는 섬을 골라 보세요. 가격과 왕복 시간을 비교하세요.`;
-    else if (idle >= 0) message = `배 ${idle + 1}이 쉬고 있어요.${g != null ? ` ${josa(gname(g), '을', '를')} 사 올 항로를 찾아볼까요?` : ' 섬을 골라 항로를 정하세요.'}`;
+    else if (idle >= 0 && full) message = '좋아요! 지금 계약으로 충분해요. 남는 배로 대표 물건을 팔아 돈을 모아도 돼요.';
+    else if (idle >= 0) message = `${josa(`배 ${idle + 1}`, '이', '가')} 쉬고 있어요.${g != null ? ` ${josa(gname(g), '을', '를')} 사 올 항로를 찾아볼까요?` : ' 섬을 골라 항로를 정하세요.'}`;
+    else if (full && G.month > 0) message = '좋아요! 지금 계약으로 다음 정산까지 다 채워요.';
     else if (G.month === 0) message = '항로 준비 완료! ▶ 출항하기를 누르면 배가 움직여요.';
     const action=E.smallActions(G)[0];
     // 작은 돌발 단추는 카드가 사라진 뒤에도 7일 동안 안내 줄에 남긴다. 자동 멈춤은 왜 멈췄는지 알려 준다.
-    if(pauseNote&&!speed)return `<div class="note"><p>⏸ ${pauseNote}</p><div><button class="primary" data-speed="1">▶ 계속하기</button></div></div>`;
-    if(action&&!smallCard().includes('data-small-action'))return `<div class="note"><p>${SMALL_ICON[action.id]||'📰'} ${E.S.smallEvents.find(e=>e.id===action.id).name} · ${action.text}</p><div><button data-small-action="${action.day}">${action.action} · ${action.until-E.today(G)}일 남음</button></div></div>`;
-    return `<div class="note"><p>${message}</p><div>${focusGood !== null ? '<button data-clear-good>전체 보기</button>' : g != null && idle >= 0 ? `<button data-good="${g}">${ico(g)} 파는 섬 찾기</button>` : ''}${!speed && !G.pending ? '<button class="primary" data-speed="1">▶ 출항하기</button>' : ''}</div></div>`;
+    const actBtn = action && !smallCard().includes('data-small-action') ? `<button data-small-action="${action.day}">${action.action} · ${action.until-E.today(G)}일 남음</button>` : '';   // 8.5 멈춤 쪽지에도 단추를 남긴다
+    if(pauseNote&&!speed)return `<div class="note"><p>⏸ ${pauseNote}</p><div>${actBtn}<button class="primary" data-speed="1">▶ 계속하기</button></div></div>`;
+    if(actBtn)return `<div class="note"><p>${SMALL_ICON[action.id]||'📰'} ${E.S.smallEvents.find(e=>e.id===action.id).name} · ${action.text}</p><div><button data-small-action="${action.day}">${action.action} · ${action.until-E.today(G)}일 남음</button></div></div>`;
+    return `<div class="note"><p>${message}</p><div>${focusGood !== null ? '<button data-clear-good>전체 보기</button>' : g != null && idle >= 0 ? `<button data-good="${g}">${ico(g)} ${lacking.includes(g) ? '파는 섬 찾기' : '사 줄 섬 찾기'}</button>` : ''}${!speed && !G.pending ? '<button class="primary" data-speed="1">▶ 출항하기</button>' : ''}</div></div>`;
   }
   // 7.9b 작은 돌발: 시간을 멈추지 않고 6초 동안 카드로 떴다가 소식 줄로 들어간다. 단추가 붙으면 7일 안에 누를 수 있다(안내 줄에도 남음).
   const SMALL_ICON = {tailwind: '🌬', headwind: '🌪', fog: '🌫', lost: '🧳', fish: '🐟', mice: '🐭', exchangeTech: '🔧', donation: '🎁', repair: '🛠', merchant: '🧑‍💼', spark: '✨', sale: '🏷', northSale: '🗻', rumor: '📣', match: '⚽', misunderstanding: '💢', request: '🙏', craftsman: '🧑‍🎨', festivalPrep: '🎪', students: '🎒'};
@@ -207,7 +237,10 @@
     smallSeen = log.length; smallPop = {item: log.at(-1), left: 6000};   // 8.2c 시간이 흐르는 동안만 6초를 센다(멈춤·창이 떠 있으면 그대로)
     sfx('click');
   }
-  const resetWatch = () => { smallSeen = G.small?.log.length || 0; smallPop = null; pauseNote = null; lastForecast = null; };
+  // 8.5 고를 일(단추 돌발·계약 요청): 처음 본 것만 자동 멈춤에 쓴다. 이어하기·새 판에서는 이미 떠 있는 것을 본 것으로 친다
+  const choiceKeys = () => [...E.smallActions(G).map(a => `s${a.day}:${a.id}`), ...(G.offers || []).map(f => `o${f.id}`)];
+  let choiceSeen = new Set();
+  const resetWatch = () => { smallSeen = G.small?.log.length || 0; smallPop = null; pauseNote = null; lastForecast = null; choiceSeen = new Set(choiceKeys()); };
   const smallAct = it => E.smallActions(G).find(a => a.day === it.day && a.id === it.id);
   function smallCard() {
     // 8.2c 단추 달린 돌발은 고를 수 있는 동안(7일) 카드가 남고 남은 날을 보여 준다. 단추 없는 돌발은 6초 뒤 사라진다
@@ -215,7 +248,7 @@
     const it = smallPop.item, e = E.S.smallEvents.find(e => e.id === it.id), act = smallAct(it), good = E.S.rules79.goodSmall.includes(it.id);
     if (!act && smallPop.left <= 0) return '';
     const left = act && act.until - E.today(G);
-    return `<div class="small-pop${good ? ' good' : ''}${once(`sp:${it.day}:${it.id}`) ? ' enter' : ''}" role="status"><span class="sp-ico" aria-hidden="true">${SMALL_ICON[it.id] || '📰'}</span><div><small>작은 돌발 · 시간은 그대로 흘러요</small><b>${esc(e.name)}</b><span>${esc(it.text)}</span></div>${act ? `<span class="sp-act"><button data-small-action="${act.day}">${esc(act.action)}</button><em class="sp-left">⏳ ${left > 0 ? `${left}일 남음` : '오늘까지'}</em></span>` : ''}</div>`;
+    return `<div class="small-pop${good ? ' good' : ''}${once(`sp:${it.day}:${it.id}`) ? ' enter' : ''}" role="status"><span class="sp-ico" aria-hidden="true">${SMALL_ICON[it.id] || '📰'}</span><div><small>작은 돌발 · ${act ? '단추를 누를 수 있어요' : '시간은 그대로 흘러요'}</small><b>${esc(e.name)}</b><span>${esc(it.text)}</span></div>${act ? `<span class="sp-act"><button data-small-action="${act.day}">${esc(act.action)}</button><em class="sp-left">⏳ ${left > 0 ? `${left}일 남음` : '오늘까지'}</em></span>` : ''}</div>`;
   }
   // 8.3 NPC 계약 요청 카드: 상대 배로 1년 오가요. 수락·거절, 남은 날(시간이 흐르는 동안 줄어듦)
   function offerCards() {
@@ -373,6 +406,23 @@
     const d = s.delivery, last = d ? `<button class="mini delivery" data-report="${i}" aria-label="배 ${i + 1} 최근 도착 결과">📥 최근 도착 ${signedMoney(d.earned - d.spent)}${d.shortages.length ? ' ⚠' : ''}</button>` : '';
     return `<div class="tip${tip.pinned ? ' pinned' : ''}" id="tip" role="tooltip" style="${tint(i)}"><span class="tip-head"><b class="num">${i + 1}</b> 배 ${i + 1}${last}</span>${body}<i class="arrow"></i></div>`;
   }
+  // 8.5 안내 쪽지 자리: 섬·우리 섬·도착 알림·오른쪽 위 카드를 덜 가리는 곳으로(지도 아래·위·가운데 줄 × 왼쪽·오른쪽·가운데, 좁은 폭도 시험).
+  // 처음 후보는 예전 자리(왼쪽 아래). 1024 화면에서 우리 섬을 가리던 문제
+  function placeNote() {
+    const n = $('#map > .note'), map = $('#map'); if (!n) return;
+    const M = map.getBoundingClientRect(), L = M.left + map.clientLeft, T = M.top + map.clientTop, pad = 12, room = map.clientWidth - 2 * pad;
+    const obs = [...map.querySelectorAll('.isle .tile img, .isle .plank, .isle .icons, .isle .quote, .isle .refusal, .home img, .home > b, .home > small, .arrival button, .pop-stack > *, #ships .ship.mine')].map(e => e.getBoundingClientRect()).filter(r => r.width);
+    const over = (x, y, w, h) => obs.reduce((a, q) => a + Math.max(0, Math.min(x + w, q.right) - Math.max(x, q.left)) * Math.max(0, Math.min(y + h, q.bottom) - Math.max(y, q.top)), 0);
+    const put = (x, y, W) => { n.style.cssText = `position:absolute;left:${Math.round(x)}px;top:${Math.round(y)}px;right:auto;bottom:auto;width:max-content;max-width:${W}px`; };
+    let best = null;
+    for (const W of [Math.min(560, room), 420, 330].filter((w, i, a) => w <= room && a.indexOf(w) === i)) {
+      put(pad, pad, W); const r = n.getBoundingClientRect(), w = r.width, h = r.height;
+      const xs = [pad, map.clientWidth - pad - w, (map.clientWidth - w) / 2], ys = [map.clientHeight - pad - h, pad, (map.clientHeight - h) / 2];
+      for (const y of ys) for (const x of xs) { const c = over(L + x, T + y, w, h); if (!best || c < best.c - 1) best = {c, x, y, W}; }
+      if (!best.c) break;
+    }
+    put(best.x, best.y, best.W);
+  }
   // 툴팁을 토큰 바로 위에 붙인다(화면 밖으로 나가지 않게).
   function placeTip() {
     const el = $('#tip'), tok = tip && (tip.kind === 'isle' ? $(`.isle[data-drop="${tip.id}"] .tile`) : tip.kind === 'nation' ? $('.nation-slot') : $(`.piece[data-ship="${tip.i}"] .fig`));
@@ -438,19 +488,21 @@
         ${G.nations.slice(1).map(island).join('')}
         <div class="home stage${homeStage(me)}" style="left:${HOME[0]}%;top:${HOME[1]}%" data-home-info role="button" tabindex="0" aria-label="${esc(me.name)} · 우리 나라 정보 보기"${tipA('우리 나라 · 눌러서 산업·항구·고른 효과 보기')}><img src="${homeImg(homeStage(me))}" alt="">${homeDeco(me)}<b>${esc(me.name)} · 대표 ${ico(me.main)}</b><small>🏘 ${STAGE[homeStage(me)]}${Object.keys(me.short || {}).length ? ` · <span class="warn">${Object.keys(me.short).map(g => gname(E.inputOf(+g))).join('·')} 부족</span>` : ''}</small></div>
         <div id="ships">${G.nations.flatMap(n => n.ships.map((s, k) => `<span class="ship ${n === me ? 'mine' : 'npc'}" data-n="${n.id}" data-k="${k}"${n === me ? ` style="${tint(k)}" data-drag data-ship="${k}"${tipA(`배 ${k + 1} · 섬으로 끌어 보세요`)}` : ''}><img src="${shipImg(n === me ? k : null)}" alt="" draggable="false"><i>${GOODS.map(g => `<span hidden>${ico(g)}</span>`).join('')}</i>${n === me ? `<b>${k + 1}</b>` : ''}</span>`)).join('')}</div>
-        ${me.ships.some(s => s.delivery && G.month - s.delivery.month <= 1) ? `<div class="arrival" role="status">${me.ships.map((s, i) => s.delivery && G.month - s.delivery.month <= 1 ? `<button data-report="${i}"${once(`arr${i}:${s.delivery.month}.${s.delivery.day}`) ? ' class="new"' : ''}>⚓ 배 ${i + 1} 도착! <b>${cargoText(s.delivery.get)}</b> <span>${signedMoney(s.delivery.earned - s.delivery.spent)} · 결과 보기 ›</span></button>` : '').join('')}</div>` : ''}
+        ${arrivals(me)}
       </section>
       <footer class="dock">
         <div class="tray" role="group" aria-label="우리 배">${me.ships.map(shipToken).join('')}${futureSlots(me)}</div>
         <div class="coins${me.debt ? ' in-debt' : ''}" tabindex="0" aria-label="금고 ${me.money}억 · 빚 ${me.debt}억"${tipA(`<b>💰 금고 · 빚 ${me.debt}억</b><br>들어오는 돈으로 빚부터 갚아요 · 빚이 있으면 정산 때 생활 점수가 깎여요 (지금 −${E.debtLoss(me)}점)<br><small>${X.debtStep}억마다 −${X.debtPoints}점, 최대 −${X.debtMax}점 · 돈은 생활 물건을 사는 데 써요.</small>`, 1)}><span class="coin">💰</span><b>${me.money}</b><small>억${me.debt ? ` · <strong class="debt">빚 ${me.debt}억</strong>` : ''}</small></div>
         <div class="basket" aria-label="창고와 3달마다 쓰는 양">${E.uses(G, me).map((q, g) => { const c = E.count(me, g), p = E.produces(G, me, g), inp = E.inputNeed(G, me, g), net = p - q, mat = !E.CONSUMER.includes(g);
           if (mat && !c && !p && !q) return '';   // 안 만들고 안 쓰는 재료(철광석·철강)는 바구니에 안 보인다
-          const got = me.ships.filter(s => s.delivery && G.month - s.delivery.month <= 1 && s.delivery.get[g]), arrived = got.length && once(`rcv${g}:${got.map(s => `${s.delivery.month}.${s.delivery.day}`).join()}`), ironShort = !!(me.short || {})[g];
+          // 8.5 받은 물건 칸은 반짝이고 '+n'이 떠오른다(하루마다 다시 그려도 이어서 한 번만)
+          const got = me.ships.filter(s => s.delivery && G.month - s.delivery.month <= 1 && s.delivery.get[g]).sort((a, b) => a.delivery.month - b.delivery.month || a.delivery.day - b.delivery.day);
+          const shine = got.length ? lasting(`rcv${g}:${got.map(s => `${s.delivery.month}.${s.delivery.day}`).join()}`, 1800) : null, arrived = shine != null, ironShort = !!(me.short || {})[g];
           // 3달마다 생산 − 쓰는 양을 +n/−n으로. 0이면 ±0. 공장 투입이 든 물건은 🏭. 철광석·철강은 무엇이 되는지(➜ 철강 재료).
-          return `<button data-good="${g}" class="stock${mat ? ' mat' : ''}${c + p < q || ironShort || me.id === 'market' && !mat && c + 2 * p < 2 * q ? ' short' : ''}${arrived ? ' received' : ''}" aria-pressed="${focusGood === g}" aria-label="${gname(g)} 파는 섬 찾기"${tipA(stockTip(me, g, c, p, need[g], inp, net), 1)}>${ico(g)}<b>${c}</b><small>${gname(g)}</small><small class="net ${net < 0 ? 'neg' : net > 0 ? 'plus' : ''}">${ironShort ? `<span class="warn">${gname(E.inputOf(g))} 부족!</span>` : mat && becomes(g) != null ? `<span class="net mat" aria-hidden="true">➜ ${ico(becomes(g))}</span>` : `${netText(net)}<em class="per"> / 3달</em>${inp ? ' 🏭' : ''}`}</small></button>`; }).join('')}</div>
+          return `<button data-good="${g}" class="stock${mat ? ' mat' : ''}${c + p < q || ironShort || me.id === 'market' && !mat && c + 2 * p < 2 * q ? ' short' : ''}${arrived ? ' received' : ''}" aria-pressed="${focusGood === g}" aria-label="${gname(g)} 파는 섬 찾기"${arrived ? ` style="--rd:-${Math.round(shine)}ms"` : ''}${tipA(stockTip(me, g, c, p, need[g], inp, net), 1)}>${ico(g)}<b>${c}</b>${arrived ? `<i class="gain" aria-hidden="true">+${got.at(-1).delivery.get[g]}</i>` : ''}<small>${gname(g)}</small><small class="net ${net < 0 ? 'neg' : net > 0 ? 'plus' : ''}">${ironShort ? `<span class="warn">${gname(E.inputOf(g))} 부족!</span>` : mat && becomes(g) != null ? `<span class="net mat" aria-hidden="true">➜ ${ico(becomes(g))}</span>` : `${netText(net)}<em class="per"> / 3달</em>${inp ? ' 🏭' : ''}`}</small></button>`; }).join('')}</div>
       </footer>
       ${dock ? dockPanel() : ''}${sheet ? sheetPanel() : ''}${tipPanel()}`;
-    news(); placeTip(); fitDock(); fitSheet();
+    news(); placeNote(); placeTip(); fitDock(); fitSheet();
     for (const child of app.children) child.inert = !!(dock || sheet) && !child.classList.contains('dockveil') || !!report;
     if (G.pending) showPending(); else if (G.over) showEnd(); else if (report) showDelivery(); else layer.hidden = true;
     clock = {date: $('.when b'), track: $('.track span'), settle: $('.when .settle')};
@@ -471,7 +523,7 @@
   function stockTip(me, g, c, p, use, inp, net) {
     const b = becomes(g), made = E.inputOf(g);
     if (b != null && !E.CONSUMER.includes(g)) return `<b>${ico(g)} ${gname(g)} ➜ 🏭 공장에서 ${josa(gname(b), '이', '가')} 돼요</b><br>창고 ${c}상자 · 3달마다 ${p ? `${made == null ? '캐는' : '만드는'} 양 ${p}, ` : ''}공장이 쓰는 양 ${inp}<br><small>누르면 ${josa(gname(g), '을', '를')} 파는 섬을 찾아요</small>`;
-    return `<b>${ico(g)} ${gname(g)}</b><br>창고 ${c}상자 · 3달마다 ${netText(net)}<br><small>만드는 양 ${p} · 국민이 쓰는 양 ${use}${inp ? ` · 공장이 쓰는 양 ${inp}` : ''}${made != null && p ? ` · ${gname(made)}로 만들어요` : ''}</small><br><small>누르면 ${josa(gname(g), '을', '를')} 파는 섬을 찾아요</small>`;
+    return `<b>${ico(g)} ${gname(g)}</b><br>창고 ${c}상자 · 3달마다 ${netText(net)}<br><small>만드는 양 ${p} · 국민이 쓰는 양 ${use}${inp ? ` · 공장이 쓰는 양 ${inp}` : ''}${made != null && p ? ` · ${ro(gname(made))} 만들어요` : ''}</small><br><small>누르면 ${josa(gname(g), '을', '를')} 파는 섬을 찾아요</small>`;
   }
   // 하단 뉴스 티커: 새 소식이 올 때만 다시 그려서 흐름이 끊기지 않게 한다.
   function news() {
@@ -626,7 +678,7 @@
   function openDock(i, to) {
     const me = P(), s = me.ships[i];
     if (!s) return;
-    if (to !== 'world' && E.rel(G, me, to) === 0) return toast(`${nameOf(to)}와 거래 거절 · 새해에 다시 거래해요. 지금 계약은 끝까지 이어져요.`);
+    if (to !== 'world' && E.rel(G, me, to) === 0) return toast(`${josa(nameOf(to), '과', '와')} 거래 거절 · 새해에 다시 거래해요. 지금 계약은 끝까지 이어져요.`);
     // 처음엔 이 섬 기준 추천(가장 모자란 물건부터)으로 칸을 채워 두고, 학생이 −/＋로 고친다.
     tip = null; clearTimeout(tipTimer);
     const fit = E.plan(G, me, s, E.nation(G, to));
@@ -648,12 +700,14 @@
       ...d.penaltyIn.map(p => `<li class="pin">📜 ${esc(josa(o, '이', '가'))} ${gname(p.good)} ${p.qty}상자를 못 줘서 위약금 <b class="plus">+${p.amount}억</b>을 받았어요${p.debt ? `<small> · 상대 금고가 모자라 ${p.debt}억은 빚이 됐어요</small>` : ''}</li>`),
       ...(d.shortages.some(x => x.reason !== '우리 금고 부족') && P().ships[report.i].route?.failed ? [`<li class="lane">✋ ${esc(josa(o, '이', '가'))} 약속을 못 지켰어요. 이 계약은 신뢰를 잃지 않고 그만둘 수 있어요(배 옆 초록 '깨기').</li>`] : []),
       ...d.penaltyOut.map(p => `<li class="pout">📜 ${gname(p.good)} ${p.qty}상자를 못 실어 ${esc(o)}에 위약금 <b class="neg">−${p.amount}억</b>을 냈어요${p.debt ? `<small> · 금고가 모자라 ${p.debt}억은 빚이 됐어요</small>` : ''}</li>`)];
-    modal(`<header class="rp-head"><span class="yr-seal" aria-hidden="true">⚓</span><div><p class="eyebrow">${Math.floor(d.month / 12) + 1}년째 ${d.month % 12 + 1}월 ${d.day}일 · ${esc(o)}</p><h2>배 ${report.i + 1}의 도착 결과</h2></div></header>
-      <div class="rp-cols"><section><p class="ribbon panel-label get">📥 받아 온 물건 <small>창고에 들어왔어요</small></p><div class="receipt-goods">${goods(d.get) || '<p class="muted">이번에는 가져온 물건이 없어요.</p>'}</div></section>
+    // 8.5 받은 물건과 채운 정도(창고 / 3달에 쓰는 양)가 먼저, 돈은 그다음
+    const me = P(), uses = E.uses(G, me), fill = g => uses[g] ? `<em class="fill${E.count(me, g) >= uses[g] ? ' ok' : ''}">창고 ${E.count(me, g)} / 3달에 ${uses[g]}</em>` : '';
+    const gotGoods = GOODS.filter(g => d.get[g]).map(g => `<span>${ico(g)}<b>${d.get[g]}</b><small>${gname(g)}</small>${fill(g)}</span>`).join('');
+    modal(`<header class="rp-head"><span class="yr-seal" aria-hidden="true">⚓</span><div><p class="eyebrow">${Math.floor(d.month / 12) + 1}년째 ${d.month % 12 + 1}월 ${d.day}일 · 배 ${report.i + 1} · ${esc(o)}</p><h2>${gotLine(me, d)}</h2></div></header>
+      <div class="rp-cols"><section><p class="ribbon panel-label get">📥 받아 온 물건 <small>창고에 들어왔어요</small></p><div class="receipt-goods got">${gotGoods || '<p class="muted">이번에는 가져온 물건이 없어요.</p>'}</div></section>
         <section><p class="ribbon panel-label">📤 판 물건</p><div class="receipt-goods sold">${goods(d.sold) || '<p class="muted">이번에는 판 물건이 없어요.</p>'}</div></section></div>
-      <p class="sum">받은 돈 <span class="plus">${amt(d.earned, '+')}</span> · 쓴 돈 <span class="neg">${amt(d.spent, '−')}</span>${pen ? ` · 위약금 <span class="${pen > 0 ? 'plus' : 'neg'}">${signedMoney(pen)}</span>` : ''}</p>
+      <p class="sum">${d.earned ? `판 돈 <span class="plus">+${d.earned}억</span>` : ''}${d.earned && d.spent ? ' · ' : ''}${d.spent ? `물건값 <b>${d.spent}억</b>` : ''}${!d.earned && !d.spent ? '돈은 오가지 않았어요' : ''}${pen ? ` · 위약금 <span class="${pen > 0 ? 'plus' : 'neg'}">${signedMoney(pen)}</span>` : ''}${me.debt && d.earned ? ' · 판 돈은 빚부터 갚아요' : ''}</p>
       ${notes.length ? `<ul class="rp-notes">${notes.join('')}</ul>` : ''}
-      <p class="muted">상자는 도착할 때 창고에 들어왔어요. 받은 돈은 빚부터 갚아요.</p>
       <div class="actions"><button class="primary" data-close-report>확인</button></div>`, 'report-modal');
   }
   // 7.6 계약서(디자인 A): 수출(우리 ➜ 그 나라)·수입(그 나라 ➜ 우리) 두 칸. 물건마다 창고 줄: 지금 · 3달마다 변화 → 계약하면 3달 뒤
@@ -692,7 +746,7 @@
       // 값 칩: 살 때는 싸요/보통/비싸요, 팔 때는 세계 값보다 잘 쳐주면 '잘 쳐줘요', 필요 없는 나라에 팔면 '헐값'
       const chip = dump ? '<em class="lbl dump">헐값</em>' : d === 'get' ? lbl(p, g) : p >= w * 1.1 ? '<em class="lbl cheap">잘 쳐줘요</em>' : p <= w * .9 ? '<em class="lbl dear">싸게 사요</em>' : '<em class="lbl fair">보통</em>';
       return `<div class="step${n ? ' on' : ''}${dump ? ' dump' : ''}${wanted ? ' wanted' : ''}"><div class="good-main">${ico(g)}<span class="what"><b>${gname(g)}${wanted ? ' · 찾던 물건' : ''}${tag}</b>
-          <small class="price">${chip}<span>${p}억</span>${d === 'get' && !o.world ? `<span class="q"${tipA(`최대 ${most}상자: ${esc(o.name)}이 왕복마다 지킬 수 있는 양(남는 양 − 다른 배와 한 약속 + 재고 몫)`)}>${'⭐'.repeat(o.quality[g])} · 재고 ${E.exportable(G, o, g)} · 최대 ${most}</span>` : ''}${sixMonths(g, d)}</small></span>
+          <small class="price">${chip}<span>${p}억</span>${d === 'get' && !o.world ? `<span class="q"${tipA(`최대 ${most}상자: ${josa(esc(o.name), '이', '가')} 왕복마다 지킬 수 있는 양(남는 양 − 다른 배와 한 약속 + 재고 몫)`)}>${'⭐'.repeat(o.quality[g])} · 재고 ${E.exportable(G, o, g)} · 최대 ${most}</span>` : ''}${sixMonths(g, d)}</small></span>
         <span class="stepper"><button data-step="${d}" data-g="${g}" data-d="-1" ${n ? '' : 'disabled'} aria-label="${gname(g)} 한 상자 빼기">−</button><b class="n">${n}</b>
         <button data-step="${d}" data-g="${g}" data-d="1" ${used(d) < capacity(d,g) && n < most && !dock[other][g] && !(d === 'give' && luxCap(me, o, g) && n >= (me.augments.includes('luxStreet')?E.S.rules79.luxMax:XT.luxMax)) ? '' : 'disabled'} aria-label="${gname(g)} 한 상자 더하기">＋</button></span></div>
         ${stock(d, g, n)}${dump ? `<small class="dump-note">${esc(o.name)}${E.sells(G, o, g) ? '도 만들어요' : '에 넉넉해요'} · 값의 절반 · 한 번에 2상자까지</small>` : ''}</div>`;
@@ -700,6 +754,18 @@
     const giveRows = gives.map(g => row('give', g)).join(''), getRows = gets.map(g => row('get', g)).join(''), nG = (giveRows.match(/class="step[ "]/g) || []).length, nR = (getRows.match(/class="step[ "]/g) || []).length;
     const short = cost('get') > me.money + Math.max(0, cost('give') - me.debt), feats = features(o, dock.get, dock.give).slice(1);
     const pic = o.world ? '<span class="dk-pic world" aria-hidden="true">🗻</span>' : `<img class="dk-pic" src="${ART}port_${portraitOf(o.id)}.webp" alt="">`;
+    // 8.5 처음엔 세 줄(기대 효과 · 보낼 것/받아 올 것 · 왕복과 돈)만. '짐 바꾸기'를 눌러야 −/＋·창고 줄·값 신호·다 보기가 펼쳐진다
+    if (!dock.edit) {
+      const fx = dockEffect(me, s, from, until, yrs), line = d => GOODS.filter(g => dock[d][g]).map(g => `<span class="sg">${ico(g)}<b>×${dock[d][g]}</b><small>${gname(g)}</small></span>`).join('') || '<span class="none">없음</span>';
+      return `<div class="dockveil"><div class="dockpanel simple" role="dialog" aria-modal="true" aria-label="무역 계약서">
+      <header class="dk-head"><img class="dk-pic mine" src="${homeImg(homeStage(me))}" alt=""><div class="dk-title"><small class="chapter">📜 배 ${dock.i + 1} · 무역 계약서 · ${yrs}년</small>
+        <h3 tabindex="-1">🏠 ${esc(me.name)} ⇄ ${esc(o.name)}</h3></div>${pic}</header>
+      <div class="dockbody"><p class="effect${fx.bad ? ' bad' : ''}">${fx.text}${fx.pts ? ` <b${tipA('계약 동안 정산 한 번마다 생활 점수가 평균 이만큼 달라져요')}>${fx.pts > 0 ? '+' : '−'}${Math.abs(fx.pts)}점</b>` : ''}</p>
+        <div class="srows"><p class="srow give"><em>📤 보낼 것</em>${line('give')}</p><p class="srow get"><em>📥 받아 올 것</em>${line('get')}</p>
+        <p class="srow trip"><em>⛵ 왕복 ${t}달</em><span>한 번 왕복 ${cost('give') ? `번 돈 <b class="plus">+${cost('give')}억</b>` : ''}${cost('give') && cost('get') ? ' · ' : ''}${cost('get') ? `물건값 <b>${cost('get')}억</b>` : ''}${!cost('give') && !cost('get') ? '오가는 돈 없음' : ''}</span></p></div>
+        ${!ok ? '<p class="snote warn">이 섬과는 지금 주고받을 짐이 없어요. 짐 바꾸기에서 골라 보거나 다른 섬을 골라요.</p>' : short ? '<p class="snote warn">금고가 모자라 일부만 살 수 있어요</p>' : s.route ? `<p class="snote">지금 계약이 ${dshort(s.route.until)}에 끝나면 이 계약으로 떠나요.</p>` : ''}</div>
+      <div class="dockactions"><div class="actions"><button class="primary" data-sign ${ok ? '' : 'disabled'}><span class="seal-icon" aria-hidden="true">계</span>${s.route ? '추천대로 예약하기' : '추천대로 계약하기'}</button><button data-edit>✏️ 짐 바꾸기</button><button data-close>취소</button></div></div></div></div>`;
+    }
     const col = (d, cls, title, sub, rows, n, empty) => `<section class="col ${cls}${n > 3 ? ' many' : ''}"><p class="ribbon panel-label"><span>${title}</span><span class="pill">배 칸 ${used(d)}/${capacity(d)}</span></p>
       <p class="section-sub"><span>${sub}</span>${boxes(d)}</p><div class="rows">${rows || `<small class="empty-note">${empty}</small>`}</div></section>`;
     return `<div class="dockveil"><div class="dockpanel" role="dialog" aria-modal="true" aria-label="무역 계약서">
@@ -714,7 +780,21 @@
       ${used('give') >= k || used('get') >= k ? '<p class="capacity-tip">꽉 찬 짐칸은 다른 상자를 −로 빼면 바꿔 실을 수 있어요.</p>' : ''}</div>
       <div class="dockactions"><div><p class="sum">한 번 왕복마다 예상: 번 돈 <span class="plus">${amt(cost('give'), '+')}</span> · 쓴 돈 <span class="neg">${amt(cost('get'), '−')}</span></p>
       <small>${short ? '<span class="warn">금고가 모자라 일부만 살 수 있어요</span>' : '재고·금고에 따라 덜 받아요. 빚은 수입으로 먼저 갚아요.'}</small></div>
-      <div class="actions"><button class="primary" data-sign ${ok ? '' : 'disabled'}><span class="seal-icon" aria-hidden="true">계</span>${s.route ? '다음 항로로 예약' : '계약하기'}</button><button data-close>취소</button></div></div></div></div>`;
+      <div class="actions"><button class="primary" data-sign ${ok ? '' : 'disabled'}><span class="seal-icon" aria-hidden="true">계</span>${s.route ? '다음 항로로 예약' : '계약하기'}</button><button data-edit>▴ 간단히</button><button data-close>취소</button></div></div></div></div>`;
+  }
+  // 8.5 계약서 '기대 효과': 8.2 창고 전망(E.outlook, 우연은 빼고 하루씩 따라감)으로 이 계약을 맺을 때와 안 맺을 때 생활 물건이 모자라는 상자를 견준다.
+  // 정산에서 모자란 1상자는 그 물건 칸 점수(20점)의 1/필요량이라, 계약 기간 정산 한 번마다 평균 몇 점 달라지는지로 바꾼다
+  function dockEffect(me, s, from, until, yrs) {
+    const key = [E.today(G), dock.i, dock.to, dock.give, dock.get].join('|');
+    if (dock.fx?.key === key) return dock.fx;
+    const gets = GOODS.filter(g => dock.get[g]), gives = GOODS.filter(g => dock.give[g]), names = a => a.map(gname).join('·'), need = E.needs(G, me);
+    const zero = GOODS.map(() => 0), A = E.outlook(G, me, s, {to: dock.to, give: zero, get: zero}, from, until), B = E.outlook(G, me, s, {to: dock.to, give: dock.give, get: dock.get}, from, until);
+    const gain = g => E.CONSUMER.includes(g) && need[g] ? X.slotPoints * (A.goods[g].short - B.goods[g].short) / need[g] / (4 * yrs) : 0;
+    const fixed = E.CONSUMER.filter(g => A.goods[g].short > B.goods[g].short), pts = Math.round(sum(E.CONSUMER.map(gain)));
+    let fx = {key, text: gets.length ? `기대 효과: ${names(gets)} 들여오기` : gives.length ? `기대 효과: ${names(gives)} 팔아 돈 벌기` : '기대 효과: 아직 짐이 없어요', pts: 0};
+    if (fixed.length) fx = {key, text: `기대 효과: ${names(fixed)} 부족 ${fixed.every(g => !B.goods[g].short) ? '해결' : '줄이기'}`, pts};
+    else if (pts < 0) fx = {key, text: `${fx.text} · 생활 물건이 모자라요`, pts, bad: true};
+    return dock.fx = fx;
   }
   // 계약서가 화면보다 크면 한 단계씩 촘촘하게(fit1: 간격, fit2: 많은 칸은 두 줄, fit3: 안 담은 물건의 창고 줄 숨김, fit4: 안 담은 헐값 안내 숨김). 스크롤바는 만들지 않는다.
   function fitDock() {
@@ -735,11 +815,11 @@
     invention: () => '새 기술이 나왔어요. 우리가 쓸까요, 나눌까요?',
     voice: () => '농민은 "농업을 지켜 주세요", 소비자는 "물가를 낮춰 주세요"라고 해요.',
     dumping: () => '어떤 나라가 옷을 아주 싸게 팔기 시작했어요(6달).',
-    retaliation: p => `우리가 보호를 걸자 ${nameOf(p.source)}이 맞서 우리 물건에 세금을 붙이려 해요.`,
-    fta: p => `${nameOf(p.target)}이 서로 관세를 없애는 FTA를 맺자고 해요.`,
+    retaliation: p => `우리가 보호를 걸자 ${josa(nameOf(p.source), '이', '가')} 맞서 우리 물건에 세금을 붙이려 해요.`,
+    fta: p => `${josa(nameOf(p.target), '이', '가')} 서로 관세를 없애는 FTA를 맺자고 해요.`,
     // 6.5 덤 사건
     pirates: () => '해적이 뱃길에 나타났어요. 6달 동안 배가 다니기 위험해요.',
-    bigOrder: p => `이웃들이 우리 ${gname(P().main)}을 급히 원해요. 창고의 절반(${p.qty}상자)을 세계값의 1.5배에 바로 팔 수 있어요.`,
+    bigOrder: p => `이웃들이 우리 ${josa(gname(P().main), '을', '를')} 급히 원해요. 창고의 절반(${p.qty}상자)을 세계값의 1.5배에 바로 팔 수 있어요.`,
     blackout: () => '석유가 모자라 6달 동안 모든 나라의 석유 생산이 줄고 석유 값이 올라요.',
     techBoom: () => '첨단기기가 세계에서 인기예요. 6달 동안 첨단기기 값이 올라요.',
     strike: () => `우리 ${gname(P().main)} 공장 일꾼들이 임금을 올려 달래요.`,
@@ -822,6 +902,10 @@
     if (id === 'treasure') return '<small class="cardnote warn">🎲 1년 뒤에 돌아와요 · 그때까지 금고가 빠듯해요</small>';
     return '';
   }
+  // 8.5 첫 발전 회의(2년째 1월 1일)에만 회의 창 위에 도우미 한 줄. 같은 회의 창에서는 다시 그려도 남는다
+  let meetTipFor = null;
+  const meetTip = p => { if (!hintsOn() || resumed && meetTipFor !== p) return ''; if (meetTipFor !== p) { if (natSeen('common').meet85) return ''; meetTipFor = p; natMark('common', 'meet85'); }
+    return `<p class="first-tip">🧑‍✈️ 해마다 1월 1일은 <b>발전 회의</b>! 카드 한 장으로 나라를 키워요. 같은 무늬를 모으면 더 세져요.</p>`; };
   function showPending() {
     const p = G.pending, me = P();
     if (p !== lastPend) {
@@ -848,7 +932,7 @@
           ${money?`<small class="aug-cost">💰 투자 ${money}억 · 모자라면 빚이 생겨요</small>`:''}${cardNote(me,id)}</button>`;};
       const mine=cons.filter(c=>c.count).map(c=>`<span class="mine-con${c.count>=2?' lit':''}"${tipA(`${c.name} ${c.count}/3 · 2장: ${c.b2} · 3장: ${c.b3}`)}>${c.icon} ${c.count}/3</span>`).join('');
       return modal(`<p class="eyebrow">${p.year}년째 발전 회의 · <span class="tier-word ${tier}">${R79.tierNames[tier]}</span></p><h2>세 장 중 한 장을 골라요</h2>
-        <p class="aug-lead">고르는 카드는 공짜예요${p.cards.some(id=>E.cardCost(me,id))?'(투자 카드만 돈을 내요)':''}. 같은 콘셉트를 2장·3장 모으면 보너스가 켜져요.${mine?`<span class="mine-cons">우리 콘셉트 ${mine}</span>`:''}</p>
+        ${meetTip(p)}<p class="aug-lead">고르는 카드는 공짜예요${p.cards.some(id=>E.cardCost(me,id))?'(투자 카드만 돈을 내요)':''}. 같은 콘셉트를 2장·3장 모으면 보너스가 켜져요.${mine?`<span class="mine-cons">우리 콘셉트 ${mine}</span>`:''}</p>
         ${p.catchup&&rank?`<p class="catchup">🍀 작년 ${rank}등이라 좋은 카드가 나올 확률 ↑ · 공짜 다시 뽑기 +1</p>`:''}
         <div class="options aug-cards">${p.cards.map(face).join('')}</div>
         <div class="actions"><button data-reroll ${me.debt||me.money<cost?'disabled':''}>🎲 다시 뽑기 · ${cost?cost+'억':'공짜'}</button><span>${me.debt?'빚을 갚으면 다시 뽑을 수 있어요':me.meetings.free?`공짜 ${me.meetings.free}번 남음`:`금고 ${me.money}억`}</span></div>`,'meeting79');
@@ -936,34 +1020,37 @@
     {key: 'smog', id: 'ironland', at: '.nation-slot', when: me => me.last?.pollution > 0, say: me => `공장 연기 때문에 생활 점수가 ${me.last.pollution}점 깎였어. 발전 회의의 <b>제철소 현대화</b> 카드로 공해를 줄일 수 있어.`},
     {key: 'oilPrice', id: null, when: me => !me.augments.some(id => E.conceptOf(id) === 'green') && E.worldPrice(G, 1) > E.S.goods[1].price * XT.renewAt, say: () => `석유값이 ${E.worldPrice(G, 1)}억까지 올랐어. 발전 회의에서 🌱 <b>녹색 성장</b> 카드를 고르면 석유를 덜 써!`},
     // 7.9b 증강체·작은 돌발·값 신호 · 8.0 누적 점수
-    {key: 'small79', id: null, at: '.small-pop', when: () => !!$('.small-pop'), say: () => '지도 오른쪽 위 카드는 <b>작은 돌발</b>이야. 시간은 그대로 흘러. 단추가 붙어 있으면 7일 안에 눌러 봐!'},
-    {key: 'trend79', id: null, at: '.isle .trend', when: () => G.month >= 4 && !!$('.isle .trend'), say: () => '물건 그림 옆 <b>▲</b>는 요즘 오르는 값, <b>▼</b>는 내리는 값이야. 계약서에서 <b>최근 6달 중 싼 편</b>일 때 맺으면 1년 동안 싸게 사. 배 한 척은 잠깐 기다려도 돼.'},
+    {key: 'small79', id: null, at: '.small-pop', when: () => !!$('.small-pop'), say: () => `지도 오른쪽 위 카드는 <b>작은 돌발</b>이야. 시간은 그대로 흘러. 단추가 붙어 있으면 ${E.S.rules79.actionDays}일 안에 눌러 봐!`},
+    // 8.5 첫 판 도움말에서 뺀 설명: 처음 필요해질 때 한 번만(shared = 나라와 상관없이 한 번, trade6.helper.common에 기억)
+    {key: 'intro85', id: null, at: '.nation-slot', when: me => !natSeen(me.id).intro && me.ships.some(s => s.delivery), say: me => INTRO_STEP.say(me), mark: me => natMark(me.id, 'intro')},
+    {key: 'score85', shared: true, at: '.stat.score', when: me => !!me.last, say: () => `😊 첫 정산이야! <b>생활 점수</b>는 국민이 얼마나 넉넉하게 사는지야. 모자란 물건을 채울수록 올라가. 위의 <b>다음 정산 예상</b>으로 미리 볼 수 있어.`},
+    {key: 'offer85', shared: true, at: '.offer-pop', when: () => !!$('.offer-pop'), say: () => `다른 나라 배가 <b>계약 요청</b>을 보냈어! ♥2가 되면 이렇게 찾아와. ♥3이 되면 값도 깎아 줘. 수락하면 1년 동안 오가.`},
+    {key: 'rest85', shared: true, at: '.piece.idle', when: me => me.ships.some(s => !s.route && s.delivery) && !!$('.piece.idle'), say: () => `계약은 <b>1년</b>이면 끝나고 배는 <b>쉬어</b>. 섬에 다시 놓아 새 계약을 맺자. 값이 좋아질 때까지 잠깐 기다려도 돼.`},
+    {key: 'trend85', shared: true, at: '.isle .trend', when: me => me.ships.some(s => s.route) && me.ships.some(s => !s.route) && G.month >= 1 && !!$('.isle .trend'), say: () => '다음 계약 전에 봐! 물건 옆 <b>▲</b>는 요즘 오르는 값, <b>▼</b>는 내리는 값이야. 계약하면 1년 동안 값이 그대로니까 <b>▼일 때 사면</b> 좋아.'},
     {key: 'lane81', id: null, at: '.lane-mark', when: () => G.month >= 1 && !!$('.lane-mark'), say: () => '바닷길 위 그림은 <b>항로의 특징</b>이야. 🌊 해류·🐟 어장은 좋은 길, 🏴‍☠️ 해적·⛈ 폭풍 바다는 값이 좋은 대신 가끔 손해를 봐. 그림을 눌러 봐!'},
     {key: 'sum80', id: null, at: '.forecast', when: () => G.month >= 12, say: () => `점수는 해마다 <b>쌓여</b>! 나라가 커지면 정산이 ${E.S.rules79.overFrom}점을 넘을 수도 있어. 다만 <b>${E.S.rules79.overFrom}점 위는 절반만</b> 쌓이니까 한 가지만 잔뜩 모으기보다 고루 채워 봐.`},
     {key: 'aug79', id: null, at: '.home', when: me => me.augments.length === 1, say: () => '고른 발전 카드는 우리 섬을 누르면 <b>🧩 발전 카드</b> 칸에 모여. 같은 콘셉트를 <b>2장·3장</b> 모으면 보너스가 켜져!'}
   ];
+  const HINT_GAP = 10; let hintDay = null;
   function nextHint() {
     if (resumed || !hintsOn() || G.over || G.pending || dock || report || !layer.hidden) return null;
-    const me = P(), seen = natSeen(me.id);
-    return HINTS.find(h => (!h.id || h.id === me.id) && !seen[h.key] && h.when(me)) || null;
+    if (hintDay != null && E.today(G) - hintDay < HINT_GAP && E.today(G) >= hintDay) return null;   // 8.5 때 맞춤 말풍선이 며칠 연달아 뜨지 않게
+    const me = P(), seen = natSeen(me.id), shared = natSeen('common');
+    return HINTS.find(h => (!h.id || h.id === me.id) && !(h.shared ? shared : seen)[h.key] && h.when(me)) || null;
   }
+  // 8.5 첫 판 도움말은 '첫 거래 성공'까지 3단계 + 마무리. 나머지 설명은 처음 필요해질 때 한 번씩(아래 HINTS의 common)
+  // at·allow는 글자(선택자)나 함수. coach.good = 처음에 가리킬 모자란 물건
+  const coachGood = () => coach?.good ?? 0, hasRoute = () => P().ships.some(s => s.route);
   const COACH = [
-    {say: me => `안녕! 나는 항해사 <b>${HELPER.name}</b>야. 오늘부터 <b>${esc(me.name)}</b>의 무역을 함께할게. 처음 몇 가지만 알려 줄게!`},
-    {at: '.home', say: me => `여기가 우리 나라야. 대표 물건은 ${ico(me.main)} <b>${gname(me.main)}</b>. 잘 만드는 이 물건을 다른 나라에 팔 수 있어.`},
-    {at: '.basket', say: () => `여기는 우리 <b>창고</b>야. 큰 숫자는 가진 상자 수, 아래 <b>+n / −n</b>은 3달마다 늘고 줄어드는 양이야. <b>빨간 칸</b>은 모자란 물건이라 사 와야 해!`},
-    {at: '.isle[data-drop]:not(.world)', say: () => `바다 건너 <b>다른 나라</b>야. 섬 아래 그림은 그 나라와 사고팔 물건이고, <b>⛵달</b>은 다녀오는 데 걸리는 시간이야. 섬 자리와 거리는 판마다 달라져. 이름판의 <b>i</b> 단추를 누르면 그 나라가 무엇을 수출하고 수입하고 싶은지 볼 수 있어.`},
-    {allow: '.piece, .isle', at: '.piece[data-ship="0"]', say: () => `이게 우리 <b>배 1번</b>(빨간 배)이야. 배를 <b>끌어서 섬 위에 놓아</b> 봐! 배를 누르고 섬을 눌러도 돼.`, until: () => !!dock, act: '👉 직접 해 보세요'},
-    {lockSign: true, allow: '.dockpanel', at: '.dockpanel', say: () => `<b>계약서</b>야. 왼쪽은 <b>수출</b>(우리가 보내는 물건), 오른쪽은 <b>수입</b>(받아 오는 물건)이야. 물건마다 아래 줄에 <b>1년 동안 만들고 쓰는 양</b>과 <b>이 계약 상자 × 왕복 수</b>가 나와. 빨간 ⚠가 뜨면 그달에 창고가 모자란다는 뜻이야.`},
-    {lockSign: true, allow: '.dockpanel', at: '[data-more]', say: () => `처음엔 <b>추천 짐</b>만 보여. <b>다 보기</b>를 누르면 이 섬과 사고팔 수 있는 물건이 모두 나와. 눌러 봐!`, until: () => !dock || dock.saw || !$('[data-more]'), act: '👉 다 보기를 눌러 보세요'},
-    {lockSign: true, allow: '.dockpanel', at: '[data-reco]', say: () => `−/＋로 짐을 바꿔 봐도 돼. 헷갈리면 <b>추천대로</b>를 누르면 처음 추천 짐으로 돌아가. 눌러 봐!`, until: () => !dock || dock.reco, act: '👉 추천대로를 눌러 보세요'},
-    // 8.2c 고른 섬과 지금 계약할 짐이 없으면(계약하기 꺼짐) 취소하고 다른 섬을 고르게 한다. 그래서 이 단계는 배·섬도 누를 수 있다
-    {allow: '.dockpanel, .piece, .isle', at: '[data-sign]', say: () => dock && $('[data-sign]:disabled') ? `이 섬과는 지금 계약할 짐이 없어. <b>취소</b>를 누르고 배를 <b>다른 섬</b>에 놓아 봐.` : !dock ? `배를 섬에 놓아 계약서를 열어 봐.` : `이제 <b>계약하기</b>를 누르면 배가 떠나!`, until: () => !dock && P().ships.some(s => s.route), act: '👉 계약하기를 눌러 보세요'},
-    {at: '.tray', say: me => `계약하면 배는 1년 동안 <b>자동으로 왕복</b>하고 끝나면 쉬어. ♥0 거래 거절 · ♥2 계약 요청 · ♥3 할인·먼저 받기야. 배 ${me.ships.length}척 중 한 척은 값이 좋아질 때까지 기다려 봐도 돼.`},
-    {allow: '.speed [data-speed]', at: '.speed', say: () => `준비됐으면 <b>▶</b>를 눌러 시간을 흐르게 해 봐!`, until: () => speed > 0, act: '👉 ▶를 눌러 보세요'},
-    {wait: () => !!$('.arrival'), at: '.arrival', pause: true, say: () => `배가 돌아왔어! 눌러 보면 무엇을 팔고 무엇을 사 왔는지 볼 수 있어.`, until: () => !!report},
-    {wait: () => !report && layer.hidden, at: '.stat.score', pause: true, say: () => `😊 <b>생활 점수</b>는 국민이 얼마나 넉넉하게 사는지야. 모자란 물건을 채울수록 올라가. 올해 점수는 4번 정산의 평균이고, 해마다 <b>쌓인 합계</b>로 순위를 정해. <b>빚은 감점</b>이고, 위의 <b>다음 정산 예상</b>으로 부족한 물건을 미리 보자!`},
-    {pause: true, say: () => `이제 혼자서도 할 수 있어! <b>2년째부터</b> 해마다 1월 1일 <b>발전 회의</b>에서 발전 카드 카드를 한 장 골라. 가끔 <b>사건</b>이 생기면 어떻게 할지 고르고, 지도 위 <b>작은 돌발</b>도 살펴봐. 도움이 필요하면 설정에서 나를 다시 불러 줘.`, last: true},
+    {at: () => `.stock[data-good="${coachGood()}"]`, say: me => `안녕! 나는 항해사 <b>${HELPER.name}</b>야. 창고의 빨간 칸을 봐. ${ico(coachGood())} <b>${gname(coachGood())}</b>, 이게 <b>모자라</b>! 다른 나라에서 사 오자.`},
+    {enter: () => { focusGood = coachGood(); }, allow: '.piece, .isle', at: () => coach?.isle ? `.isle[data-drop="${coach.isle}"]` : $('.isle.match:not(.world):not(.buyer)') ? '.isle.match:not(.world):not(.buyer)' : '.isle.match', say: () => `${josa(gname(coachGood()), '을', '를')} 파는 섬이 <b>빛나요</b>. 빛나는 섬을 눌러 봐! 배를 끌어 섬에 놓아도 돼.`, until: () => !!dock, act: '👉 빛나는 섬을 눌러 보세요'},
+    // 계약서가 열려 있으면 '추천대로 계약하기', 맺은 뒤에는 ▶를 가리킨다(같은 말풍선). 고른 섬과 계약할 짐이 없으면 취소하고 다른 섬으로(8.2c)
+    {allow: () => hasRoute() && !dock ? '.speed [data-speed="1"], .speed [data-speed="2"]' : '.dockpanel, .piece, .isle', at: () => dock ? '[data-sign]' : hasRoute() ? '.speed [data-speed="1"]' : '.isle.match',
+      say: () => dock && $('[data-sign]:disabled') ? `이 섬과는 지금 계약할 짐이 없어. <b>취소</b>를 누르고 <b>다른 섬</b>을 눌러 봐.` : !dock && !hasRoute() ? '빛나는 섬을 눌러 계약서를 열어 봐.' : `짐은 내가 골라 뒀어. <b>추천대로 계약하기</b>를 누르고 <b>▶</b>를 눌러 출항!`,
+      until: () => speed > 0 && hasRoute() && !dock, act: '👉 계약하기 → ▶', avoid: () => dock ? '.dockpanel .effect, .dockpanel .dockactions' : '.speed, .isle'},   // 말풍선이 계약서 가운데 줄은 가려도 기대 효과·단추는 피한다
+    {wait: () => !!$('.arrival'), at: '.arrival button', pause: true, say: me => { const d = me.ships.map(s => s.delivery).find(Boolean); return `🎉 ${d ? gotLine(me, d) : '첫 배가 돌아왔어요!'} 이제 혼자서도 할 수 있어. 모르는 게 생기면 그때 내가 또 알려 줄게!`; }, last: true},
   ];
+  const atOf = c => typeof c.at === 'function' ? c.at() : c.at, allowOf = c => typeof c.allow === 'function' ? c.allow() : c.allow;
   const coachEl = Object.assign(document.createElement('div'), {id: 'coach', hidden: true});
   coachEl.innerHTML = '<div class="spot"></div><div class="bubble" role="dialog" aria-live="polite"></div>';
   document.body.append(coachEl);
@@ -983,29 +1070,31 @@
   }
   function coachTick() {
     if (!G) return;
-    if (!coach) { const h = nextHint(); if (!h) return; coach = {step: 0, hint: h.key, list: [{...h, pause: true, last: true}]}; }
+    if (!coach) { const h = nextHint(); if (!h) return; h.mark?.(P()); hintDay = E.today(G); coach = {step: 0, hint: h.key, shared: !!h.shared, list: [{...h, pause: true, last: true}]}; }
     let c = coach.list[coach.step];
     if (c.until && coach.shown && c.until()) { coach.step++; coach.shown = false; c = coach.list[coach.step]; }
     // 사건 창·결과 창이 떠 있거나 아직 때가 아니면 숨는다(단, 도착 결과를 기다리는 단계는 결과 창이 열리면 넘어간다)
     const hidden = c.wait && !c.wait() || !layer.hidden && !(c.until && report) || G.over;
     // 8.2b 계약서 설명·다 보기·추천대로 단계에서는 계약하기·취소를 잠가 물건 수량만 바꾸게(계약하기 단계에서 풀림)
     for (const el of document.querySelectorAll('.dockpanel [data-sign], .dockpanel [data-close]')) el.classList.toggle('coach-locked', !!c.lockSign && !hidden);
+    for (const el of document.querySelectorAll('.dockpanel [data-edit]')) el.classList.toggle('coach-locked', !!coach.common);   // 8.5 첫 판 도움말 동안 '짐 바꾸기' 잠금
     if (hidden) { coachEl.hidden = true; return; }
     if (!coach.shown) {
       coach.shown = true; if (c.pause && speed) { coach.resumeSpeed = speed; speed = 0; }
+      if (c.enter) { c.enter(); return render(); }   // 8.5 단계가 보일 때 화면을 바꾸는 단계(예: 물건 섬 밝히기)
       if (c.intro) natMark(P().id, 'intro');
-      if (coach.hint) natMark(P().id, coach.hint);
+      if (coach.hint) natMark(coach.shared ? 'common' : P().id, coach.hint);
     }
     const me = P(), L = coach.list.length;
     coachEl.hidden = false;
     coachEl.querySelector('.bubble').innerHTML = `<span class="face" aria-hidden="true">${HELPER.img ? `<img src="${HELPER.img}" alt="" onerror="this.replaceWith('${HELPER.face}')">` : HELPER.face}</span>
       <div><small class="who">항해사 ${HELPER.name} · ${coach.hint ? `${TR(me.id).icon} ${esc(TR(me.id).name)} 도움말` : c.intro && L === 1 ? '새 나라 도움말' : `도움말 ${Math.min(coach.step + 1, L)}/${L}`}</small><p>${c.say(me)}</p>
-      <div class="row">${c.act ? `<em class="act">${c.act}</em>` : `<button class="primary" data-coach-next>${coach.hint || L === 1 ? '알겠어 ▶' : c.last ? '시작하기 ▶' : '다음 ▶'}</button>`}<button data-coach-off>도움말 끄기</button></div></div>`;
+      <div class="row">${c.act ? `<em class="act">${c.act}</em>` : `<button class="primary" data-coach-next>${coach.hint || L === 1 ? '알겠어 ▶' : c.last ? (coach.common ? '계속하기 ▶' : '시작하기 ▶') : '다음 ▶'}</button>`}<button data-coach-off>도움말 끄기</button></div></div>`;
     coachPlace(); clearTimeout(coach.t); coach.t = setTimeout(coachPlace, 420);   // 창이 열리는 움직임이 끝난 뒤 한 번 더 맞춘다
   }
   function coachPlace() {
     if (!coach || coachEl.hidden) return;
-    const c = coach.list[coach.step], t = c.at && $(c.at), spot = coachEl.querySelector('.spot'), bub = coachEl.querySelector('.bubble');
+    const c = coach.list[coach.step], t = atOf(c) && $(atOf(c)), spot = coachEl.querySelector('.spot'), bub = coachEl.querySelector('.bubble');
     coachEl.classList.toggle('free', !t);
     const W = innerWidth, H = innerHeight, bw = Math.min(460, W - 32), moved = coach.moved?.step === coach.step && coach.moved;
     if (!t) { spot.style.cssText = 'display:none'; bub.style.cssText = moved ? `left:${moved.x}px;top:${moved.y}px;translate:none` : ''; return; }
@@ -1014,7 +1103,7 @@
     if (moved) { bub.style.cssText = `left:${moved.x}px;top:${moved.y}px;width:${moved.w}px`; return; }
     // 대상과 겹치는 넓이가 가장 작은 자리(안 겹치는 자리가 있으면 그중 첫 번째). 8.2c 그 단계에서 눌러야 하는 곳(allow, 예: 섬들)도 되도록 피하고,
     // 다 가리면 좁은 말풍선(340px)으로도 놓아 본다
-    const also = c.allow ? [...document.querySelectorAll(c.allow)].map(e => e.getBoundingClientRect()).filter(q => q.width * q.height < W * H * .4) : [];
+    const avoid = c.avoid ? c.avoid() : allowOf(c), also = avoid ? [...document.querySelectorAll(avoid)].map(e => e.getBoundingClientRect()).filter(q => q.width * q.height < W * H * .4) : [];
     let pick = null;
     for (const w of [bw, Math.min(340, W - 32)]) {
       bub.style.cssText = `left:16px;top:16px;width:${w}px`;   // 8.2b 실제 너비로 높이를 먼저 잰다(너비가 다르면 줄 수가 달라 겹쳤다)
@@ -1032,7 +1121,7 @@
   // 8.2c 도움말이 떠 있는 동안에는 말풍선과 지금 단계가 시키는 곳(allow, 해 볼 대상 at)만 누를 수 있다. 딴 창이 떠서 흐름을 놓치지 않게
   const coachAllows = el => {
     if (!coach || coachEl.hidden || !(el instanceof Element) || el.closest('#coach .bubble')) return true;
-    const c = coach.list[coach.step], sel = c.allow || c.until && c.at;   // allow가 있으면 그것만(예: 속도 단추 옆 ⚙️는 막음)
+    const c = coach.list[coach.step], sel = allowOf(c) || c.until && atOf(c);   // allow가 있으면 그것만(예: 속도 단추 옆 ⚙️는 막음)
     return !!sel && !!el.closest(sel);
   };
   for (const type of ['pointerdown', 'mousedown', 'touchstart', 'click', 'dblclick', 'contextmenu']) addEventListener(type, e => { if (!coachAllows(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); } }, {capture: true, passive: false});
@@ -1052,8 +1141,8 @@
     if (b.hasAttribute('data-coach-next')) coachNext();
     if (b.hasAttribute('data-coach-off')) coachEnd('off');
   });
-  addEventListener('resize', () => coachPlace());
-  window.TK6_coach = {on: () => { try { localStorage.removeItem('trade6.helper'); for (const c of T.countries) localStorage.removeItem(natKey(c.id)); } catch (e) {} }, state: () => coach && {...coach}};
+  addEventListener('resize', () => { placeNote(); coachPlace(); });
+  window.TK6_coach = {on: () => { try { localStorage.removeItem('trade6.helper'); for (const c of T.countries) localStorage.removeItem(natKey(c.id)); } catch (e) {} }, state: () => coach && {...coach, list: coach.list.map(c => ({...c, at: atOf(c) || null}))}};   // 8.5 at이 함수인 단계도 선택자로
   // ---------- 6.6 결과 책: 1쪽 시상식 · 2쪽 우리 나라 5년 · 3쪽 이번 판의 이야기 ----------
   let endPage = 1;
   const END_PAGES = ['시상식', '우리 나라 5년', '이번 판의 이야기'];
@@ -1065,14 +1154,14 @@
     const nav = `<nav class="endnav" aria-label="결과 책 쪽"><button data-endpage="${page - 1}" ${page === 1 ? 'disabled' : ''} aria-label="앞 쪽">◀</button>
       <span class="pages">${END_PAGES.map((t, i) => `<button class="pg${i + 1 === page ? ' on' : ''}" data-endpage="${i + 1}" aria-current="${i + 1 === page}">${i + 1}. ${t}</button>`).join('')}</span>
       <button data-endpage="${page + 1}" ${page === 3 ? 'disabled' : ''} aria-label="다음 쪽">▶</button>
-      <span class="endactions"><button class="primary" data-ok="again">다른 나라로 다시 하기</button><button data-ok="same">${esc(me.name)}으로 다시</button><button data-codex>📖 도감</button></span></nav>`;
+      <span class="endactions"><button class="primary" data-ok="again">다른 나라로 다시 하기</button><button data-ok="same">${ro(esc(me.name))} 다시</button><button data-codex>📖 도감</button></span></nav>`;
     modal(`<div class="ending page${page}${rank === 1 && page === 1 ? ' win' : ''}">${body}</div>${nav}`, 'ending-modal');    requestAnimationFrame(() => { const st = $('.stage.story'); if (st && st.scrollHeight > st.clientHeight + 2) st.classList.add('dense'); });   // 사건이 많아 넘치면 촘촘하게
   }
   const barK = (a, y) => { const lo = Math.min(...a) - 8, hi = Math.max(...a); return (.25 + .75 * (y - lo) / Math.max(1, hi - lo)).toFixed(2); };
   // 7.9b 이번 판의 빌드: 고른 증강체 네 장(콘셉트 무늬·등급 색)과, 3장을 모았으면 'OO으로 키운 OO'
   function buildLine(me) {
     const main = E.mainConcept(me), cards = (G.stats.cardLog || []).map(c => E.S.cards.find(x => x.id === c.id));
-    return `<p class="build">${main ? `<b class="con-nation">${main.icon} ${esc(main.name)}으로 키운 ${esc(me.name)}</b>` : '<b>🧩 우리 빌드</b>'}${cards.map(d => `<em class="tier ${d.tier}"${tipA(d.text)}>${cardIcon(d.id)} ${esc(d.name)}</em>`).join('')}</p>`;
+    return `<p class="build">${main ? `<b class="con-nation">${main.icon} ${ro(esc(main.name))} 키운 ${esc(me.name)}</b>` : '<b>🧩 우리 빌드</b>'}${cards.map(d => `<em class="tier ${d.tier}"${tipA(d.text)}>${cardIcon(d.id)} ${esc(d.name)}</em>`).join('')}</p>`;
   }
   // 7.0 엔딩 한 줄 평(NATIONS-v7.md 6.3): [특성을 잘 살렸을 때, 못 살렸을 때]
   const TRAIT_HEAD = {daon: ['공장이 멈추지 않은 가공 무역 나라', '철강이 끊겨 공장이 녹슨 나라'], plains: ['원조로 친구를 모은 곡창 나라', '흉년에 흔들린 곡창 나라'],
@@ -1089,14 +1178,6 @@
     const h = me.history.map(x => x.trait ?? 0), v = LEVEL_TRAIT.includes(me.id) ? h : h.map((x, i) => x - (h[i - 1] ?? 0)), max = Math.max(1, ...v.map(Math.abs));
     return `<div class="tbars" aria-label="해마다 특성 값">${v.map((x, i) => `<span${tipA(`${i + 1}년째 ${x}`)}><b>${x}</b><i style="--h:${Math.round(Math.abs(x) / max * 100)}%"></i><small>${i + 1}년</small></span>`).join('')}</div>`;
   }
-  // 7.2 결과 책 1쪽: 이번 판에 도감에 새로 적힌 것과 칭호
-  function codexNews() {
-    const c = G.codex, fresh = c.lastNew || [], ranks = E.S.ranks, up = c.last && c.last.rankTo > c.last.rankFrom;
-    const unplayed = T.countries.filter(x => !c.nations?.[x.id]).length;
-    return `<p class="codex-new">📖 도감에 새로 적힌 것 <b>${fresh.length}개</b>${fresh.length ? ` · ${fresh.slice(0, 3).map(k => esc(slotName(k))).join(' · ')}${fresh.length > 3 ? ' …' : ''}` : ''}
-      ${up ? `<span class="rankup">${rankMark(ranks[c.last.rankTo - 1], 'sm')} 칭호가 올랐어요! ${esc(ranks[c.last.rankFrom - 1].name)} → <b>${esc(ranks[c.last.rankTo - 1].name)}</b></span>` : ''}
-      <small>${unplayed ? `아직 안 해 본 나라 ${unplayed}곳 · ` : ''}▶ 다음 쪽: 우리 나라 5년</small></p>`;
-  }
   function endPage1(rows, me, rank) {
     const got = G.codex.last?.badges || [], badge = id => E.S.badges.find(b => b.id === id);
     const line = rank === 1 ? '바다를 다스린 무역왕!' : rank === 2 ? '한 걸음만 더! 훌륭한 2등' : rank === 3 ? '당당한 3등!' : '다음 판엔 더 멀리 가 봐요';
@@ -1109,12 +1190,33 @@
         <ol class="others">${rows.slice(3).map((n, i) => `<li class="${n === me ? 'me' : ''}">${i + 4}. ${esc(n.name)} <b>${n.score}점</b></li>`).join('')}</ol>
       </div>
       <div class="result">
+        ${bestMoment(me, got)}
         <div class="stamp-row"><span class="stamp">${rank === 1 ? '<small>🏆</small>무역왕' : `${rank}등`}</span><div><h2>${esc(line)}</h2><p class="trait-head ${E.traitResult(G, me).good ? 'good' : 'bad'}">${TR(me.id).icon} ${esc(TRAIT_HEAD[me.id][E.traitResult(G, me).good ? 0 : 1])}</p><p class="avg"${tipA(`계약 깨기 ${G.stats.breaks}번 · 출항 놓침 ${G.stats.misses}번 · 문 닫은 공장 ${G.stats.declines}곳 · 금고 ${me.money}억 · 빚 ${me.debt}억`)}>${esc(me.name)} · 5년 누적 <b>${me.score}</b>점</p></div></div>
         <div class="years" aria-label="해마다 생활 점수">${me.years.map((y, i) => `<span style="--k:${barK(me.years, y)};--d:${.6 + i * .12}s"><b>${y}</b><i></i><small>${i + 1}년</small></span>`).join('')}</div>
         ${buildLine(me)}
-        <p class="badges">${got.length ? got.map((id, i) => `<span class="badge-chip" style="--d:${1.2 + i * .25}s" ${tipA(badge(id).text)}>🎖 ${esc(badge(id).name)}</span>`).join('') : '<span class="muted">이번 판엔 새 배지가 없어요</span>'}</p>
-        ${codexNews()}
+        ${gotFold(got, badge)}
       </div>`;
+  }
+  // 8.5 결과 책 1쪽 '이번 판 최고의 순간' 하나: 항구 단계 오름 → 배 늘어남 → 위기를 이긴 배지 → 가장 많이 판 물건
+  function bestMoment(me, got) {
+    const st = homeStage(me), ships0 = X.openShips + (E.S.countries[me.id].extraShip ? 1 : 0);
+    const exp = GOODS.map(g => sum(me.history.map(h => h.exp?.[g] || 0))), top = exp.indexOf(Math.max(...exp));
+    const m = st > 1 ? [`<img src="${homeImg(st)}" alt="">`, `${STAGE[1]} → ${ro(STAGE[st])} 성장했어요!`]
+      : me.ships.length > ships0 ? ['⛵', `배가 ${ships0}척 → ${me.ships.length}척으로 늘었어요!`]
+      : got.includes('survivor') ? ['🌪', '위기를 두 번 겪고도 이겨 냈어요!']
+      : exp[top] > 0 ? [ico(top), `${gname(top)} ${exp[top]}상자를 팔았어요!`] : null;
+    return m ? `<div class="best"><span class="best-ico" aria-hidden="true">${m[0]}</span><div><small>이번 판 최고의 순간</small><b>${m[1]}</b></div></div>` : '';
+  }
+  // 8.5 배지·도감 새 칸은 접어 둔다. 펼치면 결과 칸 위에 덮어 보여 준다(스크롤바 없이)
+  let endMore = false;
+  function gotFold(got, badge) {
+    const fresh = G.codex.lastNew || [], n = got.length + fresh.length, c = G.codex, up = c.last && c.last.rankTo > c.last.rankFrom, ranks = E.S.ranks;
+    if (!n && !up) return '<p class="got-none muted">이번 판엔 새로 모은 것이 없어요</p>';
+    return `<button class="got-open" data-end-more aria-expanded="${endMore}">🎁 새로 모은 것 ${n}개 보기${up ? ' · 칭호 올라감!' : ''}</button>
+      ${endMore ? `<div class="got-pop" role="group" aria-label="새로 모은 것"><p class="badges">${got.map((id, i) => `<span class="badge-chip" style="--d:${.1 + i * .12}s" ${tipA(badge(id).text)}>🎖 ${esc(badge(id).name)}</span>`).join('')}</p>
+        <p class="codex-new">📖 도감 ${fresh.length}칸${fresh.length ? ` · ${fresh.slice(0, 6).map(k => esc(slotName(k))).join(' · ')}${fresh.length > 6 ? ` 외 ${fresh.length - 6}칸` : ''}` : ''}</p>
+        ${up ? `<p class="rankup">${rankMark(ranks[c.last.rankTo - 1], 'sm')} 칭호가 올랐어요! ${esc(ranks[c.last.rankFrom - 1].name)} → <b>${esc(ranks[c.last.rankTo - 1].name)}</b></p>` : ''}
+        <button data-end-more>닫기 ✕</button></div>` : ''}`;
   }
   // 2쪽: 항구 성장 필름(1·3·5년째) + 산업 사다리 처음→끝 + 5년 무역 통계
   function endPage2(me) {
@@ -1128,7 +1230,7 @@
     return `<div class="stage growth">
       <p class="eyebrow">우리 나라 5년 · ${esc(me.name)}</p>
       <div class="film">${frames.map((h, i) => `<figure style="--d:${.15 + i * .35}s"><img src="${homeImg(stage(h))}" alt=""><figcaption><b>${[1, 3, 5][i]}년째</b><small>${STAGE[stage(h)]}</small></figcaption></figure>`).join('<i class="arrow" aria-hidden="true">➜</i>')}</div>
-      <p class="film-note">${s2 > s0 ? `🏘 ${STAGE[s0]}에서 ${STAGE[s2]}로 자랐어요!` : '🏘 항구는 그대로였어요. 발전 회의 카드로 산업을 키우면 섬이 자라요.'}</p>
+      <p class="film-note">${s2 > s0 ? `🏘 ${STAGE[s0]}에서 ${ro(STAGE[s2])} 자랐어요!` : '🏘 항구는 그대로였어요. 발전 회의 카드로 산업을 키우면 섬이 자라요.'}</p>
       <div class="money-line">💰 금고 ${hist.map((h, i) => `<span><small>${i + 1}년</small><b>${h.money}억${h.debt ? ` · 빚 ${h.debt}억` : ''}</b></span>`).join('')}</div>
     </div>
     <div class="result">
@@ -1153,7 +1255,7 @@
     const best = partners[0], world = (me.importedFrom.world || 0) + (me.exportedTo.world || 0), title = pickTitle(me, partners, world);
     const rank = E.ranking(G);
     const news = G.nations.slice(1).map(o => { const r = rank.indexOf(o) + 1;
-      const t = r === 1 ? '바다의 왕이 됐어요 🏆' : r <= 2 ? `${gname(o.main)}으로 넉넉하게 살았어요` : r <= 4 ? `${gname(o.main)}을 팔며 지냈어요` : '힘든 5년을 보냈어요';
+      const t = r === 1 ? '바다의 왕이 됐어요 🏆' : r <= 2 ? `${ro(gname(o.main))} 넉넉하게 살았어요` : r <= 4 ? `${josa(gname(o.main), '을', '를')} 팔며 지냈어요` : '힘든 5년을 보냈어요';
       return `<li><img src="${ART}port_${portraitOf(o.id)}.webp" alt=""><b>${esc(o.name)}</b><span>${t} · ${o.score}점</span></li>`; });
     return `<div class="stage story">
       <p class="eyebrow">이번 판의 이야기 · 일어난 일과 우리의 선택</p>
@@ -1265,7 +1367,7 @@
     const conRow = k => `<li><span class="ci" aria-hidden="true">${k.icon}</span><b>${esc(k.name)}</b><span class="acs">${R79.tiers.flatMap(t => AUGS.filter(a => a.concept === k.id && a.tier === t && !a.only)).map(chip).join('')}</span></li>`;
     const legend = `<p class="bk-legend">${R79.tiers.map(t => `<span class="ac ${t} on">${R79.tierNames[t]}</span>`).join('')}<small>2년째부터 해마다 한 장씩 골라요. 같은 콘셉트를 2장·3장 모으면 보너스가 켜져요</small></p>`;
     const cons = `<div class="bk-augs2"><ul>${E.S.concepts.slice(0, 5).map(conRow).join('')}</ul><ul>${E.S.concepts.slice(5).map(conRow).join('')}</ul></div>`;
-    const traits = `<p class="bk-sub">🧩 나라 특성 카드 <small>그 나라로 할 때 한 판에 한 번은 꼭 나와요</small></p><ul class="bk-augs traits">${AUGS.filter(a => a.only).map(a => `<li${tipA(`${cardIcon(a.id)} ${esc(E.S.concepts.find(k => k.id === a.concept).name)}로 쳐요`)}><span class="ci">${esc(T.countries.find(x => x.id === a.only).name)}</span>${chip(a)}</li>`).join('')}</ul>`;
+    const traits = `<p class="bk-sub">🧩 나라 특성 카드 <small>그 나라로 할 때 한 판에 한 번은 꼭 나와요</small></p><ul class="bk-augs traits">${AUGS.filter(a => a.only).map(a => `<li${tipA(`${cardIcon(a.id)} ${ro(esc(E.S.concepts.find(k => k.id === a.concept).name))} 쳐요`)}><span class="ci">${esc(T.countries.find(x => x.id === a.only).name)}</span>${chip(a)}</li>`).join('')}</ul>`;
     if (augPages() === 1) return legend + cons + traits;
     return page ? traits : legend + cons;
   }
@@ -1350,7 +1452,13 @@
   // 7.9b 자동 멈춤(⚙️에서 끌 수 있음): 계약이 끝나 배가 쉬게 되면 · 다음 정산 예상이 10점 넘게 떨어지면
   function checkPause(idle0) {
     const me = P(), rest = me.ships.findIndex((s, k) => !s.route && !idle0[k]);
-    if (autoPause.idle && rest >= 0 && G.month > 0) { speed = 0; pauseNote = `배 ${rest + 1}이 쉬게 됐어요. 주변 값을 살펴보고 새 계약을 맺거나, 값이 좋아질 때까지 기다려도 돼요.`; return; }
+    // 8.5 1년째에는 단추 돌발·계약 요청이 오면 멈춰 읽을 시간을 준다(⚙️에서 끌 수 있음)
+    const fresh = choiceKeys().filter(k => !choiceSeen.has(k)); fresh.forEach(k => choiceSeen.add(k));
+    if (autoPause.choice && fresh.length && G.month < 12 && !G.pending && !G.over) {
+      const offer = fresh.find(k => k[0] === 'o'), f = offer && (G.offers || []).find(x => `o${x.id}` === offer), a = !f && E.smallActions(G).find(a => `s${a.day}:${a.id}` === fresh[0]);
+      speed = 0; pauseNote = f ? `${josa(nameOf(f.from), '이', '가')} 계약을 하자고 해요. 오른쪽 위 카드를 읽고 수락이나 거절을 골라요.` : `${E.S.smallEvents.find(e => e.id === a.id).name} · 오른쪽 위 카드를 읽고 단추를 누를지 골라요.`; return;
+    }
+    if (autoPause.idle && rest >= 0 && G.month > 0) { speed = 0; pauseNote = `${josa(`배 ${rest + 1}`, '이', '가')} 쉬게 됐어요. 주변 값을 살펴보고 새 계약을 맺거나, 값이 좋아질 때까지 기다려도 돼요.`; return; }
     if (!autoPause.drop || G.pending || G.over) return;
     const f = E.forecast(G).score, k = me.seasons.length;
     if (lastForecast?.k !== k) lastForecast = null;
@@ -1438,8 +1546,8 @@
     if (b.hasAttribute('data-nation-slot')) { tip = tip?.kind === 'nation' ? null : {kind: 'nation', pinned: true}; render(); return $('.nation-slot')?.focus(); }
     if (b.dataset.start) return start(b.dataset.start);
     if (b.dataset.codex != null) { sfx('page'); return showCodex(); }
-    if(b.dataset.smallAction!=null){E.takeSmallAction(G,+b.dataset.smallAction);return render();}
-    if (b.dataset.offer != null) { const yes = b.hasAttribute('data-yes'), ok = E.answerOffer(G, +b.dataset.offer, yes); sfx(yes && ok ? 'contract' : yes ? 'error' : 'cancel'); return render(); }
+    if(b.dataset.smallAction!=null){E.takeSmallAction(G,+b.dataset.smallAction);pauseNote=null;return render();}   // 8.5 고르면 멈춤 쪽지는 걷는다(▶로 다시 흐름)
+    if (b.dataset.offer != null) { pauseNote = null; const yes = b.hasAttribute('data-yes'), ok = E.answerOffer(G, +b.dataset.offer, yes); sfx(yes && ok ? 'contract' : yes ? 'error' : 'cancel'); return render(); }
     if (b.dataset.good != null) { focusGood = focusGood === +b.dataset.good ? null : +b.dataset.good; render(); return $(`.stock[data-good="${b.dataset.good}"]`)?.focus(); }
     if (b.hasAttribute('data-clear-good')) { focusGood = null; return render(); }
     if (b.dataset.report != null) { report = {i: +b.dataset.report, beforeSpeed: speed}; speed = 0; return render(); }
@@ -1464,6 +1572,7 @@
     // 8.2 추천대로: 학생이 −/＋로 바꾼 짐을 처음 추천 짐으로 되돌린다
     if (b.hasAttribute('data-reco')) { const fit = E.plan(G, P(), P().ships[dock.i], E.nation(G, dock.to)); dock.give = [...fit.give]; dock.get = [...fit.get]; dock.reco = true; render(); return $('[data-reco]')?.focus(); }
     if (b.classList.contains('coach-locked')) return;   // 8.2b 도움말 단계 동안 잠긴 계약하기·취소
+    if (b.hasAttribute('data-edit')) { dock.edit = !dock.edit; render(); return $('[data-edit]')?.focus(); }   // 8.5 짐 바꾸기 ↔ 간단히
     if (b.hasAttribute('data-sign')) { const s = P().ships[dock.i], was = s.state; if (E.setRoute(G, dock.i, {to: dock.to, give: dock.give, get: dock.get})) { sfx('contract'); if (was === 'port' && s.state === 'sea') sfx('depart'); focusGood = null; closeDock(); } else sfx('error'); return; }
     if (b.hasAttribute('data-close')) { sfx('cancel'); return closeDock(); }
     if (b.dataset.drop) {
@@ -1500,7 +1609,8 @@
     if (b.hasAttribute('data-close-report')) { const i = report.i; speed = report.beforeSpeed; report = null; render(); $(`[data-report="${i}"]`)?.focus(); return; }
     if (b.dataset.ok === 'again') return title();
     if (b.dataset.ok === 'same') return start(G.nations[0].id);
-    if (b.dataset.endpage != null) { sfx('page'); endPage = +b.dataset.endpage; return showEnd(); }
+    if (b.dataset.endpage != null) { sfx('page'); endPage = +b.dataset.endpage; endMore = false; return showEnd(); }
+    if (b.hasAttribute('data-end-more')) { endMore = !endMore; showEnd(); return layer.querySelector(endMore ? '.got-pop button' : '.got-open')?.focus(); }   // 8.5 새로 모은 것 펼치기
     if (b.dataset.codex != null) { sfx('page'); return showCodex(); }
     if (b.dataset.codexClose != null) { book.fresh = new Set(); if (G?.over) return showEnd(); layer.hidden = true; return; }
     if (b.dataset.bookTab != null) { sfx('page'); return showCodex(b.dataset.bookTab, 0); }
@@ -1586,7 +1696,7 @@
     const f = fraction();
     pace = {slow: .75, normal: 1, fast: 1.35}[s.pace] || 1;
     acc = f * dayMs();
-    reduce = s.motion === 'less'; autoPause = {idle: s.pauseIdle !== 'off', drop: s.pauseDrop !== 'off'};
+    reduce = s.motion === 'less'; autoPause = {idle: s.pauseIdle !== 'off', drop: s.pauseDrop !== 'off', choice: s.pauseChoice !== 'off'};
     document.documentElement.classList.toggle('calm', s.motion === 'less');
     document.documentElement.classList.toggle('huge-text', s.text === 'huge');
     if (G) render();

@@ -5,7 +5,7 @@
   'use strict';
   const OP = window.TRADE_OPENING || {shots: []};
   const KEY = 'trade6.settings', SEEN = 'trade6.opening';
-  const DEF = {sound: true, music: 'on', musicVol: 'normal', pace: 'normal', text: 'big', motion: 'on', voice: true, pauseIdle: 'on', pauseDrop: 'on'};   // 7.4 소리는 처음부터 켜짐(저장한 선택은 그대로)
+  const DEF = {sound: true, music: 'on', musicVol: 'normal', pace: 'normal', text: 'big', motion: 'on', voice: true, pauseIdle: 'on', pauseDrop: 'on', pauseChoice: 'on'};   // 7.4 소리는 처음부터 켜짐(저장한 선택은 그대로)
   const store = {get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: k => { try { localStorage.removeItem(k); } catch {} }};
   let S = (() => { try { return {...DEF, ...JSON.parse(store.get(KEY) || '{}')}; } catch { return {...DEF}; } })();
   const save = () => store.set(KEY, JSON.stringify(S));
@@ -41,7 +41,8 @@
   const helperVal = () => store.get('trade6.helper') === 'off' ? 'off' : 'on';
   const ROWS = [['sound', '🔊 효과음', [['on', '켜기'], ['off', '끄기']]], ['music', '🎵 배경음악', [['on', '켜기'], ['off', '끄기']]], ['musicVol', '🎚 음악 크기', [['small', '작게'], ['normal', '보통'], ['big', '크게']]], ['pace', '⏩ 시간 흐름', [['slow', '천천히'], ['normal', '보통'], ['fast', '빠르게']]],
     ['text', '🔠 글자 크기', [['big', '크게'], ['huge', '아주 크게']]], ['motion', '🎬 화면 움직임', [['on', '켜기'], ['less', '줄이기']]], ['helper', '🧭 도우미 설명', [['on', '켜기'], ['off', '끄기']]],
-    ['pauseIdle', '⏸ 배가 쉬면 멈추기', [['on', '켜기'], ['off', '끄기']]], ['pauseDrop', '⏸ 예상 점수 10점↓ 멈추기', [['on', '켜기'], ['off', '끄기']]]];   // 7.9b 자동 멈춤은 게임 안 ⚙️에서만
+    ['pauseIdle', '⏸ 배가 쉬면 멈추기', [['on', '켜기'], ['off', '끄기']]], ['pauseDrop', '⏸ 예상 점수 10점↓ 멈추기', [['on', '켜기'], ['off', '끄기']]],
+    ['pauseChoice', '⏸ 1년째 고를 일이 오면 멈추기', [['on', '켜기'], ['off', '끄기']]]];   // 8.5 단추 돌발·계약 요청 · 7.9b 자동 멈춤은 게임 안 ⚙️에서만
   const valueOf = k => k === 'sound' ? (S.sound ? 'on' : 'off') : k === 'helper' ? helperVal() : S[k];
   function drawPanel() {
     panel.innerHTML = `<h2>⚙️ 설정</h2>${ROWS.filter(([k]) => !k.startsWith('pause')).map(([k, name, opts]) => `<div class="row">${name}<span class="seg" role="group" aria-label="${name}">${opts.map(([v, t]) => `<button data-set="${k}" data-v="${v}" class="${valueOf(k) === v ? 'on' : ''}" aria-pressed="${valueOf(k) === v}">${t}</button>`).join('')}</span></div>`).join('')}

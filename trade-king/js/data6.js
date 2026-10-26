@@ -102,7 +102,7 @@
     ['school','장인 학교','artisan','gold',0,'생활 물건 두 가지 ⭐+1',1],
     ['brand','세계적 브랜드','artisan','prism',0,'대표 물건 ⭐3 · 그 물건 값 +20% · 사려는 나라 +1',1],
     ['warehouse','비축 창고','hoarder','silver',0,'창고에 두 배까지 쌓아요',1],
-    ['granaryKeep','곡간 관리','hoarder','gold',0,'다음 계절 필요량의 절반만 남아도 풍요로 쳐요',1],
+    ['granaryKeep','곳간 관리','hoarder','gold',0,'다음 계절 필요량의 절반만 남아도 풍요로 쳐요',1],
     ['plenty','풍요의 나라','hoarder','prism',0,'풍요 점수 2배 · 창고 세 배',1],
     ['protect','약한 산업 지키기','self','silver',0,'고른 산업 +1 · 수입값 +20% · 생활 −2',1],
     ['selfReliance','자급자족','self','gold',0,'가장 많이 사 오는 생활 물건 +2단계',1],
@@ -149,7 +149,7 @@
     schoolGoods:2,selfReliance:2,autarkyPrice:1.2,innovation:2,lamps:1,greenRev:3,greenScore:2,charm:2,treasure:150,treasureMin:300,treasureMax:500,keepHalf:.5,plentyMult:2,plentySeasons:6,
     // 콘셉트 모으기 보너스(3.3): c2 = 2장, c3 = 3장
     c2:{factory:.1,sea:1,merchant:1.5,artisan:2,hoarder:2.5,tech:.15,adventurer:1},c3:{factory:1,sea:1,merchant:.1,penalty:.5,artisan:2,hoarder:.5,tech:1,adventurer:.5},
-    abundanceGood:2.5,abundanceMore:1.25,abundanceTimes:4,abundancePort:[0,0,2.5,5],smallMin:20,smallMax:34,smallActionChance:.6,actionDays:7,quietMax:38,startStock:.5,relaySteel:2,   // 7.9c 재미 조정(tuning-7.9c.md)
+    abundanceGood:2.5,abundanceMore:1.25,abundanceTimes:4,abundancePort:[0,0,2.5,5],smallMin:20,smallMax:34,smallActionChance:.6,actionDays:30,quietMax:38,startStock:.5,relaySteel:2,   // 7.9c 재미 조정(tuning-7.9c.md)
     
     goodSmall:['tailwind','lost','fish','exchangeTech','donation','merchant','match','request','craftsman','students'],
     small:{tailwind:-3,headwind:5,fog:2,lost:1,fish:2,mice:1,tech:1,donation:20,repair:15,merchant:2,request:1,requestMoney:20,up:1.15,down:.85,north:.9,priceDays:30,quality:1,cloth:1,score:1}};

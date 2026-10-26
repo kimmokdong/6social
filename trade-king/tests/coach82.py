@@ -1,4 +1,5 @@
 """8.2c 도움말 전수 검사: 나라 8곳 × 화면 3크기에서 첫 판 도움말을 실제 마우스 클릭으로 끝까지 따라간다.
+8.5 첫 판 도움말은 3단계 + 마무리: 새 판 → 첫 출항까지 클릭 5번 이하·말풍선 3개 이하인지도 센다.
 단계마다 ① 가리키는 대상이 있는지 ② 말풍선이 대상을 가리지 않는지 ③ 딴 단추(⚙️ 설정)가 막히는지 ④ 막힘 없이 끝나는지 본다.
 나라 소개만 나오는 두 번째 판, 나라별 때 맞춤 도움말이 가리키는 칸이 화면에 있는지도 본다.
 실행: URL=http://localhost:8086/trade-king/index.html python trade-king/tests/coach82.py
@@ -9,7 +10,7 @@ from playwright.sync_api import sync_playwright
 BASE = os.environ.get('URL', 'http://localhost:8083/trade-king/index.html')
 SIZES = [(1366, 768), (1024, 768), (768, 1024)]
 SRC = (pathlib.Path(__file__).parent.parent / 'js' / 'game6.js').read_text(encoding='utf-8')
-issues = []
+issues, firsts = [], []
 
 STATE = """() => { const c = TK6_coach.state(); if (!c) return null; const s = c.list[c.step], hid = document.querySelector('#coach').hidden;
   const b = document.querySelector('#coach .bubble').getBoundingClientRect(), t = s.at && document.querySelector(s.at), r = t && t.getBoundingClientRect();
@@ -29,7 +30,7 @@ def flow(pg, nid, tag, intro_only=False):
         pg.evaluate('() => TK6_coach.on()')
     pg.evaluate(f"() => TK6.start('{nid}')"); pg.wait_for_timeout(400)
     if pg.locator('[data-ok=open]').count(): pg.click('[data-ok=open]'); pg.wait_for_timeout(300)
-    seen, guard = [], 0
+    seen, guard, clicks, sailed = [], 0, 0, None
     while guard < 80:
         guard += 1
         s = pg.evaluate(STATE)
@@ -55,7 +56,15 @@ def flow(pg, nid, tag, intro_only=False):
                 if pg.evaluate(OPEN)['layer']: issues.append(f'{tag} 단계 {s["step"] + 1} ⚙️ 설정이 열림(막혀야 함)'); pg.keyboard.press('Escape'); pg.wait_for_timeout(200)
         before = s['step']
         at = s['at'] or ''
+        if sailed is None: clicks += 1
         if s['next']: pg.click('[data-coach-next]')
+        elif at.startswith('.isle'):
+            # 8.5 빛나는 섬 누르기: 말풍선에 안 가린 섬을 고른다
+            # 도움말이 가리키는 섬 → 다른 빛나는 섬 → 나머지 섬 순서
+            k = pg.evaluate('''at => { const all = [...new Set([...document.querySelectorAll(at), ...document.querySelectorAll('.isle.match:not(.world)'), ...document.querySelectorAll('.isle[data-drop]:not(.world)')])];
+              const i = all.findIndex(e => { const r = e.getBoundingClientRect(), t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return t && e.contains(t); }); return i < 0 ? null : all[i].dataset.drop; }''', at)
+            if k is None: issues.append(f'{tag} 섬 단계 누를 수 있는 섬이 없음'); break
+            pg.click(f'.isle[data-drop="{k}"]')
         elif at.startswith('.piece'):
             pg.click('.piece[data-ship="0"]'); pg.wait_for_timeout(150)
             # 말풍선에 안 가린 섬을 고른다(다 가리면 문제)
@@ -69,19 +78,23 @@ def flow(pg, nid, tag, intro_only=False):
             if '다른 섬' not in s['text'] and '다른 섬' not in pg.inner_text('#coach .bubble'): issues.append(f'{tag} 계약하기가 꺼졌는데 다른 섬 안내가 없음')
             tried = locals().get('tried', 0) + 1
             if tried > 4: issues.append(f'{tag} 계약할 수 있는 섬이 없음'); break
-            pg.click('[data-close]'); pg.wait_for_timeout(300); pg.click('.piece[data-ship="0"]'); pg.wait_for_timeout(150)
+            pg.click('[data-close]'); pg.wait_for_timeout(300)
             pg.locator('.isle[data-drop]:not(.world)').nth(tried % pg.locator('.isle[data-drop]:not(.world)').count()).click(); pg.wait_for_timeout(500)
             continue
-        elif at in ('[data-more]', '[data-reco]', '[data-sign]', '.arrival'): pg.click(at)
-        elif at == '.speed': pg.click('[data-speed="1"]')
+        elif at in ('[data-more]', '[data-reco]', '[data-sign]', '.arrival', '.arrival button'): pg.click(at)
+        elif at.startswith('.speed'): pg.click('.speed [data-speed="1"]')
         else: issues.append(f'{tag} 단계 {s["step"] + 1} 무엇을 눌러야 할지 모름 {at} · {s["text"]}'); break
         pg.wait_for_timeout(450)
+        if sailed is None and pg.evaluate('() => TK6.E.player(TK6.G).ships.some(s => s.route) && document.querySelector(\'.speed [data-speed="1"]\').getAttribute("aria-pressed") === "true"'):
+            sailed = (clicks, len(seen))
+            if not intro_only and (clicks > 5 or len(seen) > 3): issues.append(f'{tag} 첫 출항까지 클릭 {clicks}번 · 말풍선 {len(seen)}개(5번·3개 이하여야 함)')
         after = pg.evaluate(STATE)
-        if after is None or s['text'].startswith('이제 혼자서도'): break   # 공통 도움말 끝(그 뒤 때 맞춤 도움말은 따로 본다)
-        if after['step'] == before and not after['hidden'] and (after['text'] == s['text']):
+        if after is None or s['text'].startswith('이제 혼자서도') or s['text'].startswith('🎉'): break   # 공통 도움말 끝(그 뒤 때 맞춤 도움말은 따로 본다)
+        if after['step'] == before and not after['hidden'] and (after['text'] == s['text']) and after['at'] == s['at']:   # 8.5 같은 말풍선이 계약하기 → ▶로 옮겨 가는 것은 넘어간 것
             issues.append(f'{tag} 단계 {before + 1} 눌러도 안 넘어감 {at} · {s["text"]}'); break
     else:
         last = pg.evaluate(STATE); issues.append(f'{tag} 80번 넘게 돌아도 안 끝남 · 마지막 {last and (last["step"], last["text"], last["hidden"])} · 창={pg.evaluate(OPEN)} · {pg.inner_text("#layer")[:60] if pg.evaluate("() => !document.querySelector('#layer').hidden") else ""}')
+    if not intro_only: firsts.append(sailed)
     return len(seen)
 
 
@@ -92,21 +105,24 @@ with sync_playwright() as p:
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(BASE + '?debug'); pg.wait_for_timeout(300)
     nations = pg.evaluate('() => Object.keys(TK6.E.S.countries)')
-    hint_at = sorted(set(re.findall(r"\{key: '[^']+', id: (?:'[^']+'|null), at: '([^']+)'", SRC)))
+    hint_at = sorted(set(re.findall(r"\{key: '[^']+', (?:id: (?:'[^']+'|null)|shared: true), at: '([^']+)'", SRC)))
     for w, h in SIZES:
         pg.set_viewport_size({'width': w, 'height': h})
         for nid in nations:
             n = flow(pg, nid, f'{w}x{h} {nid} 첫 판')
-            if n < 12: issues.append(f'{w}x{h} {nid} 첫 판 도움말이 {n}단계만 나옴')
+            if n < 4: issues.append(f'{w}x{h} {nid} 첫 판 도움말이 {n}단계만 나옴')
             flow(pg, nid, f'{w}x{h} {nid} 나라 소개만', intro_only=True)
             # 때 맞춤 도움말이 가리키는 칸이 이 나라 화면에 있는지(사건 카드처럼 그때만 생기는 칸은 뺀다)
             pg.goto(BASE + '?debug'); pg.wait_for_timeout(200); pg.evaluate(f"() => TK6.start('{nid}')"); pg.wait_for_timeout(300)
             if pg.locator('[data-ok=open]').count(): pg.click('[data-ok=open]'); pg.wait_for_timeout(200)
             for sel in hint_at:
-                if sel in ('.small-pop', '.isle .trend', '.lane-mark'): continue
+                if sel in ('.small-pop', '.isle .trend', '.lane-mark', '.offer-pop'): continue
                 if not pg.locator(sel).count(): issues.append(f'{w}x{h} {nid} 때 맞춤 도움말 칸 없음 {sel}')
         print(f'{w}x{h} 끝 · 나라 {len(nations)}')
     b.close()
 for e in errs: issues.append('페이지 오류 ' + e)
 print('\n'.join(issues) or '문제 없음')
+ok = [f for f in firsts if f]
+if len(ok) < len(firsts): issues.append(f'첫 출항까지 못 간 판 {len(firsts) - len(ok)}개')
+print(f'첫 출항까지 (클릭, 말풍선): 최대 클릭 {max((f[0] for f in ok), default=None)} · 최대 말풍선 {max((f[1] for f in ok), default=None)} · {len(ok)}판')
 print(f'issues: {len(issues)}')

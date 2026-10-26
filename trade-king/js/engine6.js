@@ -9,6 +9,8 @@
   'use strict';
   const GOODS = S.goods.map((x, g) => g), RAW = GOODS.filter(g => S.goods[g].tier === 1), FOREVER = 1e9;   // RAW = 1차 물건(식량·석유·철광석)
   const X = S.economy, GN = g => S.goods[g].name;
+  // 8.5 소식 글 조사: 받침이 있으면 a, 없으면 b(숫자는 읽는 소리로). 글만 바꾸고 규칙·난수에는 닿지 않는다
+  const JO = (w, a, b) => { w = String(w); const d = '0123456789'.indexOf(w.at(-1)), c = w.charCodeAt(w.length - 1) - 0xAC00; return w + ((d >= 0 ? [1, 1, 0, 1, 0, 0, 1, 1, 1, 0][d] : c >= 0 && c < 11172 && c % 28) ? a : b); };
   const V = S.rules79, card = id => S.cards.find(c=>c.id===id), owned = (n,id) => !!n.augments?.includes(id);
   // 7.9 콘셉트 모으기(SPEC-v79 3.3): 같은 콘셉트 카드 수(특성 카드도 한 장). on(n,'sea',2) = 2장 이상
   const CON = Object.fromEntries(S.cards.filter(c=>c.concept).map(c=>[c.id,c.concept]));
@@ -76,7 +78,7 @@
       trait: freshTrait(id), renewable: false, augments:[], meetings:freshMeetings(), investment:[], signedWith:{}, brandBuyer:null, smallBonus:freshSmallBonus(),
       seasons: [], years: [], score: 0, strategy: null};
   }
-  const makeWorld = () => ({id: 'world', world: true, npc: true, name: S.world?.name || '먼 바다 상인', quality: GOODS.map(() => 2), money: FOREVER, fta: [], mods: [], bonus: null, bought: {}});
+  const makeWorld = () => ({id: 'world', world: true, npc: true, name: S.world?.name || '먼바다 상인', quality: GOODS.map(() => 2), money: FOREVER, fta: [], mods: [], bonus: null, bought: {}});
   const player = G => G.nations[0];
   const nation = (G, id) => id === 'world' ? G.world : G.nations.find(n => n.id === id);
   const rel = (G, a, b) => G.rel[a.id ?? a]?.[b.id ?? b] ?? 0;
@@ -236,7 +238,7 @@
     ship.route.bp=ship.route.bp.map(p=>Math.max(p?1:0,Math.round(p*(1-discount))));
     n.signedWith[o.id]=repeat+1;
     const g = firstGood(get) >= 0 ? firstGood(get) : firstGood(give);
-    if (n !== player(G) && !o.world && random(G) < .5) news(G, `${n.name}, ${o.name}와 ${GN(g)} 계약!`, 'npc');
+    if (n !== player(G) && !o.world && random(G) < .5) news(G, `${n.name}, ${JO(o.name, '과', '와')} ${GN(g)} 계약!`, 'npc');
   }
   // 7.7 끝나는 날(until)까지 다녀올 수 있는 왕복 수(오늘 떠난다고 보고 센다). 끝난 다음 날 아침 도착까지 친다: 2달 왕복 × 6번 = 꼭 1년
   function fitTrips(G, n, r, k = today(G)) {
@@ -308,11 +310,11 @@
     const next = ship.next;
     ship.route = null; ship.next = null; ship.breaking = false;
     const renew = r => allowed(G, n, r, ship) && GOODS.every(g => !r.give[g] || !isDump(G, nation(G, r.to), g) || r.dump?.[g]);
-    if (next && !nation(G, next.to)?.world && rel(G, n, next.to) === 0) { ship.retry = G.month + 1; news(G, `${n.name}의 예약을 취소했어요. ${nation(G, next.to).name}와 거래 거절 · 새해에 다시 거래해요. 배는 쉬어요.`, 'warn'); }
+    if (next && !nation(G, next.to)?.world && rel(G, n, next.to) === 0) { ship.retry = G.month + 1; news(G, `${n.name}의 예약을 취소했어요. ${JO(nation(G, next.to).name, '과', '와')} 거래 거절 · 새해에 다시 거래해요. 배는 쉬어요.`, 'warn'); }
     else if (next && renew(next)) sign(G, n, ship, next);   // 예약한 새 계약(그날부터 1년, 그날 값)
     // NPC는 계약이 끝나면 그날 끝(npcPick)에 시장을 보고 다시 고른다
     // 7.7 학생 계약은 자동으로 다시 맺지 않는다: 1년마다 주변 나라 값을 다시 살펴보게
-    else if (n === player(G)) news(G, broken ? `배 ${n.ships.indexOf(ship) + 1}이 쉬고 있어요. 새 항로를 정해 주세요.` : `배 ${n.ships.indexOf(ship) + 1}의 계약이 끝났어요(${dayText(r.until)}). 주변 나라 값을 다시 살펴보고 새 계약을 맺어요.`, 'warn');
+    else if (n === player(G)) news(G, broken ? `${JO(`배 ${n.ships.indexOf(ship) + 1}`, '이', '가')} 쉬고 있어요. 새 항로를 정해 주세요.` : `배 ${n.ships.indexOf(ship) + 1}의 계약이 끝났어요(${dayText(r.until)}). 주변 나라 값을 다시 살펴보고 새 계약을 맺어요.`, 'warn');
   }
   function sellable(G, o, buyer, g, base = exportable(G, o, g)) {
     const cut = G.cut;
@@ -329,7 +331,7 @@
     const debt = cash(G, seller, -amount); cash(G, buyer, amount); seller.year.penaltyOut += amount; buyer.year.penaltyIn += amount;
     seller.year.penaltyDebt += debt;
     list.push({good: g, qty, amount, reason, ...(debt ? {debt} : {})});
-    news(G, buyer === player(G) ? `${seller.name}이 ${GN(g)} ${qty}상자를 못 줘서 위약금 +${amount}억을 받았어요.` : seller === player(G) ? `${GN(g)} ${qty}상자를 못 실어 ${buyer.name}에 위약금 −${amount}억을 냈어요.` : `${seller.name}이 ${buyer.name}에 ${GN(g)} ${qty}상자 부족 위약금 ${amount}억을 냈어요.` + (debt ? ` 금고가 모자라 ${debt}억은 빚이 됐어요.` : ''), 'warn');
+    news(G, buyer === player(G) ? `${JO(seller.name, '이', '가')} ${GN(g)} ${qty}상자를 못 줘서 위약금 +${amount}억을 받았어요.` : seller === player(G) ? `${GN(g)} ${qty}상자를 못 실어 ${buyer.name}에 위약금 −${amount}억을 냈어요.` : `${JO(seller.name, '이', '가')} ${buyer.name}에 ${GN(g)} ${qty}상자 부족 위약금 ${amount}억을 냈어요.` + (debt ? ` 금고가 모자라 ${debt}억은 빚이 됐어요.` : ''), 'warn');
   }
   function depart(G, n, ship) {
     const r = ship.route, o = nation(G, r.to);
@@ -339,7 +341,7 @@
       if (ship.retry > G.month) return;
       ship.waited++;
       ship.retry = G.month + 1;
-      if (ship.waited === X.missLimit) { addRel(G, n, o, -1); if (n === player(G)) { G.stats.misses++; news(G, `${GN(firstGood(r.give))} 부족으로 배가 두 번 못 떠났어요. ${o.name}이 서운해해요. 신뢰 −1 · ♥0이 되면 새해까지 거래를 안 해요.`, 'warn'); } }
+      if (ship.waited === X.missLimit) { addRel(G, n, o, -1); if (n === player(G)) { G.stats.misses++; news(G, `${GN(firstGood(r.give))} 부족으로 배가 두 번 못 떠났어요. ${JO(o.name, '이', '가')} 서운해해요. 신뢰 −1 · ♥0이 되면 새해까지 거래를 안 해요.`, 'warn'); } }
       return;
     }
     for (const g of GOODS) if (r.give[g]) penalty(G, n, o, g, Math.max(0, Math.min(r.give[g], o.world ? 999 : Math.floor(o.money / r.gp[g])) - load[g]), r.gp[g], penaltyOut);
@@ -453,7 +455,7 @@
           } else if (made > 0) T7.idleRun = 0;
         }
         const short = want - made;   // 재료가 모자라 못 만든 상자(창고가 차서 쉰 것은 제외)
-        if (short > 0) { n.short[p] = short; if (n === player(G) && G.stats) G.stats.shortMade = (G.stats.shortMade || 0) + 1; if (n === player(G)) news(G, `${GN(m)} 부족으로 ${GN(p)}를 ${made}상자만 만들었어요. (공장에 ${GN(m)} ${want * PER}상자 필요)`, 'warn'); }
+        if (short > 0) { n.short[p] = short; if (n === player(G) && G.stats) G.stats.shortMade = (G.stats.shortMade || 0) + 1; if (n === player(G)) news(G, `${GN(m)} 부족으로 ${JO(GN(p), '을', '를')} ${made}상자만 만들었어요. (공장에 ${GN(m)} ${want * PER}상자 필요)`, 'warn'); }
       }
       if(n.smallBonus.tech){add(n,3,n.smallBonus.tech,n.quality[3]);n.year.prod[3]+=n.smallBonus.tech;}
       const extraBoxes=(owned(n,'factory')?V.factoryBoxes:0)+(owned(n,'revolution')?V.revolutionBoxes:0);   // 공장 늘리기·산업 혁명
@@ -473,7 +475,7 @@
       if (has(n, 'ironland')) { pollution = Math.floor((levelOf(G, n, 4) + levelOf(G, n, 5)) / XT.pollutionPer); if (T7.cleaner) pollution = Math.floor(pollution / 2); pollution=Math.max(0,pollution-(owned(n,'modernSteel')?V.pollutionReduction:0)); T7.pollution += pollution; }
       if (has(n, 'forest')) { tour = forestTour(G, n); cash(G, n, tour); T7.tourism += tour; }
       qual+=n.smallBonus.quality+(on(n,'artisan',2)?V.c2.artisan:0);
-      // 풍요: 먹고 남은 물건이 다음 계절 필요량 이상(곡간 관리는 절반) · 비축가 2장 +2.5 · 풍요의 나라 2배
+      // 풍요: 먹고 남은 물건이 다음 계절 필요량 이상(곳간 관리는 절반) · 비축가 2장 +2.5 · 풍요의 나라 2배
       const keep=owned(n,'granaryKeep')?V.keepHalf:1, abundanceBy=CONSUMER.map(g=>({good:g,stock:count(n,g),need:Math.ceil(needs(G,n)[g]*keep),points:abundancePoints(Math.floor(count(n,g)/Math.max(1,Math.ceil(needs(G,n)[g]*keep))))})), abundancePort=V.abundancePort[homeStage(n)];
       // 8.0 풍요는 합계 한도 없이 물건마다 다음 계절 필요량의 몇 배를 쌓았는지로 센다
       const abundance=(sum(abundanceBy.map(x=>x.points))+abundancePort+(on(n,'hoarder',2)?V.c2.hoarder:0))*(owned(n,'plenty')?V.plentyMult:1);
@@ -611,7 +613,7 @@
     if (m > 0 && m % 12 === 0) {
       for (let i = 0; i < G.nations.length; i++) for (const o of G.nations.slice(i + 1)) {
         const n = G.nations[i];
-        if (rel(G, n, o) === 0) { G.rel[n.id][o.id] = G.rel[o.id][n.id] = 1; news(G, n === P ? `새해를 맞아 ${o.name}와 다시 거래할 수 있어요 ♥1` : `${n.name}, 새해를 맞아 ${o.name}와 다시 거래할 수 있어요 ♥1`, 'big'); }
+        if (rel(G, n, o) === 0) { G.rel[n.id][o.id] = G.rel[o.id][n.id] = 1; news(G, n === P ? `새해를 맞아 ${JO(o.name, '과', '와')} 다시 거래할 수 있어요 ♥1` : `${n.name}, 새해를 맞아 ${JO(o.name, '과', '와')} 다시 거래할 수 있어요 ♥1`, 'big'); }
       }
       for(const n of G.nations) for(const i of n.investment.filter(i=>i.month<=m)){ cash(G,n,i.money); news(G,n===P?`보물선이 돌아왔어요! 금고 +${i.money}억`:`${n.name}, 보물선이 돌아와 +${i.money}억!`,'big'); }
       for(const n of G.nations)n.investment=n.investment.filter(i=>i.month>m);

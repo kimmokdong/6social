@@ -51,6 +51,7 @@ with sync_playwright() as p:
         pg.mouse.up(); pg.wait_for_timeout(400)
         # 계약서: 추천 → 다 보기(헐값 줄)
         if not pg.locator('.dockpanel').count(): pg.evaluate("() => document.querySelector('.isle:not(.world)').click()"); pg.wait_for_timeout(200)
+        pg.evaluate("() => document.querySelector('[data-edit]')?.click()"); pg.wait_for_timeout(120)   # 8.5 계약서 기본은 세 줄 · '짐 바꾸기'로 펼친다
         pg.screenshot(path=str(OUT / f'contract-{w}.png'))
         pg.click('[data-more]'); pg.wait_for_timeout(150)
         dump = pg.locator('.dockpanel .step.dump').count()
@@ -61,7 +62,7 @@ with sync_playwright() as p:
         pg.screenshot(path=str(OUT / f'contract-more-{w}.png'))
         pg.click('[data-close]'); pg.wait_for_timeout(100)
         # 북쪽 대륙 계약서 다 보기
-        pg.evaluate("() => document.querySelector('.isle.world').click()"); pg.wait_for_timeout(150); pg.click('[data-more]'); pg.wait_for_timeout(150)
+        pg.evaluate("() => document.querySelector('.isle.world').click()"); pg.wait_for_timeout(150); pg.evaluate("() => document.querySelector('[data-edit]')?.click()"); pg.wait_for_timeout(120); pg.click('[data-more]'); pg.wait_for_timeout(150)
         sc = pg.evaluate("() => { const b = document.querySelector('.dockbody'); return {fit: document.querySelector('.dockpanel').className, over: b.scrollHeight - b.clientHeight}; }")
         if sc['over'] > 1: fails.append(f'{w} world contract overflow {sc}')
         pg.screenshot(path=str(OUT / f'contract-world-{w}.png')); pg.click('[data-close]'); pg.wait_for_timeout(100)

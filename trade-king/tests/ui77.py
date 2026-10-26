@@ -71,6 +71,7 @@ with sync_playwright() as p:
             # 계약서 머리: 1년 계약 · 날짜
             pg.evaluate("() => { const me = TK6.E.player(TK6.G); me.ships.forEach(s => { s.route = null; s.next = null; s.state = 'port'; s.cargo = null; s.t = 0; }); TK6.render(); }")
             pg.evaluate("() => document.querySelector('.isle:not(.world)').click()"); pg.wait_for_timeout(200)
+            pg.evaluate("() => document.querySelector('[data-edit]')?.click()"); pg.wait_for_timeout(120)   # 8.5 계약서 기본은 세 줄 · '짐 바꾸기'로 펼친다
             head = pg.inner_text('.dk-head')
             if '1년 계약' not in head or '다음 해' not in head or '번 왕복' not in head: fails.append(f'{w} contract head {head[:120]}')
             pg.screenshot(path=str(OUT / f'contract-head-{sfx}.png')); pg.click('[data-close]'); pg.wait_for_timeout(100)

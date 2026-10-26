@@ -17,6 +17,7 @@ with sync_playwright() as p:
     target = pg.evaluate('''() => { const {G,E}=TK6, n=E.player(G); G.plan=[];G.small.next=1e9;for(const o of G.nations.slice(1))G.rel[n.id][o.id]=G.rel[o.id][n.id]=1; G.nations.slice(1).forEach(n=>n.ships.forEach(s=>{s.route=null;s.state='port';s.cargo=null;s.repair=999}));
       E.advance(G,14); const o=G.nations.slice(1).find(o=>E.isDump(G,o,3)); n.box[3]=[0,0,0,8];o.money=9999;TK6.render();return o.id; }''')
     pg.click(f'.isle[data-drop="{target}"]')
+    pg.evaluate("() => document.querySelector('[data-edit]')?.click()"); pg.wait_for_timeout(120)   # 8.5 계약서 기본은 세 줄 · '짐 바꾸기'로 펼친다
     ok('헐값' not in pg.inner_text('.dockpanel'), '다 보기 전 헐값이 보임')
     pg.click('[data-more]'); ok('헐값' in pg.inner_text('.dockpanel .step.dump') and '2상자까지' in pg.inner_text('.dockpanel .step.dump'), '헐값·두 상자 안내 없음')   # 7.6b 헐값 칩 + 안내 줄
     # 추천 짐을 비우고 헐값 첨단기기 3상자를 직접 선택한다.

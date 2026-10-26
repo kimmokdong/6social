@@ -55,8 +55,8 @@ test('NPC가 우리와 계약하고 싶으면 요청을 걸고, 수락하면 맺
   const f2=G.offers.find(x=>x.id!==f.id);
   if(f2){const s2=E.nation(G,f2.from).ships[f2.ship];assert.equal(E.answerOffer(G,f2.id,false),false);assert.ok(!s2.route||s2.route.to!==me.id,'거절하면 우리 말고 다른 곳');}
   // 기한이 지나면 거절로 친다
-  const left=(G.offers||[]).map(x=>x.id);days(G,9);
-  assert.ok(left.every(id=>!(G.offers||[]).some(x=>x.id===id)),'7일 지나면 사라짐');
+  const left=(G.offers||[]).map(x=>x.id);days(G,E.S.rules79.actionDays+2);   // 8.5 기한 actionDays(7 → 30일)
+  assert.ok(left.every(id=>!(G.offers||[]).some(x=>x.id===id)),'기한이 지나면 사라짐');
   // 저장·불러오기
   assert.ok(E.loadGame(E.saveGame(G)));
 });

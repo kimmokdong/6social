@@ -49,6 +49,7 @@ def scenes(pg, check):
     assert pg.locator('.isle .trend').count() > 0
     check('isle-trend')
     pg.evaluate("() => document.querySelector('.isle:not(.world)').click()"); pg.wait_for_timeout(120)
+    pg.evaluate("() => document.querySelector('[data-edit]')?.click()"); pg.wait_for_timeout(120)   # 8.5 계약서 기본은 세 줄 · '짐 바꾸기'로 펼친다
     if pg.locator('[data-more]').count(): pg.click('[data-more]'); pg.wait_for_timeout(80)
     assert pg.locator('.six').count() > 0 and '최근 6달 중' in pg.locator('.six >> nth=0').text_content()
     check('contract-six')

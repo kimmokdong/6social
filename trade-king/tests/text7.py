@@ -111,6 +111,7 @@ with sync_playwright() as p:
             # 7.6 계약서: 추천 → 다 보기(헐값 줄 포함), 이웃 섬 하나와 북쪽 대륙
             for sel in ('.isle:not(.world)', '.isle.world'):
                 pg.evaluate("s => document.querySelector(s).click()", sel); pg.wait_for_timeout(120); check(pg, f'{tag0} contract {id} {sel}', f'contract-{id}-{tag0}' if id == 'forest' and 'world' not in sel else None)
+                pg.evaluate("() => document.querySelector('[data-edit]')?.click()"); pg.wait_for_timeout(80)   # 8.5 계약서 기본은 세 줄 · 짐 바꾸기로 펼친다
                 if pg.locator('[data-more]').count():
                     pg.click('[data-more]'); pg.wait_for_timeout(100); check(pg, f'{tag0} contract-more {id} {sel}', f'contract-more-{id}-{tag0}' if id in ('forest', 'market') and 'world' not in sel else None)
                 pg.evaluate("() => document.querySelector('[data-close]')?.click()"); pg.wait_for_timeout(60)
