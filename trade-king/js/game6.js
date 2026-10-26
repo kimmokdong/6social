@@ -633,18 +633,19 @@
     const used = d => sum(dock[d]), cost = d => sum(GOODS.map(g => (d === 'give' && E.isDump(G, o, g) ? Math.min(2, dock[d][g]) : dock[d][g]) * (d === 'give' ? E.exportPrice(G, me, o, g) : E.price(G, o, me, g))));
     // 7.7 오늘 맺으면 오늘부터, 예약이면 지금 계약이 끝나는 날부터 1년. 그 안에 다녀올 수 있는 왕복 수
     const yrs = years(me, o, dock.give, dock.get), from = s.route ? s.route.until + 1 : E.today(G), until = from + 365 * yrs - 1;
-    const trips = E.fitTrips(G, me, {to: o.id, until}, from), t = E.tripTime(G, me, o.id), uses = E.uses(G, me);
+    const trips = E.fitTrips(G, me, {to: o.id, until}, from), t = E.tripTime(G, me, o.id);
     // 짐칸: 채운 칸은 그 물건 아이콘이 든 상자(물건 순서대로 상자 수만큼), 빈 칸은 점선
     const boxes = d => { const full = GOODS.flatMap(g => Array(dock[d][g]).fill(g));
       return `<span class="slots" aria-hidden="true">${full.map(g => `<i class="box">${ico(g)}</i>`).join('')}${'<i class="empty"></i>'.repeat(Math.max(0, capacity(d) - full.length))}</span>`; };
     // 처음엔 추천 짐(상자 수 > 0)과 찾던 물건만 보인다. "다 보기"를 누르면 전부 펼친다.
     const shown = (d, g) => dock.more || dock[d][g] > 0 || (d === 'get' && focusGood === g);
     const hiddenCount = gives.filter(g => !shown('give', g)).length + gets.filter(g => !shown('get', g)).length;
-    // 창고 줄: 3달 안에 실어 가는 번(떠나는 날 포함)과 받아 오는 번(돌아오는 날)을 센다
+    // 8.2 창고 줄: 계약이 끝날 때까지의 합계(만듦·씀·다른 계약·이 계약 n상자 × 왕복 수)와 처음 모자라는 달
+    const look = E.outlook(G, me, s, {to: o.id, give: dock.give, get: dock.get}, from, until), span = !s.route && yrs === 1 ? '1년 동안' : `${dshort(until)}까지`;
     const stock = (d, g, n) => {
-      const c = E.count(me, g), net = E.produces(G, me, g) - uses[g], times = Math.min(trips, d === 'give' ? Math.ceil(3 / t) : Math.floor(3 / t));
-      const move = (d === 'give' && E.isDump(G, o, g) ? Math.min(2, n) : n) * times, proj = c + net + (d === 'give' ? -move : move);
-      return `<small class="wline${proj < 0 ? ' short' : ''}">창고 ${c} · 3달마다 ${netText(net)} → ${n ? '계약하면 ' : ''}3달 뒤 <strong>${Math.max(0, proj)}</strong>${proj < 0 ? ` <b>⚠ ${-proj}상자 모자라요</b>` : ''}</small>`;
+      const w = look.goods[g], out = d === 'give' && E.isDump(G, o, g) ? Math.min(2, n) : n, when = w.shortDay != null && E.dateOf(w.shortDay);
+      return `<small class="wline${w.short ? ' short' : ''}"><span class="wl-sum">창고 ${w.stock} · ${span} 만듦 +${w.made} · 씀 −${w.used}${w.others ? ` · 다른 계약 ${netText(w.others)}` : ''}${w.waste ? ` · 넘쳐 버림 −${w.waste}` : ''}<br></span>
+        ${n ? `이 계약 ${out}상자 × ${trips}번 = ${d === 'give' ? '−' : '+'}${out * trips}` : '계약 안 하면'} → 끝날 때 <strong>${Math.max(0, w.end)}</strong>${w.short ? ` <b>⚠ ${when.month % 12 + 1}월에 ${w.short}상자 모자라요</b>` : ''}</small>`;
     };
     const row = (d, g) => {
       if (!shown(d, g)) return '';
@@ -671,7 +672,7 @@
         <h3 tabindex="-1">🏠 ${esc(me.name)} ⇄ ${esc(o.name)} 무역 계약</h3>
         <ul class="features" aria-label="이 항로의 특징"><li class="route">📅 ${yrs}년 계약 · ${dshort(from)} ~ ${dshort(until)}</li><li class="route">⛵ 왕복 ${t}달 · 약 ${trips}번 왕복</li><li>🔒 계약 동안 가격 고정</li>${feats.map(f => `<li>${f}</li>`).join('')}</ul></div>${pic}</header>
       <div class="dockbody"><div class="trade-intro"><p class="muted">${s.route ? `지금 계약이 ${dshort(s.route.until)}에 끝나면 이 계약으로 떠나요. 예약할 때는 신뢰가 줄지 않아요.` : '추천 짐을 실어 뒀어요. 1년 동안 자동 왕복하고 끝나면 쉬어요. ♥0과는 새 계약을 못 해요.'}</p>${!o.world && laneTrait(o.id) ? `<p class="lane-note ${laneTrait(o.id).kind}">${laneTrait(o.id).icon} <b>${laneTrait(o.id).name}</b> · ${laneTrait(o.id).text}</p>` : ''}
-        ${hiddenCount || dock.more ? `<button class="more" data-more aria-expanded="${dock.more}">${dock.more ? '추천만 보기 ▴' : `다 보기 (${hiddenCount}) ▾`}</button>` : ''}</div>
+        <span class="intro-btns"><button class="more" data-reco>추천대로</button>${hiddenCount || dock.more ? `<button class="more" data-more aria-expanded="${dock.more}">${dock.more ? '추천만 보기 ▴' : `다 보기 (${hiddenCount}) ▾`}</button>` : ''}</span></div>
       <div class="cols${nG > 3 ? ' wide-give' : ''}${nR > 3 ? ' wide-get' : ''}">
         ${col('give', 'give', `수출 · ${esc(me.name)} ➜ ${esc(o.name)}`, '우리가 보내요 · 1상자에 받을 값', giveRows, nG, gives.length ? '추천 짐이 없어요. "다 보기"에서 담을 수 있어요.' : '여기에 팔 수 있는 게 없어요')}
         ${col('get', 'get', `수입 · ${esc(o.name)} ➜ ${esc(me.name)}`, '우리가 받아요 · 1상자에 낼 값', getRows, nR, gets.length ? '추천 수입은 비어 있어요. 다른 계약·공급 여유·금고를 고려한 결과예요. "다 보기"에서 ＋로 담을 수 있어요.' : '여기서 살 수 있는 게 없어요')}</div>
@@ -683,7 +684,7 @@
   // 계약서가 화면보다 크면 한 단계씩 촘촘하게(fit1: 간격, fit2: 많은 칸은 두 줄, fit3: 안 담은 물건의 창고 줄 숨김, fit4: 안 담은 헐값 안내 숨김). 스크롤바는 만들지 않는다.
   function fitDock() {
     const p = $('.dockpanel'), b = p?.querySelector('.dockbody'); if (!b) return;
-    const fit = () => { for (let k = 1; k <= 5 && b.scrollHeight > b.clientHeight + 1; k++) p.classList.add('fit' + k); };   // 7.9c fit5: 마지막 단계
+    const fit = () => { for (let k = 1; k <= 6 && b.scrollHeight > b.clientHeight + 1; k++) p.classList.add('fit' + k); };   // 7.9c fit5 · 8.2 fit6: 마지막 단계
     fit();
     // 7.9c 그림·글꼴이 늦게 들어와 줄이 커져도 다시 맞춘다
     if (!b.fitWatch && window.ResizeObserver) { b.fitWatch = new ResizeObserver(fit); for (const c of b.children) b.fitWatch.observe(c); }
@@ -916,7 +917,10 @@
     {at: '.basket', say: () => `여기는 우리 <b>창고</b>야. 큰 숫자는 가진 상자 수, 아래 <b>+n / −n</b>은 3달마다 늘고 줄어드는 양이야. <b>빨간 칸</b>은 모자란 물건이라 사 와야 해!`},
     {at: '.isle[data-drop]:not(.world)', say: () => `바다 건너 <b>다른 나라</b>야. 섬 아래 그림은 그 나라와 사고팔 물건이고, <b>⛵달</b>은 다녀오는 데 걸리는 시간이야. 섬 자리와 거리는 판마다 달라져. 이름판의 <b>i</b> 단추를 누르면 그 나라가 무엇을 수출하고 수입하고 싶은지 볼 수 있어.`},
     {at: '.piece[data-ship="0"]', say: () => `이게 우리 <b>배 1번</b>(빨간 배)이야. 배를 <b>끌어서 섬 위에 놓아</b> 봐! 배를 누르고 섬을 눌러도 돼.`, until: () => !!dock, act: '👉 직접 해 보세요'},
-    {at: '.dockpanel', say: () => `<b>계약서</b>야. 왼쪽은 <b>수출</b>(우리가 보내는 물건), 오른쪽은 <b>수입</b>(받아 오는 물건)이야. 물건마다 아래 줄에 <b>계약하면 3달 뒤 창고</b>가 나와. 추천대로 채워 뒀으니 그대로 <b>계약하기</b>를 눌러도 돼.`, until: () => !dock && P().ships.some(s => s.route), act: '👉 계약하기를 눌러 보세요'},
+    {at: '.dockpanel', say: () => `<b>계약서</b>야. 왼쪽은 <b>수출</b>(우리가 보내는 물건), 오른쪽은 <b>수입</b>(받아 오는 물건)이야. 물건마다 아래 줄에 <b>1년 동안 만들고 쓰는 양</b>과 <b>이 계약 상자 × 왕복 수</b>가 나와. 빨간 ⚠가 뜨면 그달에 창고가 모자란다는 뜻이야.`},
+    {at: '[data-more]', say: () => `처음엔 <b>추천 짐</b>만 보여. <b>다 보기</b>를 누르면 이 섬과 사고팔 수 있는 물건이 모두 나와. 눌러 봐!`, until: () => !dock || dock.saw || !$('[data-more]'), act: '👉 다 보기를 눌러 보세요'},
+    {at: '[data-reco]', say: () => `−/＋로 짐을 바꿔 봐도 돼. 헷갈리면 <b>추천대로</b>를 누르면 처음 추천 짐으로 돌아가. 눌러 봐!`, until: () => !dock || dock.reco, act: '👉 추천대로를 눌러 보세요'},
+    {at: '[data-sign]', say: () => `이제 <b>계약하기</b>를 누르면 배가 떠나!`, until: () => !dock && P().ships.some(s => s.route), act: '👉 계약하기를 눌러 보세요'},
     {at: '.tray', say: me => `계약하면 배는 1년 동안 <b>자동으로 왕복</b>하고 끝나면 쉬어. ♥0 거래 거절 · ♥2 손님 배 · ♥3 할인·먼저 받기야. 배 ${me.ships.length}척 중 한 척은 값이 좋아질 때까지 기다려 봐도 돼.`},
     {at: '.speed', say: () => `준비됐으면 <b>▶</b>를 눌러 시간을 흐르게 해 봐!`, until: () => speed > 0, act: '👉 ▶를 눌러 보세요'},
     {wait: () => !!$('.arrival'), at: '.arrival', pause: true, say: () => `배가 돌아왔어! 눌러 보면 무엇을 팔고 무엇을 사 왔는지 볼 수 있어.`, until: () => !!report},
@@ -1380,7 +1384,9 @@
       (control.disabled ? $(`[data-step="${b.dataset.step}"][data-g="${g}"]:not(:disabled)`) : control)?.focus({preventScroll: true});
       return;
     }
-    if (b.hasAttribute('data-more')) { dock.more = !dock.more; render(); return $('[data-more]')?.focus(); }
+    if (b.hasAttribute('data-more')) { dock.more = !dock.more; dock.saw = true; render(); return $('[data-more]')?.focus(); }
+    // 8.2 추천대로: 학생이 −/＋로 바꾼 짐을 처음 추천 짐으로 되돌린다
+    if (b.hasAttribute('data-reco')) { const fit = E.plan(G, P(), P().ships[dock.i], E.nation(G, dock.to)); dock.give = [...fit.give]; dock.get = [...fit.get]; dock.reco = true; render(); return $('[data-reco]')?.focus(); }
     if (b.hasAttribute('data-sign')) { const s = P().ships[dock.i], was = s.state; if (E.setRoute(G, dock.i, {to: dock.to, give: dock.give, get: dock.get})) { sfx('contract'); if (was === 'port' && s.state === 'sea') sfx('depart'); focusGood = null; closeDock(); } else sfx('error'); return; }
     if (b.hasAttribute('data-close')) { sfx('cancel'); return closeDock(); }
     if (b.dataset.drop) {

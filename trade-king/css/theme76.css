@@ -141,6 +141,7 @@ html.huge-text .gtip{font-size:17px;max-width:min(380px,calc(100vw - 16px))}html
 .dockbody{padding:10px 22px 8px;display:flex;flex-direction:column;gap:8px;overflow:auto}
 .trade-intro{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .trade-intro p{font-size:16px}
+.trade-intro .intro-btns{display:flex;gap:8px;flex:none}
 .dockbody .more{margin:0;min-height:38px;padding:4px 14px;font-size:15px;flex:none;box-shadow:inset 0 1px #fffc,0 2px 0 #b49a6d}
 .dockpanel .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0;align-items:start}
 .dockpanel .col{display:flex;flex-direction:column;gap:7px;min-width:0}
@@ -451,6 +452,8 @@ em.tier.silver{background:#eef0f3}em.tier.gold{background:#ffe9a8}em.tier.prism{
 @media (max-width:820px){.map:has(.arrival) .note{bottom:112px}}
 /* 7.9c fit5(마지막 단계): 안 담은 줄의 값 신호는 섬 칩 ▲▼에 맡기고 숨김, 소문 줄 숨김 */
 .dockpanel.fit5 .step:not(.on) .six,.dockpanel.fit5 .six .soon{display:none}.dockpanel.fit5 .step{padding:1px 8px}
+/* 8.2 fit6(그래도 넘칠 때): 1년 합계 줄은 숨기고 '이 계약 × 왕복 → 끝날 때'와 ⚠만 남김 */
+.dockpanel.fit6 .wl-sum{display:none}
 /* 7.9c 값 신호의 b는 물건 이름(.what b, 블록) 모양을 받지 않음 */
 .dockpanel .step .what .six b{display:inline;font-size:inherit;margin:0}
 html.huge-text .dockpanel .step .what .six b{font-size:inherit}

@@ -231,6 +231,54 @@
     if (!Number.isInteger(r.until)) return 0;
     for (;;) { const {month, day} = dateOf(k), T = daysFrom(month, day, months); if (k + T > r.until + 1) return c; c++; k += T; }
   }
+  // 8.2 계약서 창고 전망: 오늘부터 이 계약이 끝날 때까지 하루씩 따라가며 물건마다 만듦·씀·다른 계약·이 계약을 더하고,
+  // 창고가 처음 모자라는 날을 찾는다. 사건·폭풍·상대 재고 같은 우연은 빼고 지금 계약 그대로 센다.
+  function outlook(G, n, ship, r, from, until) {
+    const t0 = today(G), flow = GOODS.map(() => new Map()), mine = none(), others = none(), o = nation(G, r.to);
+    // 끝난 다음 날 아침 도착까지 이 계약으로 친다(fitTrips와 같음). 그날 밤 마지막 정산이 이어진다
+    const at = (k, g, q) => { if (q && k <= until + 1) flow[g].set(k, (flow[g].get(k) || 0) + q); };
+    // 한 계약의 남은 왕복: 떠나는 날 수출을 빼고 돌아오는 날 수입을 더한다(fitTrips와 같은 날짜 셈)
+    const run = (R, k, end, sink) => {
+      const months = tripTime(G, n, R.to); let trips = 0;
+      for (;;) {
+        const {month, day} = dateOf(k), T = daysFrom(month, day, months);
+        if (k + T > end + 1) return {trips, k};
+        for (const g of GOODS) {
+          const out = R.dump?.[g] ? Math.min(2, R.give[g]) : R.give[g];
+          at(k, g, -out); at(k + T, g, R.get[g]);
+          if (k <= until) sink[g] -= out;
+          if (k + T <= until + 1) sink[g] += R.get[g];
+        }
+        trips++; k += T;
+      }
+    };
+    for (const s of n.ships) {
+      if (!s.route) continue;
+      let k = t0;
+      if (s.state === 'sea') {   // 바다에 있는 배는 돌아오는 날 수입을 내려놓고 그날부터 남은 왕복을 이어 간다
+        k = t0 + s.T - s.t;
+        const got = s.cargo && s.t >= s.arrive ? s.cargo.get : s.route.get;
+        for (const g of GOODS) { at(k, g, got[g]); if (k <= until + 1) others[g] += got[g]; }
+      }
+      const last = run(s.route, k, s.route.until, others);
+      if (s.next && s !== ship) run(s.next, last.k, last.k + 364, others);
+    }
+    const trips = run({...r, dump: GOODS.map(g => !!r.give[g] && isDump(G, o, g))}, from, until, mine).trips;
+    // 3·6·9·12월 말 정산은 다음 날로 넘어갈 때 그날 배가 오간 뒤에 한다(tickDay 순서)
+    const use = uses(G, n), settle = new Set();
+    for (let k = t0; k <= until; k++) { const {month, day} = dateOf(k); if (day === monthDays(month) && month % 3 === 2) settle.add(k + 1); }
+    return {trips, seasons: settle.size, goods: GOODS.map(g => {
+      // 정산 날은 배가 오간 뒤 만든 것을 넣고 쓰는 양을 빼고, 창고 한도를 넘친 만큼 버린다(season과 같은 순서). short = 모자란 상자 합계
+      const net = produces(G, n, g) - use[g], top = cap(G, n, g), days = [...new Set([...flow[g].keys(), ...settle])].sort((a, b) => a - b);
+      let stock = count(n, g), short = 0, lowDay = null, waste = 0;
+      for (const k of days) {
+        stock += flow[g].get(k) || 0;
+        if (settle.has(k)) { stock += net; if (stock > top) { waste += stock - top; stock = top; } }
+        if (stock < 0) { short -= stock; lowDay ??= settle.has(k) ? k - 1 : k; stock = 0; }   // 모자란 만큼은 못 싣거나 못 써요(빚처럼 이어지지 않음)
+      }
+      return {stock: count(n, g), made: produces(G, n, g) * settle.size, used: use[g] * settle.size, others: others[g], mine: mine[g], waste, end: stock, short, shortDay: lowDay};
+    })};
+  }
   function endContract(G, n, ship, broken) {
     const r = ship.route, o = nation(G, r.to);
     if (broken) { addRel(G, n, o, -1); if (n === player(G)) G.stats.breaks++; }
@@ -1213,6 +1261,6 @@
     return {good: !!r[0], line: r[1]};
   }
 
-  return {cap, homeStage, grownPoints, overScore, totalScore, concepts, mainConcept, conceptOf: id => CON[id] || null, maxShips, rerollCost, rerollMeeting, priceSignal, smallActions, takeSmallAction, smallEvent, forecast, debtLoss, FOREVER, modActive: active, advance, tickDay, tripDays, monthDays, dayNo, dateOf, dayText, today, fitTrips, yearReport, isDump, dumpPrice, exportPrice, saveGame, loadGame, traitInfo, traitResult, canGive, isRelay, T, S, X, GOODS, RAW, CHAIN, CONSUMER, codexAdd, codexNormalize, codexSlots, codexStats, planEvents, goodName: GN, inputOf, newGame, tick, choose, setRoute, breakContract, allowed, price, worldPrice, needs, uses, inputNeed, levelOf, produces, count, exportable,
+  return {outlook, cap, homeStage, grownPoints, overScore, totalScore, concepts, mainConcept, conceptOf: id => CON[id] || null, maxShips, rerollCost, rerollMeeting, priceSignal, smallActions, takeSmallAction, smallEvent, forecast, debtLoss, FOREVER, modActive: active, advance, tickDay, tripDays, monthDays, dayNo, dateOf, dayText, today, fitTrips, yearReport, isDump, dumpPrice, exportPrice, saveGame, loadGame, traitInfo, traitResult, canGive, isRelay, T, S, X, GOODS, RAW, CHAIN, CONSUMER, codexAdd, codexNormalize, codexSlots, codexStats, planEvents, goodName: GN, inputOf, newGame, tick, choose, setRoute, breakContract, allowed, price, worldPrice, needs, uses, inputNeed, levelOf, produces, count, exportable,
     sells, buys, tripTime, slotsOf, rel, player, nation, ranking, cardsFor, cardCost, dependence, bestRoute, plan: (G, n, ship, o) => planFor(G, n, ship, o).r, runBot, botTurn, isProtected};
 });
