@@ -80,6 +80,7 @@
 #title .play:active{transform:translateY(4px);box-shadow:0 3px 0 #8a5a08,0 8px 18px #000a}
 @keyframes t-pulse{50%{box-shadow:0 7px 0 #8a5a08,0 14px 28px #000a,0 0 0 10px #f2b63233}}
 #title .menu .item{width:320px;white-space:nowrap;height:54px;display:flex;align-items:center;gap:10px;padding:0 22px;border-radius:14px;font-size:21px;font-weight:900;color:#fff3d6;background:linear-gradient(#2b1a0cd8,#1a0e06d8);border:2px solid #c99a5b;box-shadow:0 4px 0 #0008;backdrop-filter:blur(4px);text-align:left}
+#title .menu a.item{text-decoration:none}
 #title .menu .item small{margin-left:auto;font-size:15px;font-weight:700;color:#f3d9a8b0}
 #title .menu .item:hover,#title .menu .item:focus-visible{background:linear-gradient(#5a3518e8,#3a2010e8);border-color:var(--gold);outline:none;transform:translateX(4px)}
 #title .menu .item:hover::before,#title .menu .item:focus-visible::before{content:"⚓";position:absolute;margin-left:-44px;color:var(--gold)}
