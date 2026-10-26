@@ -638,7 +638,7 @@
     const boxes = d => { const full = GOODS.flatMap(g => Array(dock[d][g]).fill(g));
       return `<span class="slots" aria-hidden="true">${full.map(g => `<i class="box">${ico(g)}</i>`).join('')}${'<i class="empty"></i>'.repeat(Math.max(0, capacity(d) - full.length))}</span>`; };
     // 처음엔 추천 짐(상자 수 > 0)과 찾던 물건만 보인다. "다 보기"를 누르면 전부 펼친다.
-    const shown = (d, g) => dock.more || dock[d][g] > 0 || (d === 'get' && focusGood === g);
+    const shown = (d, g) => dock.more || dock[d][g] > 0 || dock.keep?.[d][g] || (d === 'get' && focusGood === g);   // 8.2b −로 0이 된 줄도 남긴다
     const hiddenCount = gives.filter(g => !shown('give', g)).length + gets.filter(g => !shown('get', g)).length;
     // 8.2 창고 줄: 계약이 끝날 때까지의 합계(만듦·씀·다른 계약·이 계약 n상자 × 왕복 수)와 처음 모자라는 달
     const look = E.outlook(G, me, s, {to: o.id, give: dock.give, get: dock.get}, from, until), span = !s.route && yrs === 1 ? '1년 동안' : `${dshort(until)}까지`;
@@ -917,9 +917,9 @@
     {at: '.basket', say: () => `여기는 우리 <b>창고</b>야. 큰 숫자는 가진 상자 수, 아래 <b>+n / −n</b>은 3달마다 늘고 줄어드는 양이야. <b>빨간 칸</b>은 모자란 물건이라 사 와야 해!`},
     {at: '.isle[data-drop]:not(.world)', say: () => `바다 건너 <b>다른 나라</b>야. 섬 아래 그림은 그 나라와 사고팔 물건이고, <b>⛵달</b>은 다녀오는 데 걸리는 시간이야. 섬 자리와 거리는 판마다 달라져. 이름판의 <b>i</b> 단추를 누르면 그 나라가 무엇을 수출하고 수입하고 싶은지 볼 수 있어.`},
     {at: '.piece[data-ship="0"]', say: () => `이게 우리 <b>배 1번</b>(빨간 배)이야. 배를 <b>끌어서 섬 위에 놓아</b> 봐! 배를 누르고 섬을 눌러도 돼.`, until: () => !!dock, act: '👉 직접 해 보세요'},
-    {at: '.dockpanel', say: () => `<b>계약서</b>야. 왼쪽은 <b>수출</b>(우리가 보내는 물건), 오른쪽은 <b>수입</b>(받아 오는 물건)이야. 물건마다 아래 줄에 <b>1년 동안 만들고 쓰는 양</b>과 <b>이 계약 상자 × 왕복 수</b>가 나와. 빨간 ⚠가 뜨면 그달에 창고가 모자란다는 뜻이야.`},
-    {at: '[data-more]', say: () => `처음엔 <b>추천 짐</b>만 보여. <b>다 보기</b>를 누르면 이 섬과 사고팔 수 있는 물건이 모두 나와. 눌러 봐!`, until: () => !dock || dock.saw || !$('[data-more]'), act: '👉 다 보기를 눌러 보세요'},
-    {at: '[data-reco]', say: () => `−/＋로 짐을 바꿔 봐도 돼. 헷갈리면 <b>추천대로</b>를 누르면 처음 추천 짐으로 돌아가. 눌러 봐!`, until: () => !dock || dock.reco, act: '👉 추천대로를 눌러 보세요'},
+    {lockSign: true, at: '.dockpanel', say: () => `<b>계약서</b>야. 왼쪽은 <b>수출</b>(우리가 보내는 물건), 오른쪽은 <b>수입</b>(받아 오는 물건)이야. 물건마다 아래 줄에 <b>1년 동안 만들고 쓰는 양</b>과 <b>이 계약 상자 × 왕복 수</b>가 나와. 빨간 ⚠가 뜨면 그달에 창고가 모자란다는 뜻이야.`},
+    {lockSign: true, at: '[data-more]', say: () => `처음엔 <b>추천 짐</b>만 보여. <b>다 보기</b>를 누르면 이 섬과 사고팔 수 있는 물건이 모두 나와. 눌러 봐!`, until: () => !dock || dock.saw || !$('[data-more]'), act: '👉 다 보기를 눌러 보세요'},
+    {lockSign: true, at: '[data-reco]', say: () => `−/＋로 짐을 바꿔 봐도 돼. 헷갈리면 <b>추천대로</b>를 누르면 처음 추천 짐으로 돌아가. 눌러 봐!`, until: () => !dock || dock.reco, act: '👉 추천대로를 눌러 보세요'},
     {at: '[data-sign]', say: () => `이제 <b>계약하기</b>를 누르면 배가 떠나!`, until: () => !dock && P().ships.some(s => s.route), act: '👉 계약하기를 눌러 보세요'},
     {at: '.tray', say: me => `계약하면 배는 1년 동안 <b>자동으로 왕복</b>하고 끝나면 쉬어. ♥0 거래 거절 · ♥2 손님 배 · ♥3 할인·먼저 받기야. 배 ${me.ships.length}척 중 한 척은 값이 좋아질 때까지 기다려 봐도 돼.`},
     {at: '.speed', say: () => `준비됐으면 <b>▶</b>를 눌러 시간을 흐르게 해 봐!`, until: () => speed > 0, act: '👉 ▶를 눌러 보세요'},
@@ -951,6 +951,8 @@
     if (c.until && coach.shown && c.until()) { coach.step++; coach.shown = false; c = coach.list[coach.step]; }
     // 사건 창·결과 창이 떠 있거나 아직 때가 아니면 숨는다(단, 도착 결과를 기다리는 단계는 결과 창이 열리면 넘어간다)
     const hidden = c.wait && !c.wait() || !layer.hidden && !(c.until && report) || G.over;
+    // 8.2b 계약서 설명·다 보기·추천대로 단계에서는 계약하기·취소를 잠가 물건 수량만 바꾸게(계약하기 단계에서 풀림)
+    for (const el of document.querySelectorAll('.dockpanel [data-sign], .dockpanel [data-close]')) el.classList.toggle('coach-locked', !!c.lockSign && !hidden);
     if (hidden) { coachEl.hidden = true; return; }
     if (!coach.shown) {
       coach.shown = true; if (c.pause && speed) { coach.resumeSpeed = speed; speed = 0; }
@@ -968,15 +970,30 @@
     if (!coach || coachEl.hidden) return;
     const c = coach.list[coach.step], t = c.at && $(c.at), spot = coachEl.querySelector('.spot'), bub = coachEl.querySelector('.bubble');
     coachEl.classList.toggle('free', !t);
-    bub.style.cssText = '';
-    if (!t) { spot.style.cssText = 'display:none'; return; }
-    const r = t.getBoundingClientRect(), pad = 8, W = innerWidth, H = innerHeight;
+    const W = innerWidth, H = innerHeight, bw = Math.min(460, W - 32), moved = coach.moved?.step === coach.step && coach.moved;
+    if (!t) { spot.style.cssText = 'display:none'; bub.style.cssText = moved ? `left:${moved.x}px;top:${moved.y}px;translate:none` : ''; return; }
+    const r = t.getBoundingClientRect(), pad = 8;
     spot.style.cssText = `left:${r.left - pad}px;top:${r.top - pad}px;width:${r.width + pad * 2}px;height:${r.height + pad * 2}px`;
-    const bw = Math.min(460, W - 32), bh = bub.offsetHeight || 170, cx = Math.max(16, Math.min(W - bw - 16, r.left + r.width / 2 - bw / 2));
-    if (r.top - pad - bh - 14 > 8) bub.style.cssText = `left:${cx}px;top:${r.top - pad - bh - 14}px;width:${bw}px`;
-    else if (r.bottom + pad + bh + 14 < H - 8) bub.style.cssText = `left:${cx}px;top:${r.bottom + pad + 14}px;width:${bw}px`;
-    else bub.style.cssText = `left:16px;top:auto;bottom:16px;width:${bw}px`;   // 큰 창(계약서)은 왼쪽 아래 구석에
+    bub.style.cssText = `left:16px;top:16px;width:${bw}px`;   // 8.2b 실제 너비로 높이를 먼저 잰다(너비가 다르면 줄 수가 달라 겹쳤다)
+    if (moved) { bub.style.left = moved.x + 'px'; bub.style.top = moved.y + 'px'; return; }
+    const bh = bub.offsetHeight, cx = Math.max(16, Math.min(W - bw - 16, r.left + r.width / 2 - bw / 2)), cy = Math.max(16, Math.min(H - bh - 16, r.top + r.height / 2 - bh / 2));
+    const spots = [[cx, r.top - pad - bh - 14], [cx, r.bottom + pad + 14], [r.left - pad - bw - 14, cy], [r.right + pad + 14, cy],
+      [16, 16], [W - bw - 16, 16], [16, H - bh - 16], [W - bw - 16, H - bh - 16]].filter(([x, y]) => x >= 8 && y >= 8 && x + bw <= W - 8 && y + bh <= H - 8);
+    // 대상과 겹치는 넓이가 가장 작은 자리(안 겹치는 자리가 있으면 그중 첫 번째)
+    const cover = ([x, y]) => Math.max(0, Math.min(x + bw, r.right + pad) - Math.max(x, r.left - pad)) * Math.max(0, Math.min(y + bh, r.bottom + pad) - Math.max(y, r.top - pad));
+    const [x, y] = spots.reduce((best, p) => cover(p) < cover(best) ? p : best, spots[0] || [16, H - bh - 16]);
+    bub.style.cssText = `left:${x}px;top:${y}px;width:${bw}px`;
   }
+  // 8.2b 말풍선을 끌어서 옮긴다(단추 위에서는 끌지 않음). 옮긴 자리는 다음 단계로 넘어가면 다시 자동 자리로
+  coachEl.addEventListener('pointerdown', e => {
+    const bub = e.target.closest('.bubble'); if (!bub || e.target.closest('button') || !coach) return;
+    const box = bub.getBoundingClientRect(), dx = e.clientX - box.left, dy = e.clientY - box.top;
+    bub.setPointerCapture(e.pointerId); bub.classList.add('grab');
+    const move = ev => { const x = Math.max(0, Math.min(innerWidth - box.width, ev.clientX - dx)), y = Math.max(0, Math.min(innerHeight - box.height, ev.clientY - dy));
+      coach.moved = {step: coach.step, x, y}; bub.style.left = x + 'px'; bub.style.top = y + 'px'; bub.style.translate = 'none'; };
+    const up = () => { bub.classList.remove('grab'); bub.removeEventListener('pointermove', move); bub.removeEventListener('pointerup', up); bub.removeEventListener('pointercancel', up); };
+    bub.addEventListener('pointermove', move); bub.addEventListener('pointerup', up); bub.addEventListener('pointercancel', up);
+  });
   coachEl.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-coach-next')) coachNext();
@@ -1379,6 +1396,7 @@
     if (b.dataset.break != null) { sfx('cancel'); E.breakContract(G, +b.dataset.break); return render(); }
     if (b.dataset.step) {
       const a = dock[b.dataset.step], g = +b.dataset.g, scroll = $('.dockbody').scrollTop;
+      (dock.keep ??= {give: [], get: []})[b.dataset.step][g] = true;
       a[g] = Math.max(0, a[g] + +b.dataset.d); render(); $('.dockbody').scrollTop = scroll;
       const control = $(`[data-step="${b.dataset.step}"][data-g="${g}"][data-d="${b.dataset.d}"]`);
       (control.disabled ? $(`[data-step="${b.dataset.step}"][data-g="${g}"]:not(:disabled)`) : control)?.focus({preventScroll: true});
@@ -1387,6 +1405,7 @@
     if (b.hasAttribute('data-more')) { dock.more = !dock.more; dock.saw = true; render(); return $('[data-more]')?.focus(); }
     // 8.2 추천대로: 학생이 −/＋로 바꾼 짐을 처음 추천 짐으로 되돌린다
     if (b.hasAttribute('data-reco')) { const fit = E.plan(G, P(), P().ships[dock.i], E.nation(G, dock.to)); dock.give = [...fit.give]; dock.get = [...fit.get]; dock.reco = true; render(); return $('[data-reco]')?.focus(); }
+    if (b.classList.contains('coach-locked')) return;   // 8.2b 도움말 단계 동안 잠긴 계약하기·취소
     if (b.hasAttribute('data-sign')) { const s = P().ships[dock.i], was = s.state; if (E.setRoute(G, dock.i, {to: dock.to, give: dock.give, get: dock.get})) { sfx('contract'); if (was === 'port' && s.state === 'sea') sfx('depart'); focusGood = null; closeDock(); } else sfx('error'); return; }
     if (b.hasAttribute('data-close')) { sfx('cancel'); return closeDock(); }
     if (b.dataset.drop) {
@@ -1487,7 +1506,7 @@
     if (e.key === ' ' && layer.hidden && !dock && !sheet && !e.target.closest?.('button,[role="button"]')) { e.preventDefault(); speed = speed ? 0 : resume; if (speed) pauseNote = null; render(); }
     if (e.key === 'Escape' && sheet) { e.preventDefault(); return closeSheet(); }
     if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-home-info]')) { e.preventDefault(); return openSheet('home'); }
-    if (e.key === 'Escape' && dock) { e.preventDefault(); sfx('cancel'); closeDock(); }
+    if (e.key === 'Escape' && dock && !$('[data-close].coach-locked')) { e.preventDefault(); sfx('cancel'); closeDock(); }
     if (e.key === 'Escape' && tip) { tip = null; render(); }
     if (e.key === 'Escape' && report) $('[data-close-report]').click();
     const dialog = sheet ? $('.sheet') : dock ? $('.dockpanel') : !layer.hidden ? layer.querySelector('.modal') : null;

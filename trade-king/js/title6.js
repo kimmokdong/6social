@@ -32,7 +32,7 @@
         <div class="stand ship" style="--t:17s;--d:-9s;offset-path:path('M480,250 C600,180 800,180 920,250')"><span class="base"></span><div class="up"><img src="${SHIP('npc')}" alt="" style="width:110px"></div></div>
       </div></div></div>
     <div class="dof"></div><div class="lamp"></div><div class="dust">${Array.from({length: 26}, (_, i) => `<i style="--x:${(i * 37) % 100}%;--y:${20 + (i * 53) % 70}%;--t:${7 + i % 6}s;--d:-${i * .7}s"></i>`).join('')}</div><div class="grain"></div><div class="fade"></div>
-    <div class="hud"><div class="logo"><small>6학년 사회 · 무역 보드게임</small><h1>무역왕</h1><p>생활 물건을 채워 생활 점수를 높여요.</p></div>
+    <div class="hud"><div class="logo"><small>6학년 사회 · 무역 보드게임</small><h1>무역왕</h1><p>배를 띄워라, 나라를 키워라!</p></div>
       <nav class="menu" aria-label="시작 메뉴"><button class="resume" data-t="resume" hidden>▶ 이어하기<small></small></button><button class="play" data-t="play">▶ 게임 시작</button>
         <button class="item" data-t="codex">📖 도감 <small class="codex-rank">모은 나라·사건·배지</small></button><a class="item" href="../guides/trade.html">📘 게임 설명서 <small>규칙·꿀팁</small></a><button class="item" data-t="set">⚙️ 설정</button></nav></div>
     <div class="panel" role="dialog" aria-modal="true" aria-label="설정"></div>`;
