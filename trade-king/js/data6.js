@@ -26,7 +26,8 @@
     // 다온국은 큰 배(짐칸 6칸)로 시작한다(6.3): 철강을 사 와야 하는 첨단기기 나라의 짐칸 부담을 덜어 준다.
     // 6.4 봇 검사로 맞춘 것: 다온 식량 1→2(수입 4가지를 3가지로), 장인 옷 2→3·첨단기기 2→3(팔 게 없던 나라), 철강 값 45→35. 몰빵 봇 68~79점, 1등 쏠림 최대 35%.
     // 7.7b 식량 2→1·석유 1→2: 석유 공급 분산, 식량·옷은 계속 사 온다.
-    daon:     {levels: [1, 2, 1, 6, 0, 0], quality: [2, 1, 2, 3, 2, 2], main: 3, bonus: 'discount',   bonusText: '♥3이면 계약값을 한 번 더 깎아 줘요', bigShip: true},
+    // 8.0 옷 1→2: 누적 점수에서 1등 4%로 너무 어려워 생활 바구니 보완(봇 960판, SPEC-v79 8.0 절)
+    daon:     {levels: [1, 2, 2, 6, 0, 0], quality: [2, 1, 2, 3, 2, 2], main: 3, bonus: 'discount',   bonusText: '♥3이면 계약값을 한 번 더 깎아 줘요', bigShip: true},
     plains:   {levels: [4, 1, 2, 0, 3, 2], quality: [2, 2, 1, 1, 2, 1], main: 0, bonus: 'crisisKeep', bonusText: '♥3이면 태풍·분쟁 때도 계약 물건을 보내 줘요'},
     // 7.0 석유 왕국 옷 2 → 1: 모자란 게 첨단기기뿐이라 고민이 없던 나라(봇 1등 53% → 40%)
     // 7.7b 석유 4→5(계획 C), 식·석유·옷 품질 1·2·1→2·3·2: 기기 부족은 남기고 생활·수출 수입 보완.
@@ -37,7 +38,8 @@
     // 7.7b 석유 1→2·옷 2→1: 곡창·관광은 유지하고 옷·기기를 수입한다.
     forest:   {levels: [4, 2, 1, 0, 0, 0], quality: [3, 1, 2, 1, 1, 1], main: 0, bonus: 'crisisKeep', bonusText: '♥3이면 태풍 때도 식량을 보내 줘요'},
     // 7.7b 식량·석유 품질 1→2: 중계국의 낮은 생활 품질 보완, 두 수입품은 그대로.
-    port:     {levels: [1, 1, 2, 3, 0, 0], quality: [2, 2, 2, 2, 1, 1], main: 3, bonus: 'fast',       bonusText: '♥3이면 그 나라 뱃길이 한 달 짧아져요', extraShip: true},   // 항구 섬나라는 배가 1척 많다
+    // 8.0 식량 1→2: 누적 점수에서 1등 2%로 너무 어려워 생활 바구니 보완(석유·기기는 계속 수입)
+    port:     {levels: [2, 1, 2, 3, 0, 0], quality: [2, 2, 2, 2, 1, 1], main: 3, bonus: 'fast',       bonusText: '♥3이면 그 나라 뱃길이 한 달 짧아져요', extraShip: true},   // 항구 섬나라는 배가 1척 많다
     // 7.7b 석유 0→1(계획 C)→2·기기 3→0: 명품 옷에 특화, 식량·기기를 사 와 과한 자급 우세 완화.
     artisan:  {levels: [1, 2, 3, 0, 0, 0], quality: [1, 1, 3, 3, 2, 2], main: 2, bonus: 'discount',   bonusText: '♥3이면 계약값을 한 번 더 깎아 줘요'},
     // 7.7b 석유 2→3(계획 C)·기기 0→1: 철강을 조금 가공해 기기 부족 보완, 식량·옷은 수입.
@@ -48,10 +50,10 @@
     daon:     {id: 'process', name: '가공 무역', icon: '🏭', short: '철강 1상자로 첨단기기 2상자 · 철강이 2계절 끊기면 공장이 녹슬어요', level: '어려움'},
     plains:   {id: 'granary', name: '곡창과 원조', icon: '🌾', short: '풍년엔 식량 1.5배, 흉년엔 절반 · 받아 올 것 없이 보내면 원조(♥+2)', level: '쉬움'},
     oil:      {id: 'resource', name: '자원 부국', icon: '⛽', short: '석유를 40% 비싸게 팔아요 · 캘수록 유전이 늙어 덜 캐요', level: '보통'},
-    market:   {id: 'consumer', name: '소비 대국', icon: '🛒', short: '다른 나라가 10% 깎아 줘요 · 바구니 한 칸이 비면 −5점 더', level: '쉬움'},   // 7.9c 처음 하는 학생 흉내 평균이 가장 높음(fun-7.9c)
-    forest:   {id: 'tourism', name: '관광과 환경', icon: '🏝', short: '♥2 친구 하나당 계절마다 관광 15억 · 공장을 키우면 관광이 줄어요', level: '쉬움'},
-    port:     {id: 'relay', name: '중계 무역', icon: '🔁', short: '사 온 물건을 다른 섬에 되팔 수 있어요 · 되팔면 +15%', level: '어려움'},
-    artisan:  {id: 'luxury', name: '명품', icon: '✨', short: '⭐3 물건을 30% 비싸게 · 한 항로에 2상자까지만', level: '보통'},
+    market:   {id: 'consumer', name: '소비 대국', icon: '🛒', short: '다른 나라가 10% 깎아 줘요 · 바구니 한 칸이 비면 −5점 더', level: '쉬움'},   // 8.0b 난이도 = 처음 하는 학생 흉내(무작위 봇) 한 해 평균: 큰 시장 81.0·대평원 77.8 쉬움, 다온 74.1·장인 71.7 어려움, 나머지 75.8~76.5 보통
+    forest:   {id: 'tourism', name: '관광과 환경', icon: '🏝', short: '♥2 친구 하나당 계절마다 관광 15억 · 공장을 키우면 관광이 줄어요', level: '보통'},
+    port:     {id: 'relay', name: '중계 무역', icon: '🔁', short: '사 온 물건을 다른 섬에 되팔 수 있어요 · 되팔면 +15%', level: '보통'},
+    artisan:  {id: 'luxury', name: '명품', icon: '✨', short: '⭐3 물건을 30% 비싸게 · 한 항로에 2상자까지만', level: '어려움'},
     ironland: {id: 'heavy', name: '중공업', icon: '💨', short: '철광석·철강 계약은 2년 동안 값 고정 · 공장이 클수록 공해로 생활 점수가 깎여요', level: '보통'}
   };
   for (const [id, t] of Object.entries(traits)) countries[id].trait = t;
@@ -134,13 +136,13 @@
     ['festivalPrep','축제 준비','다음 정산 옷 필요 +1'],['students','견학 온 학생들','다음 정산 생활 +1점']
   ].map(([id,name,text,action=null])=>({id,name,text,action}));
   const rules79 = {tiers:['silver','gold','prism'],tierNames:{silver:'실버',gold:'골드',prism:'프리즘'},odds:[[1,0,0],[.4,.5,.1],[.1,.6,.3],[.1,.5,.4],[.2,.6,.2]],
-    yearWeights:[1,1,1.5,1.5,2],rerollCost:50,catchupChance:.35,fund:150,bonus:3,interestBonus:2,survey:.05,navigator:1,regular:.05,regularMax:.15,
+    overFrom:100,overRate:.5,richYear:82,survivorYear:72,rerollCost:50,catchupChance:.5,fund:150,bonus:3,interestBonus:2,survey:.05,navigator:1,regular:.05,regularMax:.15,
     revolution:2,factoryBoxes:1,revolutionBoxes:2,armadaSlots:1,armadaFrom:3,interest:.08,interestMax:60,brandPrice:.2,refinery:.1,shopping:2,ecotour:1.5,relay:.25,
     industryStep:1,qualityStep:1,envoyRel:1,automation:.5,semiconductorPer:1/3,granaryFloor:1,refineryStages:1,luxMax:3,modernSteelLevel:1,pollutionReduction:1,relaySlots:1,brandQuality:3,ftaPartners:2,ftaFloor:1,
     schoolGoods:2,selfReliance:2,autarkyPrice:1.2,innovation:2,lamps:1,greenRev:3,greenScore:2,charm:2,treasure:150,treasureMin:300,treasureMax:500,keepHalf:.5,plentyMult:2,plentySeasons:6,
     // 콘셉트 모으기 보너스(3.3): c2 = 2장, c3 = 3장
     c2:{factory:.1,sea:1,merchant:1.5,artisan:2,hoarder:2.5,tech:.15,adventurer:1},c3:{factory:1,sea:1,merchant:.1,penalty:.5,artisan:2,hoarder:.5,tech:1,adventurer:.5},
-    abundanceGood:2.5,abundanceStockMax:10,abundancePort:[0,0,2.5,5],smallMin:20,smallMax:34,smallActionChance:.6,actionDays:7,quietMax:38,startStock:.5,relaySteel:2,   // 7.9c 재미 조정(tuning-7.9c.md)
+    abundanceGood:2.5,abundanceMore:1.25,abundanceTimes:4,abundancePort:[0,0,2.5,5],smallMin:20,smallMax:34,smallActionChance:.6,actionDays:7,quietMax:38,startStock:.5,relaySteel:2,   // 7.9c 재미 조정(tuning-7.9c.md)
     
     goodSmall:['tailwind','lost','fish','exchangeTech','donation','merchant','match','request','craftsman','students'],
     small:{tailwind:-3,headwind:5,fog:2,lost:1,fish:2,mice:1,tech:1,donation:20,repair:15,merchant:2,request:1,requestMoney:20,up:1.15,down:.85,north:.9,priceDays:30,quality:1,cloth:1,score:1}};
@@ -179,11 +181,11 @@
   // 6.5 도감 배지: [id, 이름, 조건]
   const badges = [
     // [id, 이모지, 이름, 조건(잠겨 있어도 보임), 숨김이면 조건 대신 보이는 힌트]
-    ['king', '👑', '무역왕', '5년 평균 1등'], ['rich', '💰', '풍요의 나라', '5년 평균 80점 이상'], ['honest', '📜', '약속의 나라', '계약을 한 번도 안 깸'],
+    ['king', '👑', '무역왕', '5년 누적 점수 1등'], ['rich', '💰', '풍요의 나라', '한 해 평균 82점 이상'], ['honest', '📜', '약속의 나라', '계약을 한 번도 안 깸'],
     ['friend', '💞', '모두의 친구', '끝날 때 모든 이웃과 ♥2 이상 · 손님 배가 와요'], ['allGoods', '📦', '여섯 물건 장수', '물건 6가지를 다 수출해 봄(여러 판 합쳐서)'], ['allNations', '🗺', '여덟 나라 여행', '여덟 나라로 다 해 봄'],
     // 7.2 새 배지(BOOK-v72.md 2장)
     ['explorer', '🧭', '바다의 탐험가', '한 판에 이웃 일곱 나라와 모두 거래함'], ['continent', '🏔', '대륙 상인', '한 판에 북쪽 대륙과 30상자 넘게 거래'],
-    ['survivor', '🌪', '위기를 이긴 나라', '위기를 2번 겪고도 70점 이상'], ['peace', '🕊', '대화의 나라', '관세 전쟁이나 보복 관세를 대화로 풂'],
+    ['survivor', '🌪', '위기를 이긴 나라', '위기를 2번 겪고도 한 해 평균 72점 이상'], ['peace', '🕊', '대화의 나라', '관세 전쟁이나 보복 관세를 대화로 풂'],
     ['inventor', '🧩', '콘셉트 장인', '한 판에 같은 콘셉트 증강체 3장을 모음'], ['balance', '⚖', '균형 무역', '5년 수출과 수입 상자 차이가 10% 안'],
     ['boom', '🔥', '벼락부자', '한 해 금고 +300억 초과 · 생활 물건을 살 밑천'], ['loyal', '🤝', '단골 부자', '끝날 때 ♥3 나라 셋 이상 · 할인·먼저 받기'],
     ['guest', '🎪', '손님 맞이', '관광객 몰림 때 맞이하기를 고름', '바다 저편 손님을 반갑게 맞아 보세요'],

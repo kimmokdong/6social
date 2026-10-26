@@ -138,12 +138,12 @@ test('공급 끊김: ♥가 낮으면 그 나라에서 못 산다', () => {
   run(G, E.tripTime(G, P(G), o.id) + 1);
   assert.equal(P(G).ships[0].route.traded, 0);
 });
-test('한 판 끝까지: 점수 0~100, 돈·상자·값 모두 정수', () => {
+test('한 판 끝까지: 점수 = 해마다 점수의 합(0 이상), 돈·상자·값 모두 정수', () => {
   for (const mode of ['self', 'focus', 'balanced', 'opportunist', 'random']) {
     const G = E.runBot(12, 'market', mode);
     assert.ok(G.over);
     for (const n of G.nations) {
-      assert.ok(n.score >= 0 && n.score <= 100);
+      assert.ok(Number.isInteger(n.score) && n.score >= 0 && n.score === n.years.reduce((a, b) => a + b, 0));
       assert.equal(n.years.length, 5);
       assert.ok(Number.isInteger(n.money), `${mode} ${n.id} money ${n.money}`);
       for (const b of n.box) for (const v of b) assert.ok(Number.isInteger(v) && v >= 0);

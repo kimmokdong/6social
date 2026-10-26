@@ -41,7 +41,8 @@ test('빚 감점은 50억마다 올림·최대 10, 정산과 연말 내역에 �
   for (const [debt, loss] of [[0, 0], [1, 2], [50, 2], [51, 4], [250, 10], [99999, 10]]) {
     const G = game(), n = P(G); n.debt = debt;
     assert.equal(E.debtLoss(n), loss); days(G, 90); assert.equal(n.last.debt, loss);
-    assert.equal(n.last.score, Math.max(0, Math.min(100, Math.round(n.last.slotsBy.reduce((a, b) => a + b.points, 0) + n.last.qual + n.last.abundance - n.last.unrest + n.last.extra - n.last.crisis - n.last.empty - n.last.pollution - loss))));
+    assert.equal(n.last.raw, Math.round(n.last.slotsBy.reduce((a, b) => a + b.points, 0) + n.last.qual + n.last.abundance - n.last.unrest + n.last.extra - n.last.crisis - n.last.empty - n.last.pollution - loss));
+    assert.equal(n.last.score, E.overScore(n.last.raw));
   }
   const G = game(), n = P(G); n.debt = 99999; days(G, 365);
   assert.equal(E.yearReport(G, 1).scoreParts.debtLoss, 10); assert.ok(n.history[0].debt > 0);

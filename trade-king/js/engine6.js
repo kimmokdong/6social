@@ -20,8 +20,11 @@
   const maxShips = n => X.maxShips + (S.countries[n.id].extraShip ? 1 : 0);
   const grownPoints = n => sum(n.levels)-sum(n.startLevels||n.levels)+Math.max(0,n.ships.length-X.openShips-(S.countries[n.id].extraShip?1:0))+(n.warehouse?1:0)+(n.bigShip&&!S.countries[n.id].bigShip?1:0);
   const homeStage = n => Math.min(3,grownPoints(n)>=5?3:grownPoints(n)>=2?2:1);
-  const yearWeight = year => V.yearWeights[Math.min(4,Math.max(0,year-1))];
-  const weightedScore = n => n.years.length ? sum(n.years.map((s,i)=>s*yearWeight(i+1)))/sum(n.years.map((_,i)=>yearWeight(i+1))) : 0;
+  // 8.0 계절 점수는 100점까지 그대로, 100점 위는 overRate만큼만 쌓인다. 최종 점수 = 해마다 점수의 누적 합
+  const overScore = raw => Math.max(0, Math.round(raw <= V.overFrom ? raw : V.overFrom + (raw - V.overFrom) * V.overRate));
+  const totalScore = n => sum(n.years);
+  // 풍요: 필요량 1배를 쌓으면 abundanceGood, 그 위로 1배마다 abundanceMore(효율이 떨어진다). 대표 물건은 창고가 생산량만큼 커서 abundanceTimes배까지만 센다
+  const abundancePoints = k => k < 1 ? 0 : V.abundanceGood + (Math.min(k, V.abundanceTimes) - 1) * V.abundanceMore;
   const freshMeetings = () => ({years:[],free:1,traitSeen:false,offers:[]});
   const freshSmallBonus = () => ({tech:0,quality:0,cloth:0,score:0});
   const zeros = () => GOODS.map(() => 0);
@@ -391,14 +394,15 @@
       let pollution = 0, tour = 0;
       if (has(n, 'ironland')) { pollution = Math.floor((levelOf(G, n, 4) + levelOf(G, n, 5)) / XT.pollutionPer); if (T7.cleaner) pollution = Math.floor(pollution / 2); pollution=Math.max(0,pollution-(owned(n,'modernSteel')?V.pollutionReduction:0)); T7.pollution += pollution; }
       if (has(n, 'forest')) { tour = forestTour(G, n); cash(G, n, tour); T7.tourism += tour; }
-      qual=Math.min(15,qual+n.smallBonus.quality+(on(n,'artisan',2)?V.c2.artisan:0));
+      qual+=n.smallBonus.quality+(on(n,'artisan',2)?V.c2.artisan:0);
       // 풍요: 먹고 남은 물건이 다음 계절 필요량 이상(곡간 관리는 절반) · 비축가 2장 +2.5 · 풍요의 나라 2배(최대 15)
-      const keep=owned(n,'granaryKeep')?V.keepHalf:1, abundanceBy=CONSUMER.map(g=>({good:g,stock:count(n,g),need:Math.ceil(needs(G,n)[g]*keep),points:count(n,g)>=Math.ceil(needs(G,n)[g]*keep)?V.abundanceGood:0})), abundancePort=V.abundancePort[homeStage(n)];
-      const abundance=Math.min(15,(Math.min(V.abundanceStockMax,sum(abundanceBy.map(x=>x.points)))+abundancePort+(on(n,'hoarder',2)?V.c2.hoarder:0))*(owned(n,'plenty')?V.plentyMult:1));
+      const keep=owned(n,'granaryKeep')?V.keepHalf:1, abundanceBy=CONSUMER.map(g=>({good:g,stock:count(n,g),need:Math.ceil(needs(G,n)[g]*keep),points:abundancePoints(Math.floor(count(n,g)/Math.max(1,Math.ceil(needs(G,n)[g]*keep))))})), abundancePort=V.abundancePort[homeStage(n)];
+      // 8.0 풍요는 합계 한도 없이 물건마다 다음 계절 필요량의 몇 배를 쌓았는지로 센다
+      const abundance=(sum(abundanceBy.map(x=>x.points))+abundancePort+(on(n,'hoarder',2)?V.c2.hoarder:0))*(owned(n,'plenty')?V.plentyMult:1);
       const unrest = on(n,'self',2) ? 0 : X.unrest * GOODS.filter(g => isProtected(G, n, g)).length, extra = modSum(G, n, 'score', -1)+n.smallBonus.score+(owned(n,'greenRev')?V.greenScore:0), crisis = crisisDamage(G, n);
       const debt = debtLoss(n);
-      const score = clamp(Math.round(slots + qual + abundance - unrest + extra - crisis - empty - pollution - debt), 0, 100);
-      n.seasons.push(score); n.last = {slots, slotsBy, slotsMax: CONSUMER.length * X.slotPoints, qual, abundance, abundanceBy, abundancePort, weight:yearWeight(Math.floor(G.month/12)+1), unrest, extra, crisis, empty, pollution, debt, tour, score};
+      const raw = Math.round(slots + qual + abundance - unrest + extra - crisis - empty - pollution - debt), score = overScore(raw);
+      n.seasons.push(score); n.last = {slots, slotsBy, slotsMax: CONSUMER.length * X.slotPoints, qual, abundance, abundanceBy, abundancePort, unrest, extra, crisis, empty, pollution, debt, tour, raw, score};
       n.year.seasons.push(n.last);
       n.smallBonus=freshSmallBonus();
       if (has(n, 'plains')) { T7.weather = T7.next; T7.next = weatherDraw(G, n); }   // 다음 계절 날씨는 한 계절 미리 알려 준다
@@ -451,7 +455,7 @@
         } else n.declineRun[g] = 0;
       }
       // 6.6 해마다 기록(결과 책): 산업 단계·배·창고·수입·수출·돈·점수
-      n.history.push({year: y, weight:yearWeight(y), levels: [...n.levels], ships: n.ships.length, warehouse: n.warehouse, bigShip: n.bigShip, money: n.money, debt: n.debt,
+      n.history.push({year: y, levels: [...n.levels], ships: n.ships.length, warehouse: n.warehouse, bigShip: n.bigShip, money: n.money, debt: n.debt,
         imp: GOODS.map(g => sum(Object.values(n.year.imp[g]))), exp: [...n.year.exp], tradeImp: [...n.year.tradeImp], tradeExp: [...n.year.tradeExp],
         moneyIn: n.year.moneyIn, moneyOut: n.year.moneyOut, penaltyIn: n.year.penaltyIn, penaltyOut: n.year.penaltyOut, penaltyDebt: n.year.penaltyDebt,
         seasons: n.year.seasons, score: n.years[n.years.length - 1], trait: traitValue(n)});
@@ -466,7 +470,7 @@
   }
   function finish(G) {
     G.over = true;
-    for (const n of G.nations) n.score = Math.round(weightedScore(n)*100)/100;
+    for (const n of G.nations) n.score = totalScore(n);
   }
   const ranking = G => [...G.nations].sort((a, b) => b.score - a.score || (b === player(G)) - (a === player(G)));
   function yearReport(G, year) {
@@ -475,8 +479,8 @@
     const avg = key => sum(p.seasons.map(s => s[key] || 0)) / p.seasons.length;
     const top = a => GOODS.filter(g => a[g]).map(g => ({good: g, name: GN(g), qty: a[g]})).sort((a, b) => b.qty - a.qty || a.good - b.good);
     const legacy=p.seasons.some(s=>s.abundance==null),basketMax=avg('slotsMax'),qualityMax=sum(p.seasons.map(s=>s.abundance==null?20:15))/p.seasons.length;
-    const cumulative=G.nations.map(n=>({id:n.id,score:weightedScore({years:n.years.slice(0,year)})})).sort((a,b)=>b.score-a.score);
-    return JSON.parse(JSON.stringify({year, legacy, weight:yearWeight(year), weightedRank:cumulative.findIndex(n=>n.id===player(G).id)+1, weightedScore:weightedScore({years:player(G).years.slice(0,year)}), score: p.score, rank: p.rank, rankChange: p.rankChange, ranks: rows.sort((a, b) => a.rank - b.rank).map(n => ({id: n.id, name: n.name, score: n.score, rank: n.rank, change: n.rankChange})),
+    const cumulative=G.nations.map(n=>({id:n.id,score:totalScore({years:n.years.slice(0,year)})})).sort((a,b)=>b.score-a.score);
+    return JSON.parse(JSON.stringify({year, legacy, totalRank:cumulative.findIndex(n=>n.id===player(G).id)+1, total:totalScore({years:player(G).years.slice(0,year)}), totals:cumulative, score: p.score, rank: p.rank, rankChange: p.rankChange, ranks: rows.sort((a, b) => a.rank - b.rank).map(n => ({id: n.id, name: n.name, score: n.score, rank: n.rank, change: n.rankChange})),
       scoreParts: {basket: avg('slots'), basketMax, quality: avg('qual'), qualityMax, abundance:avg('abundance'), abundanceMax:legacy?sum(p.seasons.map(s=>s.abundance==null?0:15))/p.seasons.length:15, priceBurden: avg('unrest'), eventBonus: avg('extra'), crisisLoss: avg('crisis'), emptyLoss: avg('empty'), pollutionLoss: avg('pollution'), debtLoss: avg('debt')},
       slotsBy: CONSUMER.map(g => ({good: g, name: GN(g), got: sum(p.seasons.map(s => s.slotsBy.find(b => b.good === g).got)), need: sum(p.seasons.map(s => s.slotsBy.find(b => b.good === g).need)), points: sum(p.seasons.map(s => s.slotsBy.find(b => b.good === g).points)) / p.seasons.length, max: sum(p.seasons.map(s=>s.slotsBy.find(b=>b.good===g).max))/p.seasons.length})),
       exports: [...p.tradeExp], imports: [...p.tradeImp], topExports: top(p.tradeExp), topImports: top(p.tradeImp), moneyIn: p.moneyIn, moneyOut: p.moneyOut, penalties: {in: p.penaltyIn, out: p.penaltyOut, debt: p.penaltyDebt || 0}, nations: rows}));
@@ -705,6 +709,13 @@
     const c = codex || {};
     for (const k of ['nations', 'events', 'goods', 'badges', 'friends', 'imports', 'star3', 'sold', 'choices', 'lessons', 'flags', 'cards', 'records']) c[k] = c[k] || {};
     c.games = c.games || 0; c.lastNew = c.lastNew || [];
+    // 8.0 옛 기록(5년 가중 평균, 100점 기준)을 누적 점수 기준으로 옮긴다: ×5
+    if (!c.sumScore) {
+      for (const r of Object.values(c.nations)) if (r?.best) r.best = Math.round(r.best * 5);
+      if (c.records.bestScore != null) c.records.bestScore = Math.round(c.records.bestScore * 5);
+      if (c.last?.score != null) c.last.score = Math.round(c.last.score * 5);
+      c.sumScore = true;
+    }
     const ev = c.events, f = c.flags, n = c.nations, b = c.badges, ch = c.choices;
     const rule = {
       trade: c.games >= 1, expimp: Object.keys(c.goods).length > 0, special: !!f.mainExport20,
@@ -770,14 +781,15 @@
     const gains = hist.map((h, i) => h.money - (i ? hist[i - 1].money : X.startMoney));
     const got = [];
     if (rank === 1) got.push('king');
-    if (P.score >= 80) got.push('rich');
+    const perYear = P.score / Math.max(1, P.years.length);   // 배지 기준은 한 해 평균 점수
+    if (perYear >= V.richYear) got.push('rich');
     if (!G.stats.breaks) got.push('honest');
     if (others.every(o => rel(G, P, o) >= 2)) got.push('friend');
     if (GOODS.every(g => c.goods[g])) got.push('allGoods');
     if (T.countries.every(x => c.nations[x.id])) got.push('allNations');
     if (others.every(o => traded.has(o.id))) got.push('explorer');
     if ((P.exportedTo?.world || 0) + (P.importedFrom?.world || 0) >= 30) got.push('continent');
-    if (G.stats.crises >= 2 && P.score >= 70) got.push('survivor');
+    if (G.stats.crises >= 2 && perYear >= V.survivorYear) got.push('survivor');
     if (story('tariffWar', 1) || story('retaliation', 2)) got.push('peace');
     if (mainConcept(P)) got.push('inventor');   // 7.9 같은 콘셉트 3장
     if (expAll >= 20 && impAll >= 20 && Math.abs(expAll - impAll) / Math.max(expAll, impAll) <= .1) got.push('balance');
@@ -1074,7 +1086,7 @@
     if (last?.extra < 0) causes.push({loss: -last.extra, text: `사건의 불편 ${last.extra}점`});
     const reasons = causes.sort((a, b) => b.loss - a.loss).map(c => c.text);
     if (!reasons.length) reasons.push('다 채워요');
-    const value = {score: last?.score || 0, slotsBy, reasons, debt: last?.debt || 0, qual: last?.qual || 0, abundance:last?.abundance||0, weight:yearWeight(Math.floor(G.month/12)+1),
+    const value = {score: last?.score || 0, slotsBy, reasons, debt: last?.debt || 0, qual: last?.qual || 0, abundance:last?.abundance||0, raw: last?.raw ?? last?.score ?? 0,
       unrest: last?.unrest || 0, extra: last?.extra || 0, crisis: last?.crisis || 0, empty: last?.empty || 0, pollution: last?.pollution || 0};
     forecasts.set(G, {day: key, value}); return value;
   }
@@ -1182,6 +1194,6 @@
     return {good: !!r[0], line: r[1]};
   }
 
-  return {cap, homeStage, grownPoints, yearWeight, weightedScore, concepts, mainConcept, conceptOf: id => CON[id] || null, maxShips, rerollCost, rerollMeeting, priceSignal, smallActions, takeSmallAction, smallEvent, forecast, debtLoss, FOREVER, modActive: active, advance, tickDay, tripDays, monthDays, dayNo, dateOf, dayText, today, fitTrips, yearReport, isDump, dumpPrice, exportPrice, saveGame, loadGame, traitInfo, traitResult, canGive, isRelay, T, S, X, GOODS, RAW, CHAIN, CONSUMER, codexAdd, codexNormalize, codexSlots, codexStats, planEvents, goodName: GN, inputOf, newGame, tick, choose, setRoute, breakContract, allowed, price, worldPrice, needs, uses, inputNeed, levelOf, produces, count, exportable,
+  return {cap, homeStage, grownPoints, overScore, totalScore, concepts, mainConcept, conceptOf: id => CON[id] || null, maxShips, rerollCost, rerollMeeting, priceSignal, smallActions, takeSmallAction, smallEvent, forecast, debtLoss, FOREVER, modActive: active, advance, tickDay, tripDays, monthDays, dayNo, dateOf, dayText, today, fitTrips, yearReport, isDump, dumpPrice, exportPrice, saveGame, loadGame, traitInfo, traitResult, canGive, isRelay, T, S, X, GOODS, RAW, CHAIN, CONSUMER, codexAdd, codexNormalize, codexSlots, codexStats, planEvents, goodName: GN, inputOf, newGame, tick, choose, setRoute, breakContract, allowed, price, worldPrice, needs, uses, inputNeed, levelOf, produces, count, exportable,
     sells, buys, tripTime, slotsOf, rel, player, nation, ranking, cardsFor, cardCost, dependence, bestRoute, plan: (G, n, ship, o) => planFor(G, n, ship, o).r, runBot, botTurn, isProtected};
 });

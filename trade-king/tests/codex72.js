@@ -33,7 +33,7 @@ test('예전(7.1) 기록을 읽으면 새 칸이 생기고, 기록만으로 열 
   for (const k of ['friends', 'imports', 'star3', 'sold', 'choices', 'lessons', 'records']) assert.ok(c[k], k);
   for (const id of ['trade', 'expimp', 'resource', 'relay', 'dumping', 'exchange', 'protect']) assert.ok(c.lessons[id], id);
   assert.ok(!c.lessons.crisis && !c.lessons.fta);
-  assert.equal(c.nations.oil.best, 60, '예전 기록은 그대로');
+  assert.equal(c.nations.oil.best, Math.round(old.nations.oil.best * 5), '예전 기록은 누적 점수로 변환');
   // 선택 기록이 없는 예전 사건도 한 칸으로 센다
   assert.ok(E.codexSlots(old).includes('event:dumping:0'));
 });
@@ -68,7 +68,7 @@ test('새 배지 판정: 탐험가·대륙 상인·위기를 이긴 나라·대�
   let {G, me, others} = endState();
   for (const o of others) me.exportedTo[o.id] = 1; assert.ok(earned(G).includes('explorer'));
   ({G, me} = endState()); me.exportedTo.world = 20; me.importedFrom.world = 10; assert.ok(earned(G).includes('continent'));
-  ({G, me} = endState()); G.stats.crises = 2; me.score = 70; assert.ok(earned(G).includes('survivor'));
+  ({G, me} = endState()); G.stats.crises = 2; me.score = S.rules79.survivorYear * me.years.length; assert.ok(earned(G).includes('survivor'));
   ({G, me} = endState()); G.story.push({id: 'tariffWar', k: 1}); assert.ok(earned(G).includes('peace'));
   ({G, me} = endState()); G.story.push({id: 'retaliation', k: 2}); assert.ok(earned(G).includes('peace'));
   ({G, me} = endState()); me.augments = ['grow', 'factory', 'revolution']; assert.ok(earned(G).includes('inventor'), '같은 콘셉트 3장');
@@ -82,6 +82,17 @@ test('새 배지 판정: 탐험가·대륙 상인·위기를 이긴 나라·대�
   const none = earned(G); for (const id of ['explorer', 'continent', 'survivor', 'peace', 'inventor', 'guest', 'giver']) assert.ok(!none.includes(id), id);
   for (const id of none) assert.ok(badgeIds.includes(id));
 });
+test('부자·위기 배지는 누적 점수의 한 해 평균과 위기 횟수로 판정', () => {
+  const {G, me} = endState();
+  for (const [id, threshold] of [['rich', S.rules79.richYear], ['survivor', S.rules79.survivorYear]]) {
+    G.stats.crises = 2; me.score = threshold * me.years.length - 1;
+    assert.ok(!earned(G).includes(id), id + ' 기준 직전');
+    me.score++;
+    assert.ok(earned(G).includes(id), id + ' 기준 도달');
+  }
+  G.stats.crises = 1; assert.ok(!earned(G).includes('survivor'), '위기는 두 번 이상');
+});
+
 test('발전 회의 카드를 사면 G.stats.cards·cardIds가 늘고 도감 cards에 쌓인다', () => {
   const G = E.newGame(3, 'forest'); while (G.pending) E.choose(G, null);
   const me = P(G); me.money = 2000; G.pending = {type: 'meeting', cards: E.cardsFor(G, me)}; G.queue = [G.pending];

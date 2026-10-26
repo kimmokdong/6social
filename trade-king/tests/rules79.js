@@ -11,6 +11,8 @@ const card=id=>E.S.cards.find(c=>c.id===id);
 const toSeason=G=>{G.month=2;G.day=31;E.tickDay(G);};
 const toMeeting=G=>{G.month=11;G.day=31;E.tickDay(G);return G.queue.find(p=>p.type==='meeting');};
 const twin=(id,fn,setup=()=>{})=>{const A=game(id),B=game(id);setup(A);setup(B);fn(B);return [A,B];};   // B만 카드를 받는 같은 판 두 개
+const abundance=k=>k<1?0:V.abundanceGood+(Math.min(k,V.abundanceTimes)-1)*V.abundanceMore;
+const stockPoints=s=>s.abundanceBy.reduce((a,b)=>a+abundance(Math.floor(b.stock/Math.max(1,b.need))),0);
 
 test('콘셉트 10 × 실버·골드·프리즘, 특성 8장은 어울리는 콘셉트, 기존 ID 유지',()=>{
   assert.equal(E.S.concepts.length,10);
@@ -22,7 +24,7 @@ test('콘셉트 10 × 실버·골드·프리즘, 특성 8장은 어울리는 콘
   assert.deepEqual(Object.fromEntries(traits.map(c=>[c.only,c.concept])),{daon:'tech',plains:'hoarder',oil:'merchant',market:'diplomat',forest:'green',port:'sea',artisan:'artisan',ironland:'factory'});
   assert.ok(traits.every(c=>c.tier==='gold'));
   for(const id of ['grow','climb','protect','warehouse','bigShip','moreShip','quality','renewable','cleaner'])assert.ok(card(id));
-  assert.equal(card('cleaner').concept,undefined);assert.deepEqual(V.yearWeights,[1,1,1.5,1.5,2]);
+  assert.equal(card('cleaner').concept,undefined);
   assert.deepEqual(V.odds.slice(1),[[.4,.5,.1],[.1,.6,.3],[.1,.5,.4],[.2,.6,.2]]);
 });
 test('첫해에는 회의가 없고 바로 개항, 회의는 2·3·4·5년째 1월 1일 네 번',()=>{
@@ -98,12 +100,13 @@ test('✨ 명품 장인: 품질 높이기·장인 학교·세계적 브랜드',(
 test('🏚 비축가: 비축 창고·곡간 관리·풍요의 나라',()=>{
   const G=game('plains'),n=P(G),c0=E.cap(G,n,0);take(G,'warehouse');assert.ok(n.warehouse);assert.equal(E.cap(G,n,0)-E.produces(G,n,0),(c0-E.produces(G,n,0))*2);
   const setup=G=>{const n=P(G);for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,0,0,E.needs(G,n)[g]+Math.ceil(E.needs(G,n)[g]/2)];}};
-  const [A,B]=twin('plains',G=>take(G,'granaryKeep'),setup);toSeason(A);toSeason(B);assert.equal(P(A).last.abundance,2.5*E.CONSUMER.filter(g=>E.needs(A,P(A))[g]===1).length,'필요 1상자는 반만 남아도 다 남음');assert.equal(P(B).last.abundance,10);
+  const [A,B]=twin('plains',G=>take(G,'granaryKeep'),setup);toSeason(A);toSeason(B);
+  for(const [H,keep] of [[A,1],[B,V.keepHalf]]){const m=P(H);for(const b of m.last.abundanceBy)assert.equal(b.need,Math.max(1,Math.ceil(E.needs(H,m)[b.good]*keep)));assert.equal(m.last.abundance,stockPoints(m.last)+V.abundancePort[E.homeStage(m)]);}
   const full=G=>{const n=P(G);for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,0,0,E.needs(G,n)[g]*2];}n.box[0][3]=E.needs(G,n)[0]*2;};
   const [C,D]=twin('plains',G=>take(G,'plenty'),G=>{const n=P(G);for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,0,0,0];}n.box[0]=[0,0,0,E.needs(G,n)[0]*2];});
-  toSeason(C);toSeason(D);assert.equal(P(C).last.abundance,2.5);assert.equal(P(D).last.abundance,5);
+  toSeason(C);toSeason(D);assert.equal(P(C).last.abundance,V.abundanceGood);assert.equal(P(D).last.abundance,V.abundanceGood*V.plentyMult);
   const F=game('plains'),f=P(F),c1=E.cap(F,f,0)-E.produces(F,f,0);take(F,'plenty');assert.equal(E.cap(F,f,0)-E.produces(F,f,0),c1*3);
-  const M=game('plains');full(M);take(M,'plenty');for(const g of E.CONSUMER)P(M).levels[g]=10;toSeason(M);assert.ok(P(M).last.abundance<=15);
+  const M=game('plains');full(M);take(M,'plenty');for(const g of E.CONSUMER)P(M).levels[g]=10;toSeason(M);assert.equal(P(M).last.abundance,(stockPoints(P(M).last)+V.abundancePort[E.homeStage(P(M))])*V.plentyMult);
 });
 test('🛡 자립: 지키기·자급자족·자립 경제',()=>{
   const G=game(),n=P(G),lv=[...n.levels];take(G,'protect',0);assert.equal(n.levels[0],lv[0]+1);assert.equal(n.protect[0],E.FOREVER);
@@ -138,7 +141,7 @@ test('특성 8장: 반도체·곡물 저장고·정유·쇼핑·생태 관광·�
   const F=game('forest'),f=P(F);for(const x of F.nations.slice(1))F.rel[f.id][x.id]=F.rel[x.id][f.id]=2;const tour=E.traitInfo(F,f).value;take(F,'ecotour');assert.equal(E.traitInfo(F,f).value,Math.round(tour*1.5));
   const R=game('port'),r=P(R),g=E.GOODS.find(g=>E.isRelay(R,r,g)&&R.nations.slice(1).some(o=>E.buys(R,o,g))),b=R.nations.slice(1).find(o=>E.buys(R,o,g));
   take(R,'relayStore');r.box[g][3]=100;assert.ok(E.allowed(R,r,{to:b.id,give:one(g,E.slotsOf(R,r,b)+1),get:null}));
-  const A=game('artisan'),a=P(A),buyer=A.nations.slice(1).find(o=>E.buys(A,o,2));take(A,'luxStreet');assert.ok(E.allowed(A,a,{to:buyer.id,give:one(2,3),get:null}));
+  const A=Array.from({length:20},(_,k)=>game('artisan',79+k)).find(G=>G.nations.slice(1).some(o=>E.buys(G,o,2))),a=P(A),buyer=A.nations.slice(1).find(o=>E.buys(A,o,2));take(A,'luxStreet');assert.ok(E.allowed(A,a,{to:buyer.id,give:one(2,3),get:null}));
   const I=game('ironland'),i=P(I),level=i.levels[5];take(I,'modernSteel');assert.equal(i.levels[5],level+1);
   assert.equal(E.concepts(i).find(c=>c.id==='factory').count,1,'특성 카드는 콘셉트 한 장');
 });
@@ -149,7 +152,7 @@ test('모으기 2장: 공장·바다·상인·외교·명품·비축·자립·�
   {const [A,B]=twin('plains',G=>{take(G,'fund');take(G,'bonus');},G=>{P(G).money=0;});toSeason(A);toSeason(B);const pa=P(A),pb=P(B);assert.equal(pb.money-pa.money,150+Math.round(pa.pop*X.taxPerPop*.5));}
   {const G=game(),n=P(G),o=G.nations.slice(1).find(o=>E.sells(G,o,0));G.rel[n.id][o.id]=G.rel[o.id][n.id]=2;const p=E.price(G,o,n,0);take(G,'envoy');G.rel[n.id][o.id]=G.rel[o.id][n.id]=2;take(G,'regular');assert.ok(E.price(G,o,n,0)<p,'♥2에서 ♥3 혜택');}
   {const f=G=>{const n=P(G);n.quality=[1,1,1,1,1,1];for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,E.needs(G,n)[g],0,0];}};const A=game('plains'),B=game('plains');f(A);f(B);A.nations[0].augments=['quality'];B.nations[0].augments=['quality','school'];toSeason(A);toSeason(B);assert.equal(P(B).last.qual-P(A).last.qual,2,'품질 점수 +2');}
-  {const f=G=>{const n=P(G);for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,0,0,0];}n.box[0]=[0,0,0,E.needs(G,n)[0]*2];};const [A,B]=twin('plains',G=>{take(G,'warehouse');take(G,'granaryKeep');},G=>{f(G);});toSeason(A);toSeason(B);assert.equal(P(B).last.abundance-P(A).last.abundance,2.5);}
+  {const f=G=>{const n=P(G);for(const g of E.CONSUMER){n.levels[g]=0;n.box[g]=[0,0,0,0];}n.box[0]=[0,0,0,E.needs(G,n)[0]*2];};const [A,B]=twin('plains',G=>{take(G,'warehouse');take(G,'granaryKeep');},G=>{f(G);});toSeason(A);toSeason(B);assert.equal(P(B).last.abundance-P(A).last.abundance,stockPoints(P(B).last)-stockPoints(P(A).last)+V.c2.hoarder);}
   {const [A,B]=twin('daon',G=>{take(G,'selfReliance');},G=>{take(G,'protect',0);});toSeason(A);toSeason(B);assert.ok(P(A).last.unrest>0);assert.equal(P(B).last.unrest,0);}
   {const G=game('market'),n=P(G),o=G.nations[1];take(G,'climb');const p=E.price(G,n,o,3);take(G,'automation');assert.ok(Math.abs(E.price(G,n,o,3)-p*1.15)<=1);}
   {const crisis=G=>{const n=P(G);G.crises.push({goods:[1],w:1,until:G.month+6});n.year.imp[1]={world:20};n.year.prod[1]=0;n.lastYear=null;};const [A,B]=twin('market',G=>{take(G,'lamps');take(G,'renewable');},crisis);toSeason(A);toSeason(B);assert.ok(P(A).last.crisis>0);assert.equal(P(B).last.crisis,0);}
@@ -186,11 +189,24 @@ test('단추 선택은 한 번·7일 안·기본은 지나감·저장 복원',()
   days(G,1);const b=E.smallEvent(G,'request'),before=E.count(n,n.main);days(G,8);assert.equal(E.takeSmallAction(G,b.day),false);assert.equal(E.count(n,n.main),before);
   const H=E.newGame(19);clear(H);E.smallEvent(H,'merchant');const L=E.loadGame(E.saveGame(H));assert.ok(L);assert.deepEqual(E.smallActions(L),E.smallActions(H));
 });
-test('점수 70·15·15 상한과 모든 가감점 합·가중 최종 순위',()=>{
+test('품질·풍요 한도 없이 모든 가감점의 원점수·초과 점수·누적 순위',()=>{
   const G=game('plains'),n=P(G);n.levels=E.GOODS.map(()=>10);n.quality=E.GOODS.map(()=>3);for(const g of E.GOODS)n.box[g]=[0,0,0,200];n.levels[0]+=5;toSeason(G);
-  assert.equal(n.last.slots,70);assert.equal(n.last.qual,15);assert.equal(n.last.abundance,15);assert.equal(n.last.score,100);
-  for(let seed=1;seed<=8;seed++){const H=E.runBot(seed,'market');for(const m of H.nations){for(const h of m.history)for(const s of h.seasons){assert.ok(s.slots<=70&&s.qual<=15&&s.abundance<=15);assert.equal(s.score,Math.max(0,Math.min(100,Math.round(s.slots+s.qual+s.abundance-s.unrest+s.extra-s.crisis-s.empty-s.pollution-s.debt))));}assert.equal(m.score,Math.round(m.years.reduce((a,s,i)=>a+s*V.yearWeights[i],0)/7*100)/100);}assert.ok(E.ranking(H).every((n,i,a)=>!i||a[i-1].score>=n.score));const r=E.yearReport(H,5);assert.equal(r.weight,2);assert.equal(r.scoreParts.abundanceMax,15);assert.equal(r.scoreParts.basketMax,70);}
-  assert.equal(E.weightedScore({years:[0,0,0,0,100]}),200/7);
+  assert.equal(n.last.slots,E.CONSUMER.length*X.slotPoints);assert.equal(n.last.qual,E.CONSUMER.length*X.qualityPoints[3]);assert.equal(n.last.abundance,stockPoints(n.last)+V.abundancePort[E.homeStage(n)]);assert.ok(n.last.raw>V.overFrom);assert.equal(n.last.score,E.overScore(n.last.raw));
+  for(let seed=1;seed<=8;seed++){
+    const H=E.runBot(seed,'market');
+    for(const m of H.nations)for(const h of m.history)for(const s of h.seasons){
+      assert.ok(s.slots<=E.CONSUMER.length*X.slotPoints);
+      for(const b of s.abundanceBy)assert.equal(b.points,abundance(Math.floor(b.stock/Math.max(1,b.need))));
+      assert.equal(s.raw,Math.round(s.slots+s.qual+s.abundance-s.unrest+s.extra-s.crisis-s.empty-s.pollution-s.debt));assert.equal(s.score,E.overScore(s.raw));
+    }
+    assert.ok(E.ranking(H).every((n,i,a)=>!i||a[i-1].score>=n.score));
+    for(let year=1;year<=5;year++){
+      const r=E.yearReport(H,year),totals=H.nations.map(m=>({id:m.id,score:m.years.slice(0,year).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.score-a.score);
+      assert.deepEqual(r.totals,totals);assert.equal(r.total,totals.find(m=>m.id===P(H).id).score);assert.equal(r.totalRank,totals.findIndex(m=>m.id===P(H).id)+1);assert.equal(r.scoreParts.basketMax,E.CONSUMER.length*X.slotPoints);
+      for(const key of ['weight','weightedRank','weightedScore'])assert.ok(!(key in r),key);
+    }
+  }
+  assert.equal(E.totalScore({years:[0,0,0,0,100]}),100);
 });
 test('여섯 달 값·추세·싼 정도·실제로 오는 소문',()=>{
   const G=game();days(G,260);for(const a of G.priceHistory){assert.equal(a.length,6);assert.equal(a.at(-1).month,G.month);}
@@ -206,5 +222,24 @@ test('저장: 지금 저장은 그대로 이어지고, 옛 저장(7.9 이전)은
   const M=E.newGame(5,'daon');clear(M);toMeeting(M);const ms=E.saveGame(M),ML=E.loadGame(ms);assert.ok(ML);assert.deepEqual(ML.pending,M.pending);
   const bad=E.saveGame(M);bad.queue.find(p=>p.type==='meeting').cards=['grow','quality','factory'];bad.pending=bad.queue[0];assert.equal(E.loadGame(bad),null,'같은 콘셉트가 겹친 회의는 거절');
   assert.deepEqual(E.runBot(17,'forest','random'),E.runBot(17,'forest','random'));
+});
+test('초과 점수: 99·100·101·140·음수와 설정 경계값',()=>{
+  for(const raw of [99,100,101,140,-5,V.overFrom-1,V.overFrom,V.overFrom+1])assert.equal(E.overScore(raw),Math.max(0,Math.round(raw<=V.overFrom?raw:V.overFrom+(raw-V.overFrom)*V.overRate)),`원점수 ${raw}`);
+});
+test('풍요: 같은 물건 필요량 1배·2배·상한 배수 초과와 모자란 재고',()=>{
+  for(const k of [0,1,2,V.abundanceTimes+3]){
+    const G=game('plains'),n=P(G),g=E.CONSUMER[0];n.levels=E.GOODS.map(()=>0);n.box=E.GOODS.map(()=>[0,0,0,0]);
+    const need=E.needs(G,n)[g];n.box[g][3]=need*(k+1);toSeason(G);
+    const b=n.last.abundanceBy.find(b=>b.good===g);assert.equal(b.stock,need*k);assert.equal(b.need,need);assert.equal(b.points,abundance(k));assert.equal(n.last.abundance,abundance(k)+V.abundancePort[E.homeStage(n)]);
+  }
+});
+test('한 판 끝 모든 나라의 최종 점수는 해마다 점수의 합',()=>{
+  const G=E.runBot(80,'daon','focus');assert.ok(G.over);
+  for(const n of G.nations){assert.equal(n.years.length,5);assert.equal(n.score,n.years.reduce((a,b)=>a+b,0));assert.equal(E.totalScore(n),n.score);}
+});
+test('옛 도감 점수는 반올림해 5배 변환·두 번 불러도 유지',()=>{
+  const old={nations:{daon:{best:72.37},plains:{best:0},oil:{games:1}},records:{bestScore:91.23},last:{score:64.57}},c=E.codexNormalize(JSON.parse(JSON.stringify(old)));
+  assert.equal(c.sumScore,true);for(const id of ['daon','plains'])assert.equal(c.nations[id].best,Math.round(old.nations[id].best*5));assert.equal(c.nations.oil.best,undefined);assert.equal(c.records.bestScore,Math.round(old.records.bestScore*5));assert.equal(c.last.score,Math.round(old.last.score*5));
+  const before=JSON.parse(JSON.stringify(c));assert.deepEqual(E.codexNormalize(c),before);assert.deepEqual(E.codexNormalize(JSON.parse(JSON.stringify(c))),before);
 });
 console.log(`\n${passed}개 통과`);

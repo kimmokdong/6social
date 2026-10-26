@@ -1,4 +1,4 @@
-# 7.9b 화면: 증강체 회의(실버·골드·프리즘) · 작은 돌발 카드 · 값 신호(▲▼, 최근 6달) · 위쪽 막대 가중치 · 1년 결과 풍요 · 우리 나라 증강체 칸 · 자동 멈춤 설정 · 결과 책 빌드 · 도감 증강체.
+# 7.9b 화면: 증강체 회의(실버·골드·프리즘) · 작은 돌발 카드 · 값 신호(▲▼, 최근 6달) · 위쪽 막대 예상(8.0 가중치 없음) · 1년 결과 풍요 · 우리 나라 증강체 칸 · 자동 멈춤 설정 · 결과 책 빌드 · 도감 증강체.
 # text7도 같은 장면을 모든 크기·아주 큰 글자로 검사한다. URL=http://localhost:8083/trade-king/index.html python -X utf8 trade-king/tests/ui79.py
 import ast, io, os, sys
 from pathlib import Path
@@ -16,7 +16,7 @@ def scenes(pg, check):
     assert pg.locator('.meeting79').count() == 0, '첫해에는 회의가 없다'
     assert pg.locator('[data-ok=open]').count() == 1
     pg.click('[data-ok=open]')
-    assert '×1' in pg.inner_text('.forecast')
+    assert '×' not in pg.inner_text('.forecast'), '8.0: 가중치 표시 없음'
     check('topbar')
     for tier, have in [('silver', []), ('gold', ['grow']), ('prism', ['grow', 'navigator', 'bigShip'])]:
         cards = pg.evaluate(OFFER, [tier, have])
@@ -66,10 +66,10 @@ def scenes(pg, check):
     assert pg.locator('[data-setk=pauseIdle]').count() == 2 and pg.locator('[data-setk=pauseDrop]').count() == 2
     check('settings-pause')
     pg.evaluate("() => document.querySelector('[data-sheet-close]').click()"); pg.wait_for_timeout(60)
-    # 1년 결과: 풍요 줄 · 올해 가중치 · 가중 순위, 바로 뒤 2년째 회의
+    # 1년 결과: 풍요 줄 · 누적 점수 · 누적 순위, 바로 뒤 2년째 회의
     pg.evaluate("""() => { TK6.start('ironland'); const {G,E}=TK6; while(G.month<12){if(G.pending&&G.pending.type!=='yearEnd'){E.choose(G,null);continue;}if(G.pending)break;E.botTurn(G,'focus');E.tick(G);} TK6.render(); }""")
     t = pg.inner_text('.year-modal')
-    assert '풍요 보너스' in t and '올해 ×1' in t and '가중 순위' in t
+    assert '풍요 보너스' in t and '누적' in t and ('앞 나라까지' in t or '선두' in t)
     check('year-abundance')
     pg.click('[data-ok=year]'); pg.wait_for_timeout(120)
     assert '2년째 발전 회의' in pg.inner_text('#layer')
@@ -77,7 +77,7 @@ def scenes(pg, check):
     # 결과 책 빌드와 점수 그래프, 도감 증강체 모음
     pg.evaluate("""() => { TK6.start('plains'); const {G,E}=TK6; while(!G.over){if(G.pending){E.choose(G,G.pending.type==='event'?0:null);continue;}E.botTurn(G,'focus');E.tick(G);} TK6.render(); }"""); pg.wait_for_timeout(200)
     assert pg.locator('.ending .build em.tier').count() == 4
-    assert '×2' in pg.inner_text('.ending .years')
+    assert '×' not in pg.inner_text('.ending .years') and '5년 누적' in pg.inner_text('.ending')
     check('end-build')
     pg.evaluate("() => document.querySelector('[data-codex]').click()"); pg.wait_for_timeout(150)
     pg.evaluate("() => document.querySelector('[data-book-tab=augs]').click()"); pg.wait_for_timeout(100)

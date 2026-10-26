@@ -177,7 +177,7 @@
 
   // ---------- 화면 ----------
   function rankRows() {
-    return [...G.nations].map(n => ({n, s: n.years.length ? E.weightedScore(n) : avg(n.seasons)})).sort((a, b) => b.s - a.s);
+    return [...G.nations].map(n => ({n, s: n.years.length ? E.totalScore(n) : avg(n.seasons)})).sort((a, b) => b.s - a.s);
   }
   function guidance() {
     const me = P(), idle = me.ships.findIndex(s => !s.route), need = E.needs(G, me);
@@ -387,7 +387,7 @@
           <button data-speed="2" aria-pressed="${speed === 2}" aria-label="빠르게"${tipA('빠르게')}>▶▶</button>
           <button data-settings class="snd gear" aria-haspopup="dialog"${tipA('설정 · 소리·글자 크기·시작 화면')} aria-label="설정">⚙️</button></span>
         ${nationSlot(me)}
-        <span class="stat score" tabindex="0" aria-label="생활 점수 ${me.last ? me.last.score : '–'}점"${tipA('<b>😊 생활 점수</b><br>3달마다 생활 물건·품질·풍요로 점수를 매겨요. 빚·위기 등은 감점돼요. 올해는 4번의 평균, 순위는 뒷해에 더 큰 비중을 둬요.', 1)}>😊<b>${me.last ? me.last.score : '–'}</b>점</span>
+        <span class="stat score" tabindex="0" aria-label="생활 점수 ${me.last ? me.last.score : '–'}점"${tipA('<b>😊 생활 점수</b><br>3달마다 생활 물건·품질·풍요로 점수를 매겨요. 빚·위기 등은 감점돼요. 올해 점수는 4번의 평균이고, 5년 동안 쌓인 합계로 순위를 정해요. 100점 위는 절반만 쌓여요.', 1)}>😊<b>${me.last ? me.last.score : '–'}</b>점</span>
         ${forecastBox()}
         <span class="stat rankstat" tabindex="0" aria-label="순위 ${rank}등"${tipA('<b>🏆 순위</b><br>해마다 1·1·1.5·1.5·2배로 친 점수로 매겨요.', 1)}>🏆<b>${rank}</b>등</span>
       </header>
@@ -425,8 +425,8 @@
   function forecastBox() {
     const f = E.forecast(G), losses = [['빚', f.debt], ['물가 오름', f.unrest], ['위기 피해', f.crisis], ['빈 칸', f.empty], ['공장 연기', f.pollution]];
     const text = f.slotsBy.map(b => `${gname(b.good)} ${b.got}/${b.need} ${b.got === b.need ? '✓' : '−' + Math.round((b.max - b.points) * 10) / 10 + '점'}`).join('<br>');
-    const tt = `<b>다음 정산 예상 😊 ${f.score}점</b><br>${text}<br>품질 +${f.qual}점 · 풍요 +${f.abundance}점 · 올해 ×${f.weight}<br>사건 ${f.extra > 0 ? '+' : ''}${f.extra}점<br>${losses.map(([t, v]) => `${t} −${v}점`).join(' · ')}<br><small>지금 계약 그대로, 새 조작 없이 예상해요. 사건은 첫 선택, 회의는 추천으로 예상해요.</small>`;
-    return `<span class="forecast" tabindex="0"${tipA(tt, 1)}><span>다음 정산 예상 😊 <b>${f.score}점</b></span><small>×${f.weight} · ${esc(f.reasons[0])}</small></span>`;
+    const tt = `<b>다음 정산 예상 😊 ${f.score}점</b><br>${text}<br>품질 +${f.qual}점 · 풍요 +${f.abundance}점${f.raw > f.score ? `<br>원래 ${f.raw}점 · ${E.S.rules79.overFrom}점 위는 절반만 쌓여요` : ''}<br>사건 ${f.extra > 0 ? '+' : ''}${f.extra}점<br>${losses.map(([t, v]) => `${t} −${v}점`).join(' · ')}<br><small>지금 계약 그대로, 새 조작 없이 예상해요. 사건은 첫 선택, 회의는 추천으로 예상해요.</small>`;
+    return `<span class="forecast" tabindex="0"${tipA(tt, 1)}><span>다음 정산 예상 😊 <b>${f.score}점</b></span><small>${esc(f.reasons[0])}</small></span>`;
   }
   // 7.6 창고 상자 툴팁: 무엇이 얼마나 있고 3달마다 어떻게 바뀌는지. 철광석·철강은 공장에서 무엇이 되는지 쉬운 말로
   function stockTip(me, g, c, p, use, inp, net) {
@@ -473,11 +473,11 @@
       ${abundanceLine(me)}
       <p class="howto"><b>어떻게 키우나요?</b> 2년째부터 해마다 1월 1일 발전 회의에서 증강체 한 장을 골라요. 🏭 공장 왕국·🔬 기술 강국·🛡 자립 카드가 산업을 키워요. 사건에서 고른 선택으로도 바뀌어요.</p>`;
   }
-  // 7.9b 풍요 조건: 정산 뒤 남은 생활 물건이 다음 계절 필요량 이상이면 물건마다 +2.5점(최대 10) · 커진 항구 +2.5 · 무역 도시 +5
+  // 8.0 풍요 조건: 정산 뒤 남은 생활 물건이 다음 계절 필요량의 1배면 +2.5점, 그 위로 1배마다 +1.25점(한도 없음) · 커진 항구 +2.5 · 무역 도시 +5
   function abundanceLine(me) {
     const need = E.needs(G, me), keep = me.augments.includes('granaryKeep') ? .5 : 1, R79 = E.S.rules79;
-    const items = E.CONSUMER.map(g => { const want = Math.ceil(need[g] * keep), left = E.count(me, g) + E.produces(G, me, g) - need[g]; return `<span class="${left >= want ? 'ok' : ''}">${ico(g)}${left >= want ? '✓' : `${Math.max(0, left)}/${want}`}</span>`; }).join('');
-    return `<p class="abund"${tipA(`<b>📦 풍요 보너스</b><br>정산 때 쓰고 남은 생활 물건이 다음 계절 필요량${keep < 1 ? '의 절반' : ''} 이상이면 물건마다 +${R79.abundanceGood}점(최대 ${R79.abundanceStockMax}점)<br>항구가 커지면 +${R79.abundancePort[2]}점 · 무역 도시 +${R79.abundancePort[3]}점`, 1)}><b>📦 풍요 조건</b> 다음 정산 뒤 남을 양 ${items} <small>항구 +${R79.abundancePort[homeStage(me)]}점</small></p>`;
+    const items = E.CONSUMER.map(g => { const want = Math.ceil(need[g] * keep), left = E.count(me, g) + E.produces(G, me, g) - need[g], k = Math.floor(left / Math.max(1, want)); return `<span class="${k ? 'ok' : ''}">${ico(g)}${k > 1 ? `✓×${k}` : k ? '✓' : `${Math.max(0, left)}/${want}`}</span>`; }).join('');
+    return `<p class="abund"${tipA(`<b>📦 풍요 보너스</b><br>정산 때 쓰고 남은 생활 물건이 다음 계절 필요량${keep < 1 ? '의 절반' : ''} 만큼 남으면 물건마다 +${R79.abundanceGood}점, 그 위로 1배 더 쌓을 때마다 +${R79.abundanceMore}점(물건마다 ${R79.abundanceTimes}배까지)<br>항구가 커지면 +${R79.abundancePort[2]}점 · 무역 도시 +${R79.abundancePort[3]}점`, 1)}><b>📦 풍요 조건</b> 다음 정산 뒤 남을 양 ${items} <small>항구 +${R79.abundancePort[homeStage(me)]}점</small></p>`;
   }
   // 7.9b 증강체 칸(롤토체스 시너지처럼): 콘셉트 10가지, 모은 수와 2장·3장 보너스
   function augTab(me) {
@@ -808,7 +808,7 @@
   function yearEnd(y) {
     const me = P(), R = E.yearReport(G, y);
     if (!R) return `<h2>${y}년째 끝</h2><div class="actions"><button class="primary" data-ok="year">다음 해로 ▶</button></div>`;
-    const sp = R.scoreParts, seasons = R.nations.find(n => n.id === me.id).seasons, r1 = v => Math.round(v * 10) / 10;
+    const sp = R.scoreParts, seasons = R.nations.find(n => n.id === me.id).seasons, r1 = v => Math.round(v * 10) / 10, R79 = E.S.rules79;
     const prev = y > 1 ? me.years[y - 2] : null, diff = prev == null ? null : R.score - prev;
     const meter = (f, cls = '') => `<i class="meter${cls}"><i style="width:${Math.max(0, Math.min(100, Math.round(f * 100)))}%"></i></i>`;
     const row = (icon, name, why, pts, f, cls = '', extra = '') => `<div class="score-row${cls}"><span class="score-icon" aria-hidden="true">${icon}</span><span class="score-copy"><b>${name}</b><small>${why}</small></span><span class="score-points">${pts}${meter(f, cls.includes('minus') ? ' minus' : '')}</span>${extra}</div>`;
@@ -817,7 +817,7 @@
     const tour = sum(seasons.map(s => s.tour || 0));
     const rows = [row('🧺', '생활에 필요한 물건 채우기', '식량·옷·석유·첨단기기를 국민이 얼마나 넉넉히 썼는지', `${r1(sp.basket)} / ${sp.basketMax}점`, sp.basket / sp.basketMax, '', chips),
       row('⭐', '좋은 물건 보너스', R.legacy?'이전 규칙으로 받은 정산도 그대로 넣었어요':'쓴 물건이 ⭐2면 +2점, ⭐3이면 +3.75점', `+${r1(sp.quality)}점`, sp.quality / sp.qualityMax, sp.quality ? '' : ' zero'),
-      row('📦','풍요 보너스',R.legacy?'새 규칙부터 비축과 항구 성장을 세요':'다음 계절 물건 비축 + 항구 성장',`+${r1(sp.abundance)} / ${r1(sp.abundanceMax)}점`,sp.abundance/15),
+      row('📦','풍요 보너스',R.legacy?'새 규칙부터 비축과 항구 성장을 세요':`필요량만큼 쌓으면 +${R79.abundanceGood}, 1배 더마다 +${R79.abundanceMore}(${R79.abundanceTimes}배까지) · 항구`,`+${r1(sp.abundance)}점`,sp.abundance/15),
       loss('📈', '물가 오름', '수입을 막아 우리 물건을 지키면 물가가 올라요', sp.priceBurden),
       sp.eventBonus > 0 ? row('🎲', '사건의 도움', '사건에서 고른 것 덕분에 더해진 점수', `+${r1(sp.eventBonus)}점`, sp.eventBonus / 10) : loss('🎲', sp.eventBonus ? '사건의 불편' : '사건의 도움·불편', '사건에서 고른 것 때문에 더하거나 깎인 점수', -sp.eventBonus),
       loss('💸', '빚 때문에 깎인 점수', '나라 살림이 빠듯해 국민 생활이 힘들어요', sp.debtLoss),
@@ -836,12 +836,12 @@
       : low ? `${josa(low.name, '이', '가')} 모자랐어요. ${josa(low.name, '을', '를')} 파는 섬과 계약하면 점수가 올라요.`
       : R.penalties.out ? '약속한 상자를 못 실으면 위약금을 내요. 계약서의 창고 줄을 보고 실을 만큼만 담아요.'
       : sp.quality < 10 ? '⭐ 품질이 높은 물건을 사 오면 보너스 점수가 더 붙어요.' : '아주 잘했어요! 지금처럼 생활 물건을 가득 채워 봐요.';
-    return `<header class="yr-head"><span class="yr-seal" aria-hidden="true">🏆</span><div><p class="eyebrow">${y}년째 끝 · 1년 결과 · 올해 ×${R.weight}</p><h2>${esc(me.name)}의 한 해</h2></div>
+    return `<header class="yr-head"><span class="yr-seal" aria-hidden="true">🏆</span><div><p class="eyebrow">${y}년째 끝 · 1년 결과 · 누적 ${R.total}점</p><h2>${esc(me.name)}의 한 해</h2></div>
         <p class="yr-score"><small>올해 생활 점수</small><b>${R.score}</b>점<span class="pill${diff > 0 ? ' green' : diff < 0 ? ' red' : ''}">${diff == null ? '첫 해' : diff ? `작년보다 ${diff > 0 ? '▲' : '▼'} ${Math.abs(diff)}점` : '작년과 같아요'}</span></p></header>
       <div class="yr-body"><div class="score-side">
-        <p class="season-note">${seasons.map(s => `<b>${s.score}</b>`).join(' → ')}점 · 3달마다 받은 네 번의 점수를 평균했어요</p>
+        <p class="season-note">${seasons.map(s => `<b>${s.score}</b>`).join(' → ')}점 · 3달마다 받은 네 번의 점수를 평균했어요${seasons.some(s => s.raw > R79.overFrom) ? ` · ${R79.overFrom}점 위는 절반만 쌓여요` : ''}</p>
         <p class="breakdown-head">점수는 이렇게 나왔어요 <span class="pill">네 계절 평균</span></p>${rows}</div>
-      <div class="ranking-side"><p class="section-heading">올해 순위 <small>지금까지 가중 순위 ${R.weightedRank}등</small></p><ol class="rank-list">${ranks}</ol>
+      <div class="ranking-side"><p class="section-heading">올해 순위 <small>누적 ${R.totalRank}등 · ${R.totalRank > 1 ? `앞 나라까지 ${Math.ceil(R.totals[R.totalRank - 2].score - R.total)}점` : '선두'}</small></p><ol class="rank-list">${ranks}</ol>
         <div class="year-trade"><p class="yt-title">올해 무역</p><div class="trade-totals">
           <p><b>📤 많이 판 것</b>${tops(R.topExports)}</p><p><b>📥 많이 사 온 것</b>${tops(R.topImports)}</p>
           <p><b>💰 들어온 돈</b><span class="plus">${amt(R.moneyIn, '+')}</span><b>나간 돈</b><span class="neg">${amt(R.moneyOut, '−')}</span></p>
@@ -882,10 +882,10 @@
     {key: 'luxFull', id: 'artisan', at: '.tray', when: me => me.ships.some(s => s.route && GOODS.some(g => s.route.give[g] >= XT.luxMax && me.quality[g] === 3)), say: me => `명품은 한 항로에 ${me.augments.includes('luxStreet')?E.S.rules79.luxMax:XT.luxMax}상자까지야. 여러 섬에 나눠 보내면 더 많이 팔 수 있어.`},
     {key: 'smog', id: 'ironland', at: '.nation-slot', when: me => me.last?.pollution > 0, say: me => `공장 연기 때문에 생활 점수가 ${me.last.pollution}점 깎였어. 발전 회의의 <b>제철소 현대화</b> 카드로 공해를 줄일 수 있어.`},
     {key: 'oilPrice', id: null, when: me => !me.augments.some(id => E.conceptOf(id) === 'green') && E.worldPrice(G, 1) > E.S.goods[1].price * XT.renewAt, say: () => `석유값이 ${E.worldPrice(G, 1)}억까지 올랐어. 발전 회의에서 🌱 <b>녹색 성장</b> 카드를 고르면 석유를 덜 써!`},
-    // 7.9b 증강체·작은 돌발·값 신호·해마다 가중치
+    // 7.9b 증강체·작은 돌발·값 신호 · 8.0 누적 점수
     {key: 'small79', id: null, at: '.small-pop', when: () => !!$('.small-pop'), say: () => '지도 오른쪽 위 카드는 <b>작은 돌발</b>이야. 시간은 그대로 흘러. 단추가 붙어 있으면 7일 안에 눌러 봐!'},
     {key: 'trend79', id: null, at: '.isle .trend', when: () => G.month >= 4 && !!$('.isle .trend'), say: () => '물건 그림 옆 <b>▲</b>는 요즘 오르는 값, <b>▼</b>는 내리는 값이야. 계약서에서 <b>최근 6달 중 싼 편</b>일 때 맺으면 1년 동안 싸게 사. 배 한 척은 잠깐 기다려도 돼.'},
-    {key: 'weight79', id: null, at: '.forecast', when: () => G.month >= 12, say: () => '2년째부터는 점수가 더 크게 들어가. 해마다 <b>×1 · ×1 · ×1.5 · ×1.5 · ×2</b>! 뒤로 갈수록 한 점이 더 귀해.'},
+    {key: 'sum80', id: null, at: '.forecast', when: () => G.month >= 12, say: () => `점수는 해마다 <b>쌓여</b>! 나라가 커지면 정산이 ${E.S.rules79.overFrom}점을 넘을 수도 있어. 다만 <b>${E.S.rules79.overFrom}점 위는 절반만</b> 쌓이니까 한 가지만 잔뜩 모으기보다 고루 채워 봐.`},
     {key: 'aug79', id: null, at: '.home', when: me => me.augments.length === 1, say: () => '고른 증강체는 우리 섬을 누르면 <b>🧩 증강체</b> 칸에 모여. 같은 콘셉트를 <b>2장·3장</b> 모으면 보너스가 켜져!'}
   ];
   function nextHint() {
@@ -903,7 +903,7 @@
     {at: '.tray', say: me => `계약하면 배는 1년 동안 <b>자동으로 왕복</b>하고 끝나면 쉬어. ♥0 거래 거절 · ♥2 손님 배 · ♥3 할인·먼저 받기야. 배 ${me.ships.length}척 중 한 척은 값이 좋아질 때까지 기다려 봐도 돼.`},
     {at: '.speed', say: () => `준비됐으면 <b>▶</b>를 눌러 시간을 흐르게 해 봐!`, until: () => speed > 0, act: '👉 ▶를 눌러 보세요'},
     {wait: () => !!$('.arrival'), at: '.arrival', pause: true, say: () => `배가 돌아왔어! 눌러 보면 무엇을 팔고 무엇을 사 왔는지 볼 수 있어.`, until: () => !!report},
-    {wait: () => !report && layer.hidden, at: '.stat.score', pause: true, say: () => `😊 <b>생활 점수</b>는 국민이 얼마나 넉넉하게 사는지야. 모자란 물건을 채울수록 올라가. 올해는 4번 정산의 평균, 순위는 뒷해 점수가 더 크게 들어가. <b>빚은 감점</b>이고, 위의 <b>다음 정산 예상</b>으로 부족한 물건을 미리 보자!`},
+    {wait: () => !report && layer.hidden, at: '.stat.score', pause: true, say: () => `😊 <b>생활 점수</b>는 국민이 얼마나 넉넉하게 사는지야. 모자란 물건을 채울수록 올라가. 올해 점수는 4번 정산의 평균이고, 해마다 <b>쌓인 합계</b>로 순위를 정해. <b>빚은 감점</b>이고, 위의 <b>다음 정산 예상</b>으로 부족한 물건을 미리 보자!`},
     {pause: true, say: () => `이제 혼자서도 할 수 있어! <b>2년째부터</b> 해마다 1월 1일 <b>발전 회의</b>에서 증강체 카드를 한 장 골라. 가끔 <b>사건</b>이 생기면 어떻게 할지 고르고, 지도 위 <b>작은 돌발</b>도 살펴봐. 도움이 필요하면 설정에서 나를 다시 불러 줘.`, last: true},
   ];
   const coachEl = Object.assign(document.createElement('div'), {id: 'coach', hidden: true});
@@ -1018,8 +1018,8 @@
         <ol class="others">${rows.slice(3).map((n, i) => `<li class="${n === me ? 'me' : ''}">${i + 4}. ${esc(n.name)} <b>${n.score}점</b></li>`).join('')}</ol>
       </div>
       <div class="result">
-        <div class="stamp-row"><span class="stamp">${rank === 1 ? '<small>🏆</small>무역왕' : `${rank}등`}</span><div><h2>${esc(line)}</h2><p class="trait-head ${E.traitResult(G, me).good ? 'good' : 'bad'}">${TR(me.id).icon} ${esc(TRAIT_HEAD[me.id][E.traitResult(G, me).good ? 0 : 1])}</p><p class="avg"${tipA(`계약 깨기 ${G.stats.breaks}번 · 출항 놓침 ${G.stats.misses}번 · 문 닫은 공장 ${G.stats.declines}곳 · 금고 ${me.money}억 · 빚 ${me.debt}억`)}>${esc(me.name)} · 5년 가중 평균 <b>${me.score}</b>점</p></div></div>
-        <div class="years" aria-label="해마다 생활 점수">${me.years.map((y, i) => `<span style="--k:${barK(me.years, y)};--d:${.6 + i * .12}s"><b>${y}</b><i></i><small>${i + 1}년 ×${E.yearWeight(i + 1)}</small></span>`).join('')}</div>
+        <div class="stamp-row"><span class="stamp">${rank === 1 ? '<small>🏆</small>무역왕' : `${rank}등`}</span><div><h2>${esc(line)}</h2><p class="trait-head ${E.traitResult(G, me).good ? 'good' : 'bad'}">${TR(me.id).icon} ${esc(TRAIT_HEAD[me.id][E.traitResult(G, me).good ? 0 : 1])}</p><p class="avg"${tipA(`계약 깨기 ${G.stats.breaks}번 · 출항 놓침 ${G.stats.misses}번 · 문 닫은 공장 ${G.stats.declines}곳 · 금고 ${me.money}억 · 빚 ${me.debt}억`)}>${esc(me.name)} · 5년 누적 <b>${me.score}</b>점</p></div></div>
+        <div class="years" aria-label="해마다 생활 점수">${me.years.map((y, i) => `<span style="--k:${barK(me.years, y)};--d:${.6 + i * .12}s"><b>${y}</b><i></i><small>${i + 1}년</small></span>`).join('')}</div>
         ${buildLine(me)}
         <p class="badges">${got.length ? got.map((id, i) => `<span class="badge-chip" style="--d:${1.2 + i * .25}s" ${tipA(badge(id).text)}>🎖 ${esc(badge(id).name)}</span>`).join('') : '<span class="muted">이번 판엔 새 배지가 없어요</span>'}</p>
         ${codexNews()}
