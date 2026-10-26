@@ -397,11 +397,12 @@ html.calm .meeting79 .aug-card.flip,html.calm .meeting79 .aug-card.prism::after,
 .note:has([data-small-action]){position:absolute;left:14px;bottom:14px;top:auto;max-width:min(470px,calc(100% - 28px));z-index:5}
 
 /* 7.9b 작은 돌발 카드(지도 오른쪽 위, 시간은 안 멈춤) · 값 신호 ▲▼ · 최근 6달 */
-.small-pop{pointer-events:none;position:absolute;right:12px;top:10px;z-index:6;display:flex;align-items:center;gap:10px;max-width:min(340px,calc(100% - 24px));padding:8px 12px;background:#fff8e6f2;border:2px solid #be995b;border-radius:14px;box-shadow:0 4px 0 #77502e,0 8px 18px #0004;word-break:keep-all}
+.small-pop{pointer-events:none;position:relative;display:flex;align-items:center;gap:10px;max-width:min(340px,calc(100% - 24px));padding:8px 12px;background:#fff8e6f2;border:2px solid #be995b;border-radius:14px;box-shadow:0 4px 0 #77502e,0 8px 18px #0004;word-break:keep-all}
 .small-pop.good{border-color:#5f9d5a;background:#f1fbe9f2}.small-pop.enter{animation:popIn .4s cubic-bezier(.2,.8,.3,1.3) both}
 @keyframes popIn{from{opacity:0;transform:translateY(-14px) scale(.92)}to{opacity:1;transform:none}}
 .small-pop .sp-ico{font-size:30px;line-height:1}.small-pop div{display:flex;flex-direction:column;min-width:0}.small-pop small{font-size:15px;color:#6b5a3f}
 .small-pop b{font-size:18px}.small-pop span{font-size:16px;line-height:1.3}.small-pop button{pointer-events:auto;min-height:44px;font-size:16px;padding:4px 12px;flex-shrink:0}
+.small-pop .sp-act{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}.small-pop .sp-left{font-style:normal;font-size:15px;font-weight:800;color:#a2521a;white-space:nowrap}   /* 8.2c 남은 날 */
 html.calm .small-pop.enter{animation:none}
 .isle .g{position:relative}.isle .g .trend{position:absolute;right:-6px;top:-8px;font-style:normal;font-size:15px;font-weight:900;line-height:1;text-shadow:0 0 2px #fff,0 0 3px #fff}
 .trend.up{color:#c0392b}.trend.down{color:#1f6fb2}
@@ -410,11 +411,16 @@ html.calm .small-pop.enter{animation:none}
 
 /* 7.9b 우리 나라 창 증강체 칸(콘셉트 10가지) · 풍요 조건 · 결과 책 빌드 */
 .con-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.con-grid .con{display:flex;gap:6px;padding:7px 8px;border:2px solid #0001;border-radius:12px;background:#f6f1e3;opacity:.62;min-width:0;word-break:keep-all}
+.con-grid .con{display:flex;flex-direction:column;gap:3px;padding:7px 9px;border:2px solid #0001;border-radius:12px;background:#f6f1e3;opacity:.62;min-width:0;word-break:keep-all}
 .con-grid .con.got{opacity:1;border-color:#c9b48a;background:#fff8e2}.con-grid .con.lit{border-color:#bc8a32;background:#fff0c4}.con-grid .con.full{border-color:#7a5fd0;background:linear-gradient(160deg,#fff,#efe8ff)}
-.con-grid .con-ico{font-size:24px;line-height:1}.con-grid .con>div>b{display:block;font-size:16px;line-height:1.2}.con-grid small{display:block;font-size:15px;line-height:1.25;color:#7b6c55}
-.con-grid small.on{color:#1f6b3a;font-weight:800}.con-grid .pips{display:flex;gap:3px;margin:2px 0}.con-grid .pips i{width:16px;height:6px;border-radius:3px;background:#0002}.con-grid .pips i.on{background:#bc8a32}
-.con-grid .picked{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.con-grid p{margin:0}.con-grid .con-head{display:flex;align-items:center;gap:5px;min-width:0}.con-grid .con-ico{font-size:22px;line-height:1;flex-shrink:0}.con-grid .con-head b{flex:1;min-width:0;font-size:16px;line-height:1.2}
+.con-grid .pips{display:flex;gap:3px;flex-shrink:0}.con-grid .pips i{width:12px;height:6px;border-radius:3px;background:#0002}.con-grid .pips i.on{background:#bc8a32}
+.con-grid .bon{display:flex;gap:5px;align-items:flex-start;font-size:15px;line-height:1.25;color:#7b6c55}.con-grid .bon em{font-style:normal;font-weight:800;flex-shrink:0;padding:0 4px;border-radius:5px;background:#0000000f}
+.con-grid .bon.on{color:#1f6b3a;font-weight:800}.con-grid .bon.on em{background:#cdeec9}
+.con-grid .picked{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;min-width:0}.con-grid .picked em.tier{max-width:100%;white-space:normal}
+/* 8.3 항구 성장 점수 내역 */
+.grow-parts{list-style:none;margin:4px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:3px}.grow-parts li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:16px;padding:2px 8px;border-radius:8px;background:#0000000a;color:#7b6c55}
+.grow-parts li.on{background:#e7f6df;color:#1f4f2a}.grow-parts li span{display:flex;flex-direction:column}.grow-parts small{font-size:15px;opacity:.85}.grow-parts b{white-space:nowrap}.grow-why{margin:4px 0 0}.grow-why small{font-size:15px;color:#6b5a3f}
 em.tier{font-style:normal;font-size:15px;font-weight:800;padding:0 6px;border-radius:6px;border:1px solid #0002}
 em.tier.silver{background:#eef0f3}em.tier.gold{background:#ffe9a8}em.tier.prism{background:linear-gradient(90deg,#ffe0f0,#e0eaff,#e0fff0)}
 .abund{font-size:16px;margin:6px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}.abund span{display:inline-flex;align-items:center;gap:2px;font-weight:800;color:#a3360f}.abund span.ok{color:#1f6b3a}
@@ -466,3 +472,27 @@ html.huge-text .dockpanel .step .what .six b{font-size:inherit}
 .lane-note.risk{background:#fbe9df;color:#8a3a18}
 .rp-notes li.lane,li.lane{color:#235c3c;font-weight:700}
 @media (max-width:900px){.lane-mark{width:30px;height:30px;font-size:17px;border-width:2px}}
+
+/* 8.3 오른쪽 위 카드 묶음: 작은 돌발 + NPC 계약 요청(위에서 아래로 쌓임) */
+.pop-stack{pointer-events:none;position:absolute;right:12px;top:10px;z-index:6;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:min(380px,calc(100% - 24px))}
+.offer-pop{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f3f8ffef;border:2px solid #5b84be;border-radius:14px;box-shadow:0 4px 0 #2e4f77,0 8px 18px #0004;word-break:keep-all}
+.offer-pop.enter{animation:popIn .4s cubic-bezier(.2,.8,.3,1.3) both}html.calm .offer-pop.enter{animation:none}
+.offer-pop .op-pic{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #fff;box-shadow:0 2px 0 #2e4f77}
+.offer-pop>div{display:flex;flex-direction:column;min-width:0;gap:1px}.offer-pop small{font-size:15px;color:#3f556b}.offer-pop>div>span{font-size:16px;line-height:1.3}.offer-pop>div>span small{font-size:15px;color:#6b5a3f}
+.offer-pop .op-sum{font-weight:800}.offer-pop .sp-act{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}.offer-pop button{min-height:44px;font-size:16px;padding:4px 12px}
+.offer-pop .sp-left{font-style:normal;font-size:15px;font-weight:800;color:#a2521a;white-space:nowrap}
+.offer-more{margin:0;padding:2px 10px;font-size:15px;font-weight:800;background:#fffbe9e6;border-radius:10px}
+@media(max-width:820px){.pop-stack{top:6px;right:6px}.offer-pop{padding:6px 9px}}
+/* 8.4 도감 발전 카드 한 쪽: 콘셉트 5+5(왼쪽·오른쪽 쪽), 잠긴 칩도 등급 색 테두리, 아래 나라 특성 4칸씩 */
+.bk-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0 0 6px}.bk-legend small{font-size:15px;color:#6b5a3f}
+.bk-augs2{display:grid;grid-template-columns:1fr 1fr;gap:4px 28px}.bk-augs2 ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.bk-augs2 li{display:grid;grid-template-columns:28px 112px 1fr;align-items:center;gap:4px;padding:3px 6px;border-radius:10px;background:#fff8e680;font-size:16px;word-break:keep-all}
+.bk-augs2 .ci{font-size:20px}.bk-augs2 b{font-size:16px;line-height:1.2}.bk-augs2 .acs{display:flex;flex-wrap:wrap;gap:3px}
+.bk-augs2 .ac,.bk-legend .ac{position:relative;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:9px;border:2px dashed #0002;background:#0000000a;color:#8a7b62;font-size:15px;font-weight:800}
+.bk-augs2 .ac.silver,.bk-legend .ac.silver{border-color:#a8aeb5}.bk-augs2 .ac.gold,.bk-legend .ac.gold{border-color:#d29b2d}.bk-augs2 .ac.prism,.bk-legend .ac.prism{border-color:#8877bb}
+.bk-augs2 .ac.on,.bk-legend .ac.on{border-style:solid;color:#3e3424}.bk-augs2 .ac.on.silver,.bk-legend .ac.on.silver{background:#eef0f3}.bk-augs2 .ac.on.gold,.bk-legend .ac.on.gold{background:#ffe9a8}
+.bk-augs2 .ac.on.prism,.bk-legend .ac.on.prism{background:linear-gradient(90deg,#ffe0f0,#e0eaff,#e0fff0)}.bk-augs2 .ac .newrib{position:absolute;top:-10px;right:-6px}
+.bk-sub{margin:10px 0 4px;font-size:16px;font-weight:800;color:#5a3f20}.bk-sub small{font-size:15px;font-weight:600;color:#6b5a3f;margin-left:6px}
+.tab-augs .bk-augs.traits{grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;align-items:start}.tab-augs .bk-augs.traits li{padding:4px 8px;min-height:0;height:auto}
+@media(max-width:1100px){.bk-augs2{gap:4px 12px}.bk-augs2 li{grid-template-columns:24px 1fr;}.bk-augs2 .acs{grid-column:1/-1}.bk-augs.traits{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:820px){.bk-augs2{grid-template-columns:1fr}.bk-augs2 li{grid-template-columns:28px 112px 1fr}.bk-augs2 .acs{grid-column:auto}}

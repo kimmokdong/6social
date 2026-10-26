@@ -571,3 +571,7 @@ html.art-lesson .lcard.on{background:url(../../shared-art/trade/v6/codex/lesson.
 
 /* 7.4 배경음악·효과음 단추(🎵 🔊): 재생 단추보다 좁게, 꺼지면 흐리게 */
 .speed .snd{min-width:50px;padding:4px 6px;font-size:20px}.speed .snd.off{opacity:.55;filter:grayscale(1)}
+
+/* 8.3 물건 단추: 그 물건이 모자란 섬(사 줘요)은 초록 테두리 */
+.isle.match.buyer .quote{background:#effbe6;box-shadow:0 3px 0 #4f8a45;color:#2f6b2a}
+.mini.free{background:#effbe6;border-color:#4f8a45;color:#2f6b2a}   /* 8.3 벌점 없는 그만두기 */

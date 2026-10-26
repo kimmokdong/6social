@@ -36,7 +36,7 @@ test('끝나는 날 뒤에 돌아오는 왕복은 떠나지 않고, 끝나면 �
   assert.ok(G.news.some(x => /계약이 끝났어요\(2년째 3월 4일\)/.test(x.text || x)), '끝났다는 소식');
 });
 test('NPC 배는 계약이 끝나면 새로 고른다', () => {
-  const G = toOpen(E.newGame(9, 'plains')); G.plan = []; G.small.next=1e9;
+  const G = toOpen(E.newGame(9, 'plains')); G.plan = []; G.small.next=1e9; E.tickDay(G);   // 8.4 NPC 첫 계약은 첫날 끝에
   const n = G.nations[1], s = n.ships.find(s => s.route), r = s.route;
   days(G, r.until - E.today(G) + 130);
   assert.ok(s.route && s.route !== r, 'NPC 새 계약');
@@ -58,7 +58,7 @@ test('철의 나라 철광석·철강 계약은 2년', () => {
   n.box[5][2] = 50; n.money = 999;
   if (o) { assert.ok(E.setRoute(G, 0, {to: o.id, give: 5, get: null})); assert.equal(n.ships[0].route.until - E.today(G), 729); }
   const f = G.nations.slice(1).find(x => E.sells(G, x, 0));
-  if (f) { assert.ok(E.setRoute(G, 1, {to: f.id, give: null, get: 0})); assert.equal(n.ships[1].route.until - E.today(G), 364); }
+  if (f) { f.box[0][2] = 100; assert.ok(E.setRoute(G, 1, {to: f.id, give: null, get: 0})); assert.equal(n.ships[1].route.until - E.today(G), 364); }
 });
 test('옛 저장(끝나는 날 없음)은 7.9부터 받지 않는다', () => {
   const G = toOpen(E.newGame(4, 'daon')), o = seller(G, 0); G.plan = []; G.small.next=1e9;

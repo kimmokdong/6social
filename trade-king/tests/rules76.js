@@ -14,10 +14,11 @@ test('헐값: 상대 판매값 절반 내림·최소 1원, 계약값 고정·두
   const p = Math.max(1, Math.floor(E.price(G, o, n, 3) / 2));
   assert.ok(E.isDump(G, o, 3)); assert.equal(E.dumpPrice(G, n, o, 3), p);
   assert.ok(!E.isDump(G, G.world, 3));
-  assert.ok(E.setRoute(G, 0, {to: o.id, give: one(3, 6), get: null}));
+  const k = E.slotsOf(G, n, o); assert.ok(k > 2, '짐칸 3칸 이상');   // 8.4 기본 짐칸 3칸 + 항구 단계
+  assert.ok(E.setRoute(G, 0, {to: o.id, give: one(3, k), get: null}));
   const s = n.ships[0]; assert.equal(s.route.gp[3], p); G.base[3] *= 2; assert.equal(s.route.gp[3], p);
   const stock = E.count(o, 3); days(G, s.arrive);
-  assert.equal(s.cargo.sold[3], 2); assert.equal(s.cargo.give[3], 4); assert.equal(E.count(o, 3), stock + 2);
+  assert.equal(s.cargo.sold[3], 2); assert.equal(s.cargo.give[3], k - 2); assert.equal(E.count(o, 3), stock + 2);
   s.breaking = true; days(G, s.T - s.t);
   assert.equal(s.delivery.sold[3], 2); assert.equal(s.delivery.earned, 2 * p); assert.equal(s.route, null); assert.equal(s.cargo, null);
   // 정산에 쓰인 몫도 더하면 못 판 네 상자가 모두 돌아왔다.

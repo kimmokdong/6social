@@ -60,7 +60,7 @@ test('해류는 같은 판의 학생 배 왕복을 laneFast일 줄이고 최소 
 
 test('해류가 붙어도 NPC 배의 출항 시간은 그대로',()=>{
   const A=E.newGame(81),B=copy(A);A.lanes={};B.lanes=Object.fromEntries(B.nations.map(n=>[n.id,'current']));
-  clear(A);clear(B);let ships=0;
+  clear(A);clear(B);E.tickDay(A);E.tickDay(B);let ships=0;   // 8.4 NPC는 첫날 끝에 계약하고 떠난다
   for(let i=1;i<A.nations.length;i++)for(let k=0;k<A.nations[i].ships.length;k++){
     const a=A.nations[i].ships[k],b=B.nations[i].ships[k];
     if(a.state==='sea'){ships++;assert.equal(b.state,'sea');assert.equal(b.route.to,a.route.to);assert.equal(b.T,a.T);}

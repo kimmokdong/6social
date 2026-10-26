@@ -18,7 +18,10 @@
   }
   const mainConcept = n => concepts(n).filter(c=>c.count>=3).sort((a,b)=>b.count-a.count)[0]||null;
   const maxShips = n => X.maxShips + (S.countries[n.id].extraShip ? 1 : 0);
-  const grownPoints = n => sum(n.levels)-sum(n.startLevels||n.levels)+Math.max(0,n.ships.length-X.openShips-(S.countries[n.id].extraShip?1:0))+(n.warehouse?1:0)+(n.bigShip&&!S.countries[n.id].bigShip?1:0);
+  // 8.4 항구 성장 점수에 무역량 길: 지금까지 사고판 상자 tradeGrow개마다 1점(tradeGrowMax점까지)
+  const tradedBoxes = n => sum(n.exported || []) + sum(Object.values(n.importedFrom || {}));
+  const tradeGrowth = n => Math.min(V.tradeGrowMax, Math.floor(tradedBoxes(n) / V.tradeGrow));
+  const grownPoints = n => tradeGrowth(n)+sum(n.levels)-sum(n.startLevels||n.levels)+Math.max(0,n.ships.length-X.openShips-(S.countries[n.id].extraShip?1:0))+(n.warehouse?1:0)+(n.bigShip&&!S.countries[n.id].bigShip?1:0);
   const homeStage = n => Math.min(3,grownPoints(n)>=5?3:grownPoints(n)>=2?2:1);
   // 8.0 계절 점수는 100점까지 그대로, 100점 위는 overRate만큼만 쌓인다. 최종 점수 = 해마다 점수의 누적 합
   const overScore = raw => Math.max(0, Math.round(raw <= V.overFrom ? raw : V.overFrom + (raw - V.overFrom) * V.overRate));
@@ -200,23 +203,33 @@
     const o = nation(G, to), base = n === player(G) ? G.dist[to] : o === player(G) ? G.dist[n.id] : 2 + (G.nations.indexOf(n) + G.nations.indexOf(o)) % 2;
     return Math.max(1, base + (n.npc ? X.npcTripExtra : 0) - cut(base) - (benefitRel(G, n, o) >= 3 && (o.bonus === 'fast' || n.bonus === 'fast') ? 1 : 0) + modSum(G, n, 'trip', -1));
   }
-  const slotsOf = (G, n, o) => X.shipSlots + (n.bigShip ? X.bigShipSlots : 0) + (owned(n,'armada')?V.armadaSlots:0) + (on(n,'sea',2)?V.c2.sea:0) + (o && o.bonus === 'bigBuyer' && benefitRel(G, n, o) >= 3 ? 1 : 0);
-  function allowed(G, n, r) {
+  const slotsOf = (G, n, o) => X.shipSlots + homeStage(n) - 1 + (n.bigShip ? X.bigShipSlots : 0) + (owned(n,'armada')?V.armadaSlots:0) + (on(n,'sea',2)?V.c2.sea:0) + (o && o.bonus === 'bigBuyer' && benefitRel(G, n, o) >= 3 ? 1 : 0);
+  // 8.3 상대가 지킬 수 있는 양(왕복마다 상자): 계절마다 남는 양(만듦 − 씀 − 다른 배들이 이미 약속받은 양 − 자기 배가 내보내는 양)에
+  // 지금 재고를 1년(4계절)에 나눠 더한다. 판매 나라는 이 양까지만 계약을 받아 준다(NPC도 같은 셈으로 계약한다).
+  // shortcut: 재고 몫(재고/4)은 같은 날 맺는 여러 계약이 함께 쓸 수 있다. 위약금이 다시 자주 나오면 재고 약속도 따로 센다.
+  function supplyCap(G, n, ship, o, g, seller = o) {
+    if (seller.world) return 99;
+    const on = (m, s) => s !== ship && s.route;
+    const flow = (m, dir, to) => sum(m.ships.filter(s => on(m, s) && (!to || s.route.to === to)).map(s => s.route[dir][g] * 3 / (s.tripMonths || tripTime(G, m, s.route.to))));
+    const spare = produces(G, seller, g) - uses(G, seller)[g] - sum(G.nations.map(m => flow(m, 'get', seller.id))) - flow(seller, 'give');
+    return Math.max(0, Math.floor((spare + exportable(G, seller, g) / 4) * tripTime(G, n, o.id) / 3));
+  }
+  function allowed(G, n, r, ship) {
     const o = r && nation(G, r.to);
     if (!o || o === n || !o.world && rel(G, n, o) === 0) return false;
     const {give, get} = norm(G, n, r), k = slotsOf(G, n, o);
     if (!sum(give) && !sum(get) || sum(give) > k + (owned(n,'relayStore')&&GOODS.some(g=>give[g]&&isRelay(G,n,g))?V.relaySlots:0) || sum(get) > k) return false;
     if (has(n, 'artisan') && GOODS.some(g => give[g] > (owned(n,'luxStreet')?V.luxMax:XT.luxMax) && n.quality[g] === 3 && !o.world)) return false;
-    return GOODS.every(g => !(give[g] && get[g]) && (!give[g] || (canGive(G, n, g) || n === player(G) && !o.world) && (buys(G, o, g) || n === player(G))) && (!get[g] || sells(G, o, g)));
+    return GOODS.every(g => !(give[g] && get[g]) && (!give[g] || (canGive(G, n, g) || n === player(G) && !o.world) && (buys(G, o, g) || n === player(G))) && (!get[g] || sells(G, o, g) && get[g] <= supplyCap(G, n, ship, o, g)));
   }
   function sign(G, n, ship, r) {
-    if (!allowed(G, n, r)) return false;
+    if (!allowed(G, n, r, ship)) return false;
     const o = nation(G, r.to), {give, get} = norm(G, n, r);
     // 7.7 계약은 맺은 날부터 1년(철의 나라 철광석·철강 계약은 2년), 그동안 값 고정. 중계·명품 상자는 계약할 때 표시해 둔다(기록용).
     const long = (has(n, 'ironland') || has(o, 'ironland')) && [4, 5].some(g => give[g] || get[g]);
     const repeat=n.signedWith[o.id]||0, discount=owned(n,'regular')?Math.min(V.regularMax,repeat*V.regular):0;
     ship.route = {to: r.to, give, get, gp: GOODS.map(g => give[g] ? exportPrice(G, n, o, g) : 0), bp: GOODS.map(g => get[g] ? price(G, o, n, g) : 0), dump: GOODS.map(g => !!give[g] && isDump(G, o, g)),
-      until: today(G) + 365 * (long ? XT.longYears || 2 : 1) - 1, trips: 0, done: 0, signed: G.month + (G.day - 1) / monthDays(G.month) + random(G) * .0001, traded: 0, stake: 0,
+      until: today(G) + 365 * (long ? XT.longYears || 2 : 1) - 1, trips: 0, done: 0, signedDay: today(G), signed: G.month + (G.day - 1) / monthDays(G.month) + random(G) * .0001, traded: 0, stake: 0,
       relay: GOODS.map(g => !!give[g] && isRelay(G, n, g)), lux: GOODS.map(g => !!give[g] && has(n, 'artisan') && n.quality[g] === 3 && !o.world)};
     ship.route.trips = fitTrips(G, n, ship.route);
     ship.route.gp=ship.route.gp.map(p=>Math.max(p?1:0,Math.round(p*(1+discount))));
@@ -281,19 +294,23 @@
   }
   function endContract(G, n, ship, broken) {
     const r = ship.route, o = nation(G, r.to);
-    if (broken) { addRel(G, n, o, -1); if (n === player(G)) G.stats.breaks++; }
+    // 8.3 상대가 약속을 못 지킨 계약(r.failed)은 깨도 신뢰가 줄지 않는다
+    if (broken) { if (!r.failed) { addRel(G, n, o, -1); if (n === player(G)) G.stats.breaks++; } }
     else if (r.traded > 0 && !o.world) {
       // 7.0 대평원 원조: 받아 올 것 없이 보내기만 한 계약은 끝나면 ♥+2
       const aid = has(n, 'plains') && !sum(r.get) && sum(r.give) > 0;
-      addRel(G, n, o, aid ? XT.aidRel : 1); if (aid) n.trait.aids++;
+      // 8.3 계약으로 오르는 ♥는 두 나라 사이에 1년(1~12월)에 한 번만. 배 여러 척 계약이 같은 해에 끝나도 한 번
+      const key = [n.id, o.id].sort().join('|'), y = Math.floor(G.month / 12);
+      if ((G.relYear ??= {})[key] !== y) { G.relYear[key] = y; addRel(G, n, o, aid ? XT.aidRel : 1); }
+      if (aid) n.trait.aids++;
     }
     if (n === player(G)) G.contracts.push({stake: r.stake, broken, done: r.done});
     const next = ship.next;
     ship.route = null; ship.next = null; ship.breaking = false;
-    const renew = r => allowed(G, n, r) && GOODS.every(g => !r.give[g] || !isDump(G, nation(G, r.to), g) || r.dump?.[g]);
+    const renew = r => allowed(G, n, r, ship) && GOODS.every(g => !r.give[g] || !isDump(G, nation(G, r.to), g) || r.dump?.[g]);
     if (next && !nation(G, next.to)?.world && rel(G, n, next.to) === 0) { ship.retry = G.month + 1; news(G, `${n.name}의 예약을 취소했어요. ${nation(G, next.to).name}와 거래 거절 · 새해에 다시 거래해요. 배는 쉬어요.`, 'warn'); }
     else if (next && renew(next)) sign(G, n, ship, next);   // 예약한 새 계약(그날부터 1년, 그날 값)
-    else if (n.npc) npcRoute(G, n, ship);                         // NPC는 계약이 끝날 때마다 시장을 보고 다시 고른다
+    // NPC는 계약이 끝나면 그날 끝(npcPick)에 시장을 보고 다시 고른다
     // 7.7 학생 계약은 자동으로 다시 맺지 않는다: 1년마다 주변 나라 값을 다시 살펴보게
     else if (n === player(G)) news(G, broken ? `배 ${n.ships.indexOf(ship) + 1}이 쉬고 있어요. 새 항로를 정해 주세요.` : `배 ${n.ships.indexOf(ship) + 1}의 계약이 끝났어요(${dayText(r.until)}). 주변 나라 값을 다시 살펴보고 새 계약을 맺어요.`, 'warn');
   }
@@ -352,6 +369,7 @@
       const supply = sellable(G, o, n, g), affordable = Math.floor(n.money / r.bp[g]);
       const qty = Math.max(0, Math.min(r.get[g], supply, affordable));
       penalty(G, o, n, g, Math.max(0, Math.min(r.get[g], affordable) - qty), r.bp[g], c.penaltyIn);
+      if (supply < r.get[g]) r.failed = true;
       if (qty < r.get[g]) {
         const reasons = [];
         if (supply < r.get[g]) reasons.push(supply < exportable(G, o, g) ? '공급 끊김' : '상대 재고 부족');
@@ -387,8 +405,8 @@
   function moveShips(G) {
     const arrivals = [], homes = [];
     for (const n of G.nations) for (const s of n.ships) if (s.state === 'sea') { s.t++; if (s.t === s.arrive) arrivals.push([n, s]); if (s.t === s.T) homes.push([n, s]); }
-    // 같은 달에 도착하면 ♥3이 먼저, 그다음 먼저 계약한 배가 먼저 산다.
-    arrivals.sort((a, b) => (benefitRel(G, b[0], nation(G,b[1].route.to)) >= 3) - (benefitRel(G, a[0], nation(G,a[1].route.to)) >= 3) || a[1].route.signed - b[1].route.signed);
+    // 같은 날 도착하면 ♥3이 먼저, 그다음 학생 배(8.4), 그다음 먼저 계약한 배가 먼저 산다.
+    arrivals.sort((a, b) => (benefitRel(G, b[0], nation(G,b[1].route.to)) >= 3) - (benefitRel(G, a[0], nation(G,a[1].route.to)) >= 3) || (b[0] === player(G)) - (a[0] === player(G)) || a[1].route.signed - b[1].route.signed);
     for (const [n, s] of arrivals) trade(G, n, s);
     for (const [n, s] of homes) comeHome(G, n, s);
     startShips(G);
@@ -397,7 +415,6 @@
     for (const n of G.nations) for (const s of n.ships) {
       // 7.7 항구에 있는 배: 끝나는 날 안에 한 번 더 못 다녀오면 계약 끝(학생 배는 쉰다)
       if (s.state === 'port' && s.route && !s.breaking) { s.route.trips = s.route.done + fitTrips(G, n, s.route); if (s.route.trips === s.route.done) endContract(G, n, s, false); }
-      if (n.npc && s.state === 'port' && !s.route && !(s.retry > G.month)) npcRoute(G, n, s);
       if (s.state === 'port' && s.route && s.breaking) endContract(G, n, s, true);
       if (s.state === 'port' && s.route && !(s.repair > G.month)) depart(G, n, s);
     }
@@ -518,12 +535,13 @@
       // 6.6 해마다 기록(결과 책): 산업 단계·배·창고·수입·수출·돈·점수
       n.history.push({year: y, levels: [...n.levels], ships: n.ships.length, warehouse: n.warehouse, bigShip: n.bigShip, money: n.money, debt: n.debt,
         imp: GOODS.map(g => sum(Object.values(n.year.imp[g]))), exp: [...n.year.exp], tradeImp: [...n.year.tradeImp], tradeExp: [...n.year.tradeExp],
-        moneyIn: n.year.moneyIn, moneyOut: n.year.moneyOut, penaltyIn: n.year.penaltyIn, penaltyOut: n.year.penaltyOut, penaltyDebt: n.year.penaltyDebt,
+        traded: tradedBoxes(n), moneyIn: n.year.moneyIn, moneyOut: n.year.moneyOut, penaltyIn: n.year.penaltyIn, penaltyOut: n.year.penaltyOut, penaltyDebt: n.year.penaltyDebt,
         seasons: n.year.seasons, score: n.years[n.years.length - 1], trait: traitValue(n)});
       n.trait.relayYear = 0;
       n.lastYear = n.year; n.year = freshYear();
     }
-    const order = [...G.nations].sort((a, b) => b.years[y - 1] - a.years[y - 1] || (b === player(G)) - (a === player(G)));
+    // 8.3 연말 순위는 그해까지 쌓은 점수(누적)로 매긴다(최종 순위와 같은 기준)
+    const order = [...G.nations].sort((a, b) => totalScore(b) - totalScore(a) || (b === player(G)) - (a === player(G)));
     order.forEach((n, i) => { const h = n.history[y - 1]; h.rank = i + 1; h.rankChange = y > 1 ? n.history[y - 2].rank - h.rank : 0; });
     G.world.bought = {};
     if (y === 5) return finish(G);
@@ -539,9 +557,9 @@
     const p = rows.find(n => n.id === player(G).id); if (!p) return null;
     const avg = key => sum(p.seasons.map(s => s[key] || 0)) / p.seasons.length;
     const top = a => GOODS.filter(g => a[g]).map(g => ({good: g, name: GN(g), qty: a[g]})).sort((a, b) => b.qty - a.qty || a.good - b.good);
-    const legacy=p.seasons.some(s=>s.abundance==null),basketMax=avg('slotsMax'),qualityMax=sum(p.seasons.map(s=>s.abundance==null?20:15))/p.seasons.length;
+    const legacy=p.seasons.some(s=>s.abundance==null),basketMax=avg('slotsMax'),qualityMax=sum(p.seasons.map(s=>s.abundance==null?20:CONSUMER.length*X.qualityPoints[3]))/p.seasons.length;
     const cumulative=G.nations.map(n=>({id:n.id,score:totalScore({years:n.years.slice(0,year)})})).sort((a,b)=>b.score-a.score);
-    return JSON.parse(JSON.stringify({year, legacy, totalRank:cumulative.findIndex(n=>n.id===player(G).id)+1, total:totalScore({years:player(G).years.slice(0,year)}), totals:cumulative, score: p.score, rank: p.rank, rankChange: p.rankChange, ranks: rows.sort((a, b) => a.rank - b.rank).map(n => ({id: n.id, name: n.name, score: n.score, rank: n.rank, change: n.rankChange})),
+    return JSON.parse(JSON.stringify({year, legacy, totalRank:cumulative.findIndex(n=>n.id===player(G).id)+1, total:totalScore({years:player(G).years.slice(0,year)}), totals:cumulative, score: p.score, rank: p.rank, rankChange: p.rankChange, ranks: rows.sort((a, b) => a.rank - b.rank).map(n => ({id: n.id, name: n.name, score: n.score, total: totalScore({years: nation(G, n.id).years.slice(0, year)}), rank: n.rank, change: n.rankChange})),
       scoreParts: {basket: avg('slots'), basketMax, quality: avg('qual'), qualityMax, abundance:avg('abundance'), abundanceMax:legacy?sum(p.seasons.map(s=>s.abundance==null?0:15))/p.seasons.length:15, priceBurden: avg('unrest'), eventBonus: avg('extra'), crisisLoss: avg('crisis'), emptyLoss: avg('empty'), pollutionLoss: avg('pollution'), debtLoss: avg('debt')},
       slotsBy: CONSUMER.map(g => ({good: g, name: GN(g), got: sum(p.seasons.map(s => s.slotsBy.find(b => b.good === g).got)), need: sum(p.seasons.map(s => s.slotsBy.find(b => b.good === g).need)), points: sum(p.seasons.map(s => s.slotsBy.find(b => b.good === g).points)) / p.seasons.length, max: sum(p.seasons.map(s=>s.slotsBy.find(b=>b.good===g).max))/p.seasons.length})),
       exports: [...p.tradeExp], imports: [...p.tradeImp], topExports: top(p.tradeExp), topImports: top(p.tradeImp), moneyIn: p.moneyIn, moneyOut: p.moneyOut, penalties: {in: p.penaltyIn, out: p.penaltyOut, debt: p.penaltyDebt || 0}, nations: rows}));
@@ -606,8 +624,16 @@
       if (m === e.month) startEvent(G, e);
     }
   }
+  // 8.4 NPC는 하루가 끝날 때(다음 날로 넘어가기 직전) 계약을 고르고 떠난다. 그래서 같은 날이면 학생 계약이 언제나 먼저다.
+  function npcPick(G) {
+    for (const n of G.nations) if (n.npc) for (const s of n.ships) if (s.state === 'port' && !s.route && !s.offer && !(s.retry > G.month)) {
+      npcRoute(G, n, s, s.skip); s.skip = null;
+      if (s.route && !(s.repair > G.month)) depart(G, n, s);
+    }
+  }
   function tickDay(G) {
     if (G.pending || G.over) return false;
+    npcPick(G);
     // 월초에만 난수를 써서 달 길이가 세계 난수열을 바꾸지 않게 한다.
     if (G.day === 1) shuffle(G, G.nations);
     const boundary = G.day === monthDays(G.month);
@@ -621,7 +647,7 @@
       G.month++; startMonth(G); startShips(G);
       recordPrices(G);
     }
-    smallTick(G);
+    smallTick(G); offerTick(G);
     return true;
   }
   function advance(G, days = 1) { if (!Number.isInteger(days) || days < 0) return false; let moved = false; while (days-- > 0 && tickDay(G)) moved = true; return moved; }
@@ -985,7 +1011,7 @@
   // 1점 = W원으로 보고 "수입해서 채우는 생활 점수 − 내는 돈 + 수출로 버는 돈"이 크게 칸을 채운다.
   const W = 18;
   function committed(n, g, dir, except, to) {
-    return sum(n.ships.filter(s => s !== except && s.route && (!to || s.route.to === to)).map(s => s.route[dir][g] * 3 / (s.tripMonths || 3)));
+    return sum(n.ships.filter(s => s !== except && s.route && (!to || s.route.to === to)).map(s => s.route[dir][g] * 3 / (s.tripMonths || 3)));   // 떠나기 전 배는 3달로 본다(NPC 계획 셈은 그대로)
   }
   // 다른 나라 배들이 이미 그 섬과 같은 물건을 계약한 양(계절당)
   const rivals = (G, n, o, g, dir, except) => sum(G.nations.filter(m => m !== n).map(m => committed(m, g, dir, except, o.id))) + committed(n, g, dir, except, o.id);
@@ -1001,7 +1027,7 @@
       const spare = isRelay(G, n, g) ? Math.floor(exportable(G, n, g) * tps / 2) : produces(G, n, g) - need[g];
       if(!relayExtra&&owned(n,'relayStore')&&isRelay(G,n,g)){left+=V.relaySlots;relayExtra=true;}
       const flow = Math.min(spare - committed(n, g, 'give', ship), oGap(g));
-      let q = Math.min(left, Math.ceil(flow / tps));
+      let q = Math.min(left, Math.ceil(flow / tps), isRelay(G, n, g) ? 99 : supplyCap(G, n, ship, o, g, n));
       if (has(n, 'artisan') && n.quality[g] === 3 && !o.world) q = Math.min(q, owned(n,'luxStreet')?V.luxMax:XT.luxMax);
       if (q <= 0) continue;
       give[g] = q; left -= q; v += Math.min(q * tps, flow) * price(G, n, o, g); earn += q * price(G, n, o, g);
@@ -1017,7 +1043,7 @@
       const relayBuy = has(n, 'port') && isRelay(G, n, g) && G.nations.some(m => m !== n && m !== o && buys(G, m, g));
       const mult = Math.max(opts.spread ? 1.2 : 1, relayBuy ? XT.relayStock : 1);
       const p = price(G, o, n, g), flow = Math.min(Math.round(need[g] * mult) - produces(G, n, g) - committed(n, g, 'get', ship), oSpare(g));
-      const q = Math.min(left, Math.ceil(flow / tps), Math.floor(budget / p));
+      const q = Math.min(left, Math.ceil(flow / tps), Math.floor(budget / p), supplyCap(G, n, ship, o, g));
       if (q <= 0) continue;
       get[g] = q; left -= q; budget -= q * p; got = true; v += Math.min(q * tps, flow) * worth(g);
     }
@@ -1027,19 +1053,37 @@
   function bestRoute(G, n, ship, opts = {}) {
     let best = null, bv = 0;
     // NPC 배는 ♥2 이상인 학생 나라에만 찾아온다(신뢰를 쌓으면 손님 배가 늘어난다).
-    const partners = opts.only ? [nation(G, opts.only), G.world] : [...G.nations.filter(o => o !== n && (o.npc || !n.npc || rel(G, n, o) >= X.visitRel || on(o, 'diplomat', 3) && rel(G, n, o) > 0)), G.world];
+    const partners = opts.only ? [nation(G, opts.only), G.world] : [...G.nations.filter(o => o !== n && o.id !== opts.skip && (o.npc || !n.npc || rel(G, n, o) >= X.visitRel || on(o, 'diplomat', 3) && rel(G, n, o) > 0)), G.world];
     for (const o of partners) {
       const {r, v} = planFor(G, n, ship, o, opts), w = v * (o.world ? .8 : 1);
-      if (w > bv && allowed(G, n, r)) { bv = w; best = r; }
+      if (w > bv && allowed(G, n, r, ship)) { bv = w; best = r; }
     }
     return best;
   }
-  function npcRoute(G, n, ship) { const r = bestRoute(G, n, ship, {spread: n.strategy === 'balanced'}); if (r) sign(G, n, ship, r); }
+  // 8.3 NPC 계약 요청: NPC 배가 우리 나라와 계약하고 싶으면 바로 맺지 않고 요청을 걸어 둔다(배는 항구에서 기다림).
+  // 학생이 actionDays일 안에 수락하면 계약, 거절하거나 기한이 지나면 그 배는 다른 나라를 고른다.
+  function npcRoute(G, n, ship, skip) {
+    const r = bestRoute(G, n, ship, {spread: n.strategy === 'balanced', skip});
+    if (!r) return;
+    if (r.to !== player(G).id || G.bot) return void sign(G, n, ship, r);   // 봇 판은 8.2까지처럼 바로 맺는다
+    ship.offer = true;
+    (G.offers ??= []).push({id: G.offerSeq = (G.offerSeq || 0) + 1, from: n.id, ship: n.ships.indexOf(ship), r, until: today(G) + V.actionDays});
+  }
+  function answerOffer(G, id, yes) {
+    const f = (G.offers || []).find(f => f.id === id), n = f && nation(G, f.from), ship = n?.ships[f.ship];
+    if (!ship) return false;
+    G.offers = G.offers.filter(x => x !== f); ship.offer = false;
+    if (yes && sign(G, n, ship, f.r) !== false) { news(G, `${n.name} 배와 1년 계약을 맺었어요.`); return true; }
+    if (yes) news(G, `${n.name}의 요청은 지금 조건으로 맺을 수 없어요(재고·금고가 바뀜).`, 'warn');
+    ship.skip = player(G).id;   // 그날 끝에 우리 말고 다른 나라를 고른다
+    return false;
+  }
+  const offerTick = G => { for (const f of (G.offers || []).filter(f => f.until < today(G))) answerOffer(G, f.id, false); };
 
   // ---------- 학생 조작 ----------
   function setRoute(G, i, r) {
     const n = player(G), s = n.ships[i];
-    if (!s || !allowed(G, n, r)) return false;
+    if (!s || !allowed(G, n, r, s)) return false;
     forecasts.delete(G); G.stats.routeSets++;
     if (!s.route) { sign(G, n, s, r); if (s.state === 'port' && !(s.repair > G.month)) depart(G, n, s); }
     else { s.next = norm(G, n, r); s.next.dump = GOODS.map(g => !!s.next.give[g] && isDump(G, nation(G, r.to), g)); }
@@ -1086,7 +1130,7 @@
     // 처음부터 항구가 열려 있다. 첫 출항에 실을 짐이 있게 한 계절 생산만큼 창고를 채워 둔다.
     // 7.9c 생활 물건(대표 물건 빼고)은 처음 창고를 덜 채운다: 첫해는 배 3척으로 채워 가는 해(점수 곡선이 커 가게)
     for (const n of G.nations) for (const g of GOODS) add(n, g, Math.round(produces(G, n, g) * (CONSUMER.includes(g) && g !== n.main ? V.startStock : 1)), n.quality[g]);
-    for (const n of G.nations.slice(1)) for (const s of n.ships) npcRoute(G, n, s);
+    // 8.4 NPC 첫 계약도 첫날 끝에(npcPick) 맺는다: 학생이 첫날 먼저 고른다
     recordPrices(G);   // 7.9 발전 회의는 2·3·4·5년째 1월 1일(첫해는 배 3척으로 무역 익히기)
     ask(G, {type: 'open'});
     return G;
@@ -1131,6 +1175,8 @@
       if(!Array.isArray(G.priceHistory)||G.priceHistory.length!==GOODS.length||G.priceHistory.some(a=>!Array.isArray(a)||a.length>6||a.some(p=>!Number.isInteger(p.month)||!Number.isInteger(p.price)||p.price<1))||!Array.isArray(G.pricePulses)||G.pricePulses.some(p=>!GOODS.includes(p.good)||!Number.isInteger(p.from)||!Number.isInteger(p.until)||p.until<=p.from||typeof p.mult!=='number'||p.mult<=0||(p.minPrice!=null&&(!Number.isInteger(p.minPrice)||p.minPrice<1))))return null;
       const smallValid=a=>a&&S.smallEvents.some(e=>e.id===a.id)&&Number.isInteger(a.day)&&Number.isInteger(a.until)&&a.until>=a.day&&GOODS.includes(a.good)&&(a.target===null||ids.includes(a.target))&&typeof a.done==='boolean'&&(a.action===null||['판다','보낸다'].includes(a.action))&&typeof a.text==='string';
       if(!Number.isInteger(G.small.last)||!Number.isInteger(G.small.next)||!Number.isInteger(G.small.lastAction)||!Number.isInteger(G.small.lastAsk)||G.small.next<G.small.last||!Array.isArray(G.small.log)||!Array.isArray(G.small.actions)||![...G.small.log,...G.small.actions].every(smallValid))return null;
+      // 8.3 NPC 계약 요청: 보낸 나라·배·짐 모양만 확인한다
+      if(G.offers!=null&&(!Array.isArray(G.offers)||!G.offers.every(f=>Number.isInteger(f.id)&&Number.isInteger(f.until)&&G.nations.some(n=>n.npc&&n.id===f.from&&n.ships[f.ship])&&f.r&&['give','get'].every(k=>Array.isArray(f.r[k])&&f.r[k].length===GOODS.length&&f.r[k].every(v=>Number.isInteger(v)&&v>=0)))))return null;
       const prompt = p => p && (!p.source || target(p.source)) && (!p.target || target(p.target)) && (p.good == null || GOODS.includes(p.good)) && (p.type === 'open' || p.type === 'yearEnd' && Number.isInteger(p.year) || p.type === 'meeting' && Array.isArray(p.cards) && p.cards.every(id => S.cards.some(c => c.id === id)) || p.type === 'event' && !!event(p.id) && typeof p.until === 'number');
       if (!Array.isArray(G.plan) || G.plan.some(p => !event(p.id) || !Number.isInteger(p.month)) || !Array.isArray(G.queue) || G.queue.some(p => !prompt(p)) || JSON.stringify(G.pending) !== JSON.stringify(G.queue[0] || null)) return null;
       if(G.queue.some(p=>p.type==='meeting'&&(!V.tiers.includes(p.tier)||p.cards.length!==3||new Set(p.cards.map(id=>CON[id])).size!==3||p.cards.some(id=>card(id).tier!==p.tier))))return null;
@@ -1193,6 +1239,7 @@
   }
   function runBot(seed, id, mode = 'focus', opts = {}) {
     const G = newGame(seed, id, opts);
+    G.bot = true;
     let guard = 0;
     while (!G.over && guard++ < 5000) { botTurn(G, mode, opts); tick(G); }
     return G;
@@ -1261,6 +1308,6 @@
     return {good: !!r[0], line: r[1]};
   }
 
-  return {outlook, cap, homeStage, grownPoints, overScore, totalScore, concepts, mainConcept, conceptOf: id => CON[id] || null, maxShips, rerollCost, rerollMeeting, priceSignal, smallActions, takeSmallAction, smallEvent, forecast, debtLoss, FOREVER, modActive: active, advance, tickDay, tripDays, monthDays, dayNo, dateOf, dayText, today, fitTrips, yearReport, isDump, dumpPrice, exportPrice, saveGame, loadGame, traitInfo, traitResult, canGive, isRelay, T, S, X, GOODS, RAW, CHAIN, CONSUMER, codexAdd, codexNormalize, codexSlots, codexStats, planEvents, goodName: GN, inputOf, newGame, tick, choose, setRoute, breakContract, allowed, price, worldPrice, needs, uses, inputNeed, levelOf, produces, count, exportable,
+  return {tradedBoxes, tradeGrowth, supplyCap, answerOffer, outlook, cap, homeStage, grownPoints, overScore, totalScore, concepts, mainConcept, conceptOf: id => CON[id] || null, maxShips, rerollCost, rerollMeeting, priceSignal, smallActions, takeSmallAction, smallEvent, forecast, debtLoss, FOREVER, modActive: active, advance, tickDay, tripDays, monthDays, dayNo, dateOf, dayText, today, fitTrips, yearReport, isDump, dumpPrice, exportPrice, saveGame, loadGame, traitInfo, traitResult, canGive, isRelay, T, S, X, GOODS, RAW, CHAIN, CONSUMER, codexAdd, codexNormalize, codexSlots, codexStats, planEvents, goodName: GN, inputOf, newGame, tick, choose, setRoute, breakContract, allowed, price, worldPrice, needs, uses, inputNeed, levelOf, produces, count, exportable,
     sells, buys, tripTime, slotsOf, rel, player, nation, ranking, cardsFor, cardCost, dependence, bestRoute, plan: (G, n, ship, o) => planFor(G, n, ship, o).r, runBot, botTurn, isProtected};
 });

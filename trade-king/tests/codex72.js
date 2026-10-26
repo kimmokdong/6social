@@ -78,7 +78,7 @@ test('새 배지 판정: 탐험가·대륙 상인·위기를 이긴 나라·대�
   ({G, me} = endState()); G.story.push({id: 'tourists', k: 0}); assert.ok(earned(G).includes('guest'));
   for (const [id, k] of [['storm', 1], ['invention', 1], ['plainsHarvest', 1], ['festival', 0]]) { ({G, me} = endState()); me.trait.aids = 0; G.story = G.story.filter(x => x.id !== id); G.story.push({id, k}); assert.ok(earned(G).includes('giver'), id); }
   // 아무것도 안 맞추면 새 배지 일부는 안 나온다(늘 나오는 배지가 아님)
-  ({G, me} = endState()); me.exportedTo = {}; me.importedFrom = {}; G.stats.cards = 0; G.stats.crises = 0; G.story = []; me.trait.aids = 0;
+  ({G, me} = endState()); me.exportedTo = {}; me.importedFrom = {}; me.augments = []; G.stats.cards = 0; G.stats.crises = 0; G.story = []; me.trait.aids = 0;
   const none = earned(G); for (const id of ['explorer', 'continent', 'survivor', 'peace', 'inventor', 'guest', 'giver']) assert.ok(!none.includes(id), id);
   for (const id of none) assert.ok(badgeIds.includes(id));
 });

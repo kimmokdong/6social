@@ -33,8 +33,8 @@ test('세금·수출·받은 위약금도 빚부터 갚고 장부는 실제 금�
   assert.equal(n.money, 0); assert.equal(start - n.debt, n.year.moneyIn);
   assert.equal(n.year.moneyOut, n.year.moneyIn);
   const H = game(), p = P(H), o = H.nations.slice(1).find(o => E.sells(H, o, 0));
-  trust(H,p,o,1); p.debt = 10000; p.money = 100; o.box[0] = [0, 0, 0, 0];
-  assert.ok(E.setRoute(H, 0, {to: o.id, give: null, get: one(0, 2)})); days(H, p.ships[0].arrive);
+  trust(H,p,o,1); p.debt = 10000; p.money = 100; o.box[0] = [0, 0, 100, 0];
+  assert.ok(E.setRoute(H, 0, {to: o.id, give: null, get: one(0, 2)})); o.box[0] = [0, 0, 0, 0]; days(H, p.ships[0].arrive);
   assert.ok(p.year.penaltyIn > 0); assert.ok(p.debt < 10000); assert.equal(p.money, 100);
 });
 test('빚 감점은 50억마다 올림·최대 10, 정산과 연말 내역에 기록', () => {
@@ -79,7 +79,7 @@ test('새해 발전 회의 때 모든 ♥0 쌍을 ♥1로 회복', () => {
   const G = game(), n = P(G); days(G, 340);
   for (const a of G.nations) for (const b of G.nations) if (a !== b) trust(G, a, b, 0);
   days(G, 25); assert.equal(G.month, 12);
-  for (const a of G.nations) for (const b of G.nations) if (a !== b) assert.equal(E.rel(G, a, b), 1);
+  for (const a of G.nations) for (const b of G.nations) if (a !== b) assert.ok(E.rel(G, a, b) >= 1, `${a.id}-${b.id}`);   // 같은 날 NPC 회의 카드로 더 오를 수 있다
   assert.ok(G.queue.some(p => p.type === 'meeting')); assert.ok(G.news.some(x => x.text.includes('새해를 맞아')));
 });
 test('선물·기술 나눔·FTA로 ♥0 거래 거절을 우회하지 못함', () => {

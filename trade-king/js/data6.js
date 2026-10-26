@@ -76,7 +76,7 @@
     ['factory','🏭','공장 왕국','대표 물건을 많이 만들어요','대표 물건 수출값 +10%','대표 산업 +1 더'],
     ['sea','⛵','바다의 개척자','배와 항로로 앞서요','배마다 짐칸 +1','모든 왕복 −1달(최소 1달)'],
     ['merchant','💰','큰 상인','돈이 돈을 벌어요','세금 +50%','모든 판매값 +10%'],
-    ['diplomat','🤝','외교관','친구가 힘이에요','♥3 혜택을 ♥2부터','손님 배가 늘 찾아옴 · 위약금 절반'],
+    ['diplomat','🤝','외교관','친구가 힘이에요','♥3 혜택을 ♥2부터','♥1에도 계약 요청이 와요 · 위약금 절반'],
     ['artisan','✨','명품 장인','적게 팔아도 비싸게','품질 점수 +2','모든 생활 물건 ⭐2 이상'],
     ['hoarder','🏚','비축가','창고를 가득 채워요','풍요 점수 +2.5','위기 피해 절반'],
     ['self','🛡','자립','우리 것은 우리가','지키기 생활 벌점 없음','공급 끊김 피해 없음'],
@@ -143,7 +143,7 @@
     ['festivalPrep','축제 준비','다음 정산 옷 필요 +1'],['students','견학 온 학생들','다음 정산 생활 +1점']
   ].map(([id,name,text,action=null])=>({id,name,text,action}));
   const rules79 = {tiers:['silver','gold','prism'],tierNames:{silver:'실버',gold:'골드',prism:'프리즘'},odds:[[1,0,0],[.4,.5,.1],[.1,.6,.3],[.1,.5,.4],[.2,.6,.2]],
-    overFrom:100,overRate:.5,laneFast:15,laneFish:1,lanePrice:.1,pirateChance:.2,stormChance:.25,stormDelay:15,richYear:82,survivorYear:72,rerollCost:50,catchupChance:.5,fund:150,bonus:3,interestBonus:2,survey:.05,navigator:1,regular:.05,regularMax:.15,
+    overFrom:100,overRate:.5,laneFast:15,laneFish:1,lanePrice:.1,pirateChance:.2,stormChance:.25,stormDelay:15,richYear:92,survivorYear:82,tradeGrow:80,tradeGrowMax:2,rerollCost:50,catchupChance:.5,fund:150,bonus:3,interestBonus:2,survey:.05,navigator:1,regular:.05,regularMax:.15,
     revolution:2,factoryBoxes:1,revolutionBoxes:2,armadaSlots:1,armadaFrom:3,interest:.08,interestMax:60,brandPrice:.2,refinery:.1,shopping:2,ecotour:1.5,relay:.25,
     industryStep:1,qualityStep:1,envoyRel:1,automation:.5,semiconductorPer:1/3,granaryFloor:1,refineryStages:1,luxMax:3,modernSteelLevel:1,pollutionReduction:1,relaySlots:1,brandQuality:3,ftaPartners:2,ftaFloor:1,
     schoolGoods:2,selfReliance:2,autarkyPrice:1.2,innovation:2,lamps:1,greenRev:3,greenScore:2,charm:2,treasure:150,treasureMin:300,treasureMax:500,keepHalf:.5,plentyMult:2,plentySeasons:6,
@@ -188,12 +188,12 @@
   // 6.5 도감 배지: [id, 이름, 조건]
   const badges = [
     // [id, 이모지, 이름, 조건(잠겨 있어도 보임), 숨김이면 조건 대신 보이는 힌트]
-    ['king', '👑', '무역왕', '5년 누적 점수 1등'], ['rich', '💰', '풍요의 나라', '한 해 평균 82점 이상'], ['honest', '📜', '약속의 나라', '계약을 한 번도 안 깸'],
-    ['friend', '💞', '모두의 친구', '끝날 때 모든 이웃과 ♥2 이상 · 손님 배가 와요'], ['allGoods', '📦', '여섯 물건 장수', '물건 6가지를 다 수출해 봄(여러 판 합쳐서)'], ['allNations', '🗺', '여덟 나라 여행', '여덟 나라로 다 해 봄'],
+    ['king', '👑', '무역왕', '5년 누적 점수 1등'], ['rich', '💰', '풍요의 나라', '한 해 평균 92점 이상'], ['honest', '📜', '약속의 나라', '계약을 한 번도 안 깸'],
+    ['friend', '💞', '모두의 친구', '끝날 때 모든 이웃과 ♥2 이상 · 계약 요청이 와요'], ['allGoods', '📦', '여섯 물건 장수', '물건 6가지를 다 수출해 봄(여러 판 합쳐서)'], ['allNations', '🗺', '여덟 나라 여행', '여덟 나라로 다 해 봄'],
     // 7.2 새 배지(BOOK-v72.md 2장)
     ['explorer', '🧭', '바다의 탐험가', '한 판에 이웃 일곱 나라와 모두 거래함'], ['continent', '🏔', '대륙 상인', '한 판에 북쪽 대륙과 30상자 넘게 거래'],
-    ['survivor', '🌪', '위기를 이긴 나라', '위기를 2번 겪고도 한 해 평균 72점 이상'], ['peace', '🕊', '대화의 나라', '관세 전쟁이나 보복 관세를 대화로 풂'],
-    ['inventor', '🧩', '콘셉트 장인', '한 판에 같은 콘셉트 증강체 3장을 모음'], ['balance', '⚖', '균형 무역', '5년 수출과 수입 상자 차이가 10% 안'],
+    ['survivor', '🌪', '위기를 이긴 나라', '위기를 2번 겪고도 한 해 평균 82점 이상'], ['peace', '🕊', '대화의 나라', '관세 전쟁이나 보복 관세를 대화로 풂'],
+    ['inventor', '🧩', '콘셉트 장인', '한 판에 같은 콘셉트 발전 카드 3장을 모음'], ['balance', '⚖', '균형 무역', '5년 수출과 수입 상자 차이가 10% 안'],
     ['boom', '🔥', '벼락부자', '한 해 금고 +300억 초과 · 생활 물건을 살 밑천'], ['loyal', '🤝', '단골 부자', '끝날 때 ♥3 나라 셋 이상 · 할인·먼저 받기'],
     ['guest', '🎪', '손님 맞이', '관광객 몰림 때 맞이하기를 고름', '바다 저편 손님을 반갑게 맞아 보세요'],
     ['giver', '💝', '나눌수록 커지는 것', '이웃에 식량·기술을 나누거나 원조를 보냄', '어려울 때 이웃에게 나눠 보세요']
@@ -209,7 +209,7 @@
     ['dumping', '📉', '덤핑', '물건을 제값보다 아주 싸게 다른 나라에 파는 것이에요. 그 나라 공장이 어려워질 수 있어요.', '덤핑 사건'],
     ['exchange', '💱', '환율', '우리 돈과 다른 나라 돈을 바꾸는 비율이에요. 환율이 오르면 수출에는 유리하고 수입품은 비싸져요.', '환율 급등 사건'],
     ['chain', '🔗', '공급망', '원료에서 완성품까지 여러 나라를 거쳐 물건이 만들어지는 흐름이에요. 한 곳이 끊기면 모두 어려워져요.', '공급 끊김·에너지 부족 사건, 또는 원료가 모자라 공장이 덜 만들 때'],
-    ['aid', '💝', '원조와 협력', '도움과 약속으로 신뢰를 쌓아요. ♥0 거래 거절 · ♥2 손님 배 · ♥3 할인·먼저 받기. ♥0은 새해에 ♥1로 돌아와요.', '이웃에게 나누거나 원조를 보내 보세요'],
+    ['aid', '💝', '원조와 협력', '도움과 약속으로 신뢰를 쌓아요. ♥0 거래 거절 · ♥2 계약 요청 · ♥3 할인·먼저 받기. ♥0은 새해에 ♥1로 돌아와요.', '이웃에게 나누거나 원조를 보내 보세요'],
     ['crisis', '🌧', '세계 경제 위기', '한 나라의 경제가 흔들리면 무역으로 이어진 다른 나라들도 함께 어려워져요.', '세계 경제 위기 사건'],
     ['process', '🏭', '가공 무역', '원료를 사 와서 물건으로 만든 뒤 다시 다른 나라에 파는 무역이에요.', '다온국이나 철의 나라로 해 보세요'],
     ['relay', '🔁', '중계 무역', '다른 나라에서 사 온 물건을 또 다른 나라에 되파는 무역이에요.', '항구 섬나라로 해 보세요'],
@@ -233,9 +233,10 @@
       debtStep: 50, debtPoints: 2, debtMax: 10,   // 빚 50억마다(올림) 정산 감점, 최대 10점
       startMoney: 200, taxPerPop: 10, contractTrips: 4, tripMonths: [2, 2, 3, 3], tripSets: [[2, 2, 3, 3], [1, 2, 3, 4], [1, 2, 3, 4]], worldTrip: 4,   // 8.1 판마다 거리 묶음 하나를 뽑는다(합 10 유지)
       cutMonths: 9, crisisPoints: 15, relStart: 1, relMax: 3, visitRel: 2, missLimit: 2, storeSeasons: 2, warehouseSeasons: 4, declineYears: 1,
-      worldBuy: .7, worldSell: 1.4, worldLimit: 8, shipSlots: 4, bigShipSlots: 2, playerShips: 3, openShips: 3, npcShips: 3, npcTripExtra: 2, maxShips: 5,
-      // 점수: 생활 물건 70 + 품질 15 + 풍요 15 = 100
-      drift: .6, priceTarget: 1, slotPoints: 17.5, qualityPoints: [0, 0, 2, 3.75], unrest: 2, monthSeconds: 10, pauseSeconds: 20,
+      worldBuy: .7, worldSell: 1.4, worldLimit: 8, shipSlots: 3, bigShipSlots: 2,   // 8.4 기본 짐칸 3칸, 항구 단계마다 +1(커진 항구 4·무역 도시 5)
+       playerShips: 3, openShips: 3, npcShips: 3, npcTripExtra: 2, maxShips: 5,
+      // 8.4 점수: 생활 물건 4가지 × 20 = 80 + 좋은 품질(⭐3) 4가지 × 5 = 20 → 100점, 풍요는 그 위 보너스
+      drift: .6, priceTarget: 1, slotPoints: 20, qualityPoints: [0, 0, 2, 5], unrest: 2, monthSeconds: 10, pauseSeconds: 20,
       // 6.4 투입 사다리: [재료, 제품] 순서대로 만든다. 제품 1상자에 재료 inputPer상자. 재료가 모자라면 그만큼만 만든다(공장이 국민보다 먼저 가져간다).
       chain: [[4, 5], [5, 3]], inputPer: 1, factoryIdle: true,   // factoryIdle: 제품 창고가 차면 공장이 쉰다(재료를 헛되이 쓰지 않는다)
       // 6.3 세계 경제 위기: 1차 물건(식량·석유·철광석) 값은 반토막, 만든 물건(옷·철강·첨단기기)은 조금만 내린다. 징조 때는 1차 물건만 먼저 흔들린다.

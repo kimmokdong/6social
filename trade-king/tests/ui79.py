@@ -81,13 +81,15 @@ def scenes(pg, check):
     check('end-build')
     pg.evaluate("() => document.querySelector('[data-codex]').click()"); pg.wait_for_timeout(150)
     pg.evaluate("() => document.querySelector('[data-book-tab=augs]').click()"); pg.wait_for_timeout(100)
-    got = pg.locator('.bk-augs .ac.on').count()
+    # 8.4 넓은 화면은 한 쪽, 1100px 이하는 두 쪽(콘셉트 / 나라 특성). 쪽을 넘기며 고른 카드 이름을 모은다
+    names = lambda: set(pg.locator('.bk-augs2 .ac.on, .bk-augs.traits .ac.on').all_inner_texts())
+    got = names()
     check('codex-augs')
-    for k in range(2):
+    if pg.locator('.bk-pager').count():
         pg.evaluate("() => document.querySelector('.bk-pager button:last-child:not([disabled])')?.click()"); pg.wait_for_timeout(60)
-        got += pg.locator('.bk-augs .ac.on').count()
-        check(f'codex-augs-p{k + 2}')
-    assert got >= 4, f'도감에 고른 증강체 4장 이상: {got}'
+        got |= names()
+        check('codex-augs-p2')
+    assert len(got) >= 4, f'도감에 고른 발전 카드 4장 이상: {got}'
     pg.evaluate("() => document.querySelector('[data-codex-close]')?.click()")
 
 SHOTS = {'topbar', 'meeting-silver', 'meeting-gold', 'meeting-prism', 'small-button', 'isle-trend', 'contract-six', 'home-ind', 'home-aug', 'settings-pause', 'year-abundance', 'meeting-year2', 'end-build', 'codex-augs', 'codex-augs-p3'}

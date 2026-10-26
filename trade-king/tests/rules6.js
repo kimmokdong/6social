@@ -63,8 +63,10 @@ test('7.7 1년 계약을 마치면 ♥+1, 다시 맺지 않고 배는 쉰다', (
   const G = quiet(toOpen(E.newGame(4, 'daon'))), o = seller(G, 0), r0 = E.rel(G, P(G), o);
   o.box[0][2] = 500; P(G).money = 5000;
   E.setRoute(G, 0, {to: o.id, give: null, get: 0});
-  run(G, 13);
-  assert.equal(E.rel(G, P(G), o), Math.min(3, r0 + 1));
+  run(G, 12);   // 12/31에 끝남 · 새해 회의 카드(자동 고름)의 ♥가 섞이지 않게 회의 전에 잰다
+  // 같은 날 NPC 회의 카드로 자유 무역(♥3)이 될 수도 있다
+  if (!P(G).fta.includes(o.id)) assert.equal(E.rel(G, P(G), o), Math.min(3, r0 + 1));
+  run(G, 1);
   assert.equal(P(G).ships[0].route, null);
 });
 test('계약 깨기: ♥−1, 지금 왕복을 마치고 예약한 항로로', () => {
@@ -172,16 +174,17 @@ test('상인은 나라마다 물건별 한 해 정해진 상자까지만 산다'
 test('짐칸: 1칸 = 1상자, 여러 물건을 섞어 싣고, 칸을 넘으면 안 된다', () => {
   const G = quiet(toOpen(E.newGame(15, 'daon'))), o = G.world;
   P(G).money = 5000;
-  P(G).bigShip = false;   // 다온국은 큰 배로 시작하므로 기본 4칸으로 되돌려 검사
-  assert.equal(E.allowed(G, P(G), {to: 'world', give: null, get: [2, 2, 1, 0, 0, 0]}), false, '4칸을 넘음');
-  assert.ok(E.setRoute(G, 0, {to: 'world', give: [0, 0, 0, 2, 0, 0], get: [2, 1, 1, 0, 0, 0]}));
+  P(G).bigShip = false;   // 다온국은 큰 배로 시작하므로 기본 3칸(8.4)으로 되돌려 검사
+  assert.equal(E.slotsOf(G, P(G), o), X.shipSlots);
+  assert.equal(E.allowed(G, P(G), {to: 'world', give: null, get: [2, 1, 1, 0, 0, 0]}), false, '3칸을 넘음');
+  assert.ok(E.setRoute(G, 0, {to: 'world', give: [0, 0, 0, 2, 0, 0], get: [1, 1, 1, 0, 0, 0]}));
   const r = P(G).ships[0].route;
-  assert.deepEqual(r.get, [2, 1, 1, 0, 0, 0]);
+  assert.deepEqual(r.get, [1, 1, 1, 0, 0, 0]);
   assert.ok(r.bp[0] > 0 && r.bp[3] === 0 && r.gp[3] > 0);
   run(G, E.tripTime(G, P(G), 'world') + 1);
-  assert.equal(P(G).year.imp[0].world, 2); assert.equal(P(G).year.imp[1].world, 1); assert.equal(P(G).year.imp[2].world, 1);
+  assert.equal(P(G).year.imp[0].world, 1); assert.equal(P(G).year.imp[1].world, 1); assert.equal(P(G).year.imp[2].world, 1);
   P(G).bigShip = true;
-  assert.ok(E.allowed(G, P(G), {to: 'world', give: null, get: [2, 2, 2, 0, 0, 0]}), '큰 배는 6칸');
+  assert.ok(E.allowed(G, P(G), {to: 'world', give: null, get: [2, 2, 1, 0, 0, 0]}), '큰 배는 5칸');
   assert.equal(E.slotsOf(G, P(G), o), X.shipSlots + X.bigShipSlots);
 });
 test('추천 항로는 칸을 넘지 않고, 모자란 물건을 여러 가지 담는다', () => {
@@ -214,10 +217,11 @@ test('귀항 결과는 실제 거래량·금액이며 같은 달 재출항 후�
 test('돈·재고·공급 끊김으로 덜 받은 이유를 실제 거래 시점에 기록한다', () => {
   for (const reason of ['money', 'stock', 'cut']) {
     const G = quiet(toOpen(E.newGame(22, 'daon'))), me = P(G), o = seller(G, 0);
-    G.dist[o.id] = 2; o.box[0] = [0, 0, reason === 'stock' ? 1 : 100, 0];
+    G.dist[o.id] = 2; o.box[0] = [0, 0, 100, 0];
     if (reason === 'cut') G.cut = {source: o.id, good: 0, until: 99};
     me.money = reason === 'money' ? E.price(G, o, me, 0) : 5000;
-    E.setRoute(G, 0, {to: o.id, give: null, get: [4, 0, 0, 0, 0, 0]});
+    assert.ok(E.setRoute(G, 0, {to: o.id, give: null, get: [4, 0, 0, 0, 0, 0]}));
+    if (reason === 'stock') o.box[0] = [0, 0, 1, 0];   // 8.3 계약은 재고가 넉넉할 때 맺고, 그 뒤 재고가 줄어든 경우
     const bp = me.ships[0].route.bp[0];
     E.advance(G, me.ships[0].T);
     const d = me.ships[0].delivery, qty = reason === 'cut' ? 0 : 1;
