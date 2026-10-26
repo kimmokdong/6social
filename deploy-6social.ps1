@@ -2,7 +2,7 @@
 # 실행: powershell -ExecutionPolicy Bypass -File .\deploy-6social.ps1   (wrangler 로그인은 ~/.wrangler/config에 이미 있음)
 $src = $PSScriptRoot; $dst = Join-Path $env:TEMP "deploy6"
 if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
-$skipDirs = 'output','node_modules','__pycache__','.python-packages','uv-cache','.npm-cache','check-verify','shots','check','_imgtest','raw','tests','src','.git','.claude'
+$skipDirs = 'output','node_modules','__pycache__','.python-packages','uv-cache','.npm-cache','check-verify','shots','check','_imgtest','raw','tests','src','.git','.claude','.wrangler'
 $skipFiles = 'sfx-demo.html','game-sound-demo.html','title-mock.html','art_compare.png','.gitignore','deploy-6social.ps1'
 Get-ChildItem -Path $src -Recurse -File | Where-Object {
   $rel = $_.FullName.Substring($src.Length + 1); $parts = $rel.Split('\')
