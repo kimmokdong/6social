@@ -112,3 +112,8 @@ section{padding:26px 0}
 .teacher[open]>summary{margin-bottom:6px}
 .teacher-hint{font-size:17px;font-weight:800;color:var(--soft);background:#fff;border-radius:99px;padding:2px 12px}
 .teacher[open] .teacher-hint{display:none}
+/* 사진 크게 보기 팝업(guide.js) */
+.zoom{padding:0;border:0;background:none;max-width:96vw;max-height:94vh;overflow:visible;cursor:zoom-out}
+.zoom::backdrop{background:rgba(20,18,26,.82)}
+.zoom img{display:block;max-width:96vw;max-height:94vh;width:auto;height:auto;border-radius:12px;box-shadow:var(--shadow)}
+.zoom-close{position:fixed;top:12px;right:12px;width:48px;height:48px;border:0;border-radius:50%;background:var(--white);color:var(--ink);font-size:24px;font-weight:900;cursor:pointer;box-shadow:var(--shadow)}

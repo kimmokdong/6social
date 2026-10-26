@@ -123,7 +123,7 @@
 #cine .cloud.r{right:-18%;top:34%}
 #cine .fleet{position:absolute;inset:0}
 #cine .fleet img{position:absolute;left:0;top:0;width:13vw;filter:drop-shadow(0 8px 6px #0008)}
-#cine .fx{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+#cine .fx{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;display:block;padding:0;border:0;border-radius:0;background:none;box-shadow:none}   /* theme76.css의 효과 카드 .fx(크림색 카드)가 오프닝 연출 층을 덮지 않게 */
 #cine .fx .ov{position:absolute;pointer-events:none}
 #cine .fx .pt{position:absolute;pointer-events:none;border-radius:50%}
 #cine .vig{position:absolute;inset:0;z-index:1;background:radial-gradient(120% 90% at 50% 50%,#0000 55%,#000b 100%);pointer-events:none}
