@@ -996,40 +996,43 @@
   const natSeen = id => { try { return JSON.parse(localStorage.getItem(natKey(id))) || {}; } catch { return {}; } };
   const natMark = (id, k) => { const v = natSeen(id); v[k] = 1; try { localStorage.setItem(natKey(id), JSON.stringify(v)); } catch {} };
   const INTRO = {
-    daon: '우리 공장은 철강 1상자로 첨단기기 2상자를 만들어. 철강이 2계절 끊기면 공장이 녹슬어!',
-    plains: '다음 계절 날씨를 미리 알려 줘. 풍년엔 식량이 1.5배, 흉년엔 절반이야.',
-    oil: `석유를 ${pct(XT.oilSell)}% 비싸게 팔 수 있어. 대신 캘수록 유전이 늙어 덜 캐게 돼.`,
-    market: `사람이 많아 늘 많이 사야 해. 대신 다른 나라가 ${pct(XT.marketDiscount)}% 깎아 줘. 바구니 한 칸이 비면 −${XT.emptyPenalty}점!`,
-    forest: `♥2 이상 친구 하나당 계절마다 관광객이 와서 ${XT.tourPerFriend}억을 벌어. 공장을 키우면 관광객이 줄어.`,
-    port: `사 온 물건을 다른 섬에 되팔 수 있어. 되팔면 +${pct(XT.relayBonus)}%!`,
-    artisan: `⭐3 명품은 값이 +${pct(XT.luxBonus)}%야. 대신 한 항로에 ${XT.luxMax}상자까지만 실을 수 있어.`,
-    ironland: `공장이 클수록 공해로 생활 점수가 깎여. 대신 철광석·철강 계약은 ${XT.longYears}년 동안 값이 고정돼.`
+    daon: '우리 공장은 철강 1상자로 첨단기기 2상자를 만든단다. 철강이 2계절 끊기면 공장이 녹슬고 말지!',
+    plains: '다음 계절 날씨를 미리 알 수 있단다. 풍년엔 식량이 1.5배, 흉년엔 절반이지.',
+    oil: `석유를 ${pct(XT.oilSell)}% 비싸게 팔 수 있단다. 허나 캘수록 유전이 늙어 덜 나오게 되지.`,
+    market: `사람이 많아 늘 많이 사야 한단다. 그 대신 다른 나라가 ${pct(XT.marketDiscount)}% 깎아 주지. 바구니 한 칸이 비면 −${XT.emptyPenalty}점이니 조심하거라!`,
+    forest: `♥2 이상 친구 하나당 계절마다 관광객이 와서 ${XT.tourPerFriend}억을 번단다. 공장을 키우면 관광객이 줄어드니 명심하거라.`,
+    port: `사 온 물건을 다른 섬에 되팔 수 있단다. 되팔면 +${pct(XT.relayBonus)}%이지!`,
+    artisan: `⭐3 명품은 값이 +${pct(XT.luxBonus)}%란다. 허나 한 항로에 ${XT.luxMax}상자까지만 실을 수 있지.`,
+    ironland: `공장이 클수록 공해로 생활 점수가 깎인단다. 그 대신 철광석·철강 계약은 ${XT.longYears}년 동안 값이 고정되지.`
   };
-  const INTRO_STEP = {at: '.nation-slot', intro: true, say: me => `이 칸은 우리 나라만의 특성이야. 누르면 설명이 나와.<br>${TR(me.id).icon} <b>${esc(TR(me.id).name)}</b> · ${me.augments.some(id=>E.S.cards.find(c=>c.id===id)?.only===me.id)?E.traitInfo(G,me).short:INTRO[me.id]}`};
+  // 8.6 나라 칸 숫자(traitInfo.text)가 무엇을 세는지
+  const NUM = {daon: '창고 철강으로 공장을 몇 계절 더 돌릴 수 있는지', plains: '다음 계절 날씨가 어떨지', oil: '유전에 석유가 얼마나 남았는지', market: '이대로 가면 바구니가 몇 칸 빌지',
+    forest: '계절마다 관광 수입이 얼마나 들어올지', port: '올해 되팔아서 얼마를 벌었는지', artisan: '비싸게 팔 수 있는 ⭐3 명품이 몇 가지인지', ironland: '공해 때문에 생활 점수가 얼마나 깎일지'};
+  const INTRO_STEP = {at: '.nation-slot', intro: true, say: me => `이 칸이 우리 나라만의 특성이란다. 누르면 자세한 설명이 나오지.<br>${TR(me.id).icon} <b>${esc(TR(me.id).name)}</b> · ${me.augments.some(id=>E.S.cards.find(c=>c.id===id)?.only===me.id)?E.traitInfo(G,me).short:INTRO[me.id]}`};
   // 때 맞춤 도움말(NATIONS-v7.md 6.4): 특성이 처음 실제로 일어나는 순간에 한 번, 시간을 멈추고 말풍선 하나
   const HINTS = [
-    {key: 'steelLow', id: 'daon', at: '.nation-slot', when: me => E.traitInfo(G, me).warn === 'warn', say: () => '철강이 곧 떨어져. 철강 파는 섬에 배를 보내자.'},
-    {key: 'stopped', id: 'daon', at: '.nation-slot', when: me => me.trait.idleRun > 0, say: () => '철강이 없어 공장이 멈췄어! 한 계절 더 멈추면 녹슬어!'},
-    {key: 'badYear', id: 'plains', at: '.nation-slot', when: me => me.trait.next === 2, say: () => '다음 계절은 🌧 흉년이야. 식량을 팔지 말고 아껴 두자.'},
-    {key: 'goodYear', id: 'plains', at: '.nation-slot', when: me => me.trait.weather === 0 && G.month >= 3, say: () => `☀️ 풍년이야! 남는 식량을 받아 올 것 없이 보내면 <b>원조</b>야. 끝나면 ♥+${XT.aidRel}!`},
-    {key: 'aged', id: 'oil', at: '.nation-slot', when: me => me.trait.stage >= 1, say: () => '유전이 늙어서 석유가 덜 나와. 발전 회의에서 다른 산업을 키워 두자.'},
-    {key: 'emptyRisk', id: 'market', at: '.basket', when: me => G.month >= 1 && E.traitInfo(G, me).value > 0, say: () => `빨간 칸이 비면 생활 점수가 −${XT.emptyPenalty}점 더 깎여. 배를 나눠 보내자.`},
-    {key: 'tour', id: 'forest', at: '.nation-slot', when: me => me.last?.tour > 0, say: me => `관광 수입 ${me.last.tour}억이 들어왔어! ♥2 이상 친구가 늘수록 관광객이 더 와.`},
-    {key: 'relay', id: 'port', at: '.basket', when: me => G.month >= 2 && GOODS.some(g => E.isRelay(G, me, g) && E.exportable(G, me, g) > 0), say: () => `사 온 물건이 창고에 남았어. 이걸 필요한 섬에 되팔면 +${pct(XT.relayBonus)}%!`},
-    {key: 'luxFull', id: 'artisan', at: '.tray', when: me => me.ships.some(s => s.route && GOODS.some(g => s.route.give[g] >= XT.luxMax && me.quality[g] === 3)), say: me => `명품은 한 항로에 ${me.augments.includes('luxStreet')?E.S.rules79.luxMax:XT.luxMax}상자까지야. 여러 섬에 나눠 보내면 더 많이 팔 수 있어.`},
-    {key: 'smog', id: 'ironland', at: '.nation-slot', when: me => me.last?.pollution > 0, say: me => `공장 연기 때문에 생활 점수가 ${me.last.pollution}점 깎였어. 발전 회의의 <b>제철소 현대화</b> 카드로 공해를 줄일 수 있어.`},
-    {key: 'oilPrice', id: null, when: me => !me.augments.some(id => E.conceptOf(id) === 'green') && E.worldPrice(G, 1) > E.S.goods[1].price * XT.renewAt, say: () => `석유값이 ${E.worldPrice(G, 1)}억까지 올랐어. 발전 회의에서 🌱 <b>녹색 성장</b> 카드를 고르면 석유를 덜 써!`},
+    {key: 'steelLow', id: 'daon', at: '.nation-slot', when: me => E.traitInfo(G, me).warn === 'warn', say: () => '철강이 곧 떨어지겠구나. 철강 파는 섬에 배를 보내거라.'},
+    {key: 'stopped', id: 'daon', at: '.nation-slot', when: me => me.trait.idleRun > 0, say: () => '철강이 없어 공장이 멈췄구나! 한 계절 더 멈추면 녹슬고 만단다!'},
+    {key: 'badYear', id: 'plains', at: '.nation-slot', when: me => me.trait.next === 2, say: () => '다음 계절은 🌧 흉년이로구나. 식량을 팔지 말고 아껴 두거라.'},
+    {key: 'goodYear', id: 'plains', at: '.nation-slot', when: me => me.trait.weather === 0 && G.month >= 3, say: () => `☀️ 풍년이로구나! 남는 식량을 받아 올 것 없이 보내면 <b>원조</b>란다. 끝나면 ♥+${XT.aidRel}이지!`},
+    {key: 'aged', id: 'oil', at: '.nation-slot', when: me => me.trait.stage >= 1, say: () => '유전이 늙어서 석유가 덜 나오는구나. 발전 회의에서 다른 산업을 키워 두거라.'},
+    {key: 'emptyRisk', id: 'market', at: '.basket', when: me => G.month >= 1 && E.traitInfo(G, me).value > 0, say: () => `빨간 칸이 비면 생활 점수가 −${XT.emptyPenalty}점 더 깎인단다. 배를 나눠 보내거라.`},
+    {key: 'tour', id: 'forest', at: '.nation-slot', when: me => me.last?.tour > 0, say: me => `관광 수입 ${me.last.tour}억이 들어왔구나! ♥2 이상 친구가 늘수록 관광객이 더 온단다.`},
+    {key: 'relay', id: 'port', at: '.basket', when: me => G.month >= 2 && GOODS.some(g => E.isRelay(G, me, g) && E.exportable(G, me, g) > 0), say: () => `사 온 물건이 창고에 남았구나. 이걸 필요한 섬에 되팔면 +${pct(XT.relayBonus)}%란다!`},
+    {key: 'luxFull', id: 'artisan', at: '.tray', when: me => me.ships.some(s => s.route && GOODS.some(g => s.route.give[g] >= XT.luxMax && me.quality[g] === 3)), say: me => `명품은 한 항로에 ${me.augments.includes('luxStreet')?E.S.rules79.luxMax:XT.luxMax}상자까지란다. 여러 섬에 나눠 보내면 더 많이 팔 수 있지.`},
+    {key: 'smog', id: 'ironland', at: '.nation-slot', when: me => me.last?.pollution > 0, say: me => `공장 연기 때문에 생활 점수가 ${me.last.pollution}점 깎였구나. 발전 회의의 <b>제철소 현대화</b> 카드로 공해를 줄일 수 있단다.`},
+    {key: 'oilPrice', id: null, when: me => !me.augments.some(id => E.conceptOf(id) === 'green') && E.worldPrice(G, 1) > E.S.goods[1].price * XT.renewAt, say: () => `석유값이 ${E.worldPrice(G, 1)}억까지 올랐구나. 발전 회의에서 🌱 <b>녹색 성장</b> 카드를 고르면 석유를 덜 쓴단다!`},
     // 7.9b 증강체·작은 돌발·값 신호 · 8.0 누적 점수
-    {key: 'small79', id: null, at: '.small-pop', when: () => !!$('.small-pop'), say: () => `지도 오른쪽 위 카드는 <b>작은 돌발</b>이야. 시간은 그대로 흘러. 단추가 붙어 있으면 ${E.S.rules79.actionDays}일 안에 눌러 봐!`},
+    {key: 'small79', id: null, at: '.small-pop', when: () => !!$('.small-pop'), say: () => `지도 오른쪽 위 카드는 <b>작은 돌발</b>이란다. 시간은 그대로 흐르지. 단추가 붙어 있으면 ${E.S.rules79.actionDays}일 안에 눌러 보거라!`},
     // 8.5 첫 판 도움말에서 뺀 설명: 처음 필요해질 때 한 번만(shared = 나라와 상관없이 한 번, trade6.helper.common에 기억)
     {key: 'intro85', id: null, at: '.nation-slot', when: me => !natSeen(me.id).intro && me.ships.some(s => s.delivery), say: me => INTRO_STEP.say(me), mark: me => natMark(me.id, 'intro')},
-    {key: 'score85', shared: true, at: '.stat.score', when: me => !!me.last, say: () => `😊 첫 정산이야! <b>생활 점수</b>는 국민이 얼마나 넉넉하게 사는지야. 모자란 물건을 채울수록 올라가. 위의 <b>다음 정산 예상</b>으로 미리 볼 수 있어.`},
-    {key: 'offer85', shared: true, at: '.offer-pop', when: () => !!$('.offer-pop'), say: () => `다른 나라 배가 <b>계약 요청</b>을 보냈어! ♥2가 되면 이렇게 찾아와. ♥3이 되면 값도 깎아 줘. 수락하면 1년 동안 오가.`},
-    {key: 'rest85', shared: true, at: '.piece.idle', when: me => me.ships.some(s => !s.route && s.delivery) && !!$('.piece.idle'), say: () => `계약은 <b>1년</b>이면 끝나고 배는 <b>쉬어</b>. 섬에 다시 놓아 새 계약을 맺자. 값이 좋아질 때까지 잠깐 기다려도 돼.`},
-    {key: 'trend85', shared: true, at: '.isle .trend', when: me => me.ships.some(s => s.route) && me.ships.some(s => !s.route) && G.month >= 1 && !!$('.isle .trend'), say: () => '다음 계약 전에 봐! 물건 옆 <b>▲</b>는 요즘 오르는 값, <b>▼</b>는 내리는 값이야. 계약하면 1년 동안 값이 그대로니까 <b>▼일 때 사면</b> 좋아.'},
-    {key: 'lane81', id: null, at: '.lane-mark', when: () => G.month >= 1 && !!$('.lane-mark'), say: () => '바닷길 위 그림은 <b>항로의 특징</b>이야. 🌊 해류·🐟 어장은 좋은 길, 🏴‍☠️ 해적·⛈ 폭풍 바다는 값이 좋은 대신 가끔 손해를 봐. 그림을 눌러 봐!'},
-    {key: 'sum80', id: null, at: '.forecast', when: () => G.month >= 12, say: () => `점수는 해마다 <b>쌓여</b>! 나라가 커지면 정산이 ${E.S.rules79.overFrom}점을 넘을 수도 있어. 다만 <b>${E.S.rules79.overFrom}점 위는 절반만</b> 쌓이니까 한 가지만 잔뜩 모으기보다 고루 채워 봐.`},
-    {key: 'aug79', id: null, at: '.home', when: me => me.augments.length === 1, say: () => '고른 발전 카드는 우리 섬을 누르면 <b>🧩 발전 카드</b> 칸에 모여. 같은 콘셉트를 <b>2장·3장</b> 모으면 보너스가 켜져!'}
+    {key: 'score85', shared: true, at: '.stat.score', when: me => !!me.last, say: () => `😊 첫 정산이로구나! <b>생활 점수</b>는 국민이 얼마나 넉넉하게 사는지를 말한단다. 모자란 물건을 채울수록 올라가지. 위의 <b>다음 정산 예상</b>으로 미리 볼 수 있단다.`},
+    {key: 'offer85', shared: true, at: '.offer-pop', when: () => !!$('.offer-pop'), say: () => `다른 나라 배가 <b>계약 요청</b>을 보냈구나! ♥2가 되면 이렇게 찾아온단다. ♥3이 되면 값도 깎아 주지. 수락하면 1년 동안 오가게 된단다.`},
+    {key: 'rest85', shared: true, at: '.piece.idle', when: me => me.ships.some(s => !s.route && s.delivery) && !!$('.piece.idle'), say: () => `계약은 <b>1년</b>이면 끝나고 배는 <b>쉰단다</b>. 섬에 다시 놓아 새 계약을 맺거라. 값이 좋아질 때까지 잠깐 기다려도 괜찮단다.`},
+    {key: 'trend85', shared: true, at: '.isle .trend', when: me => me.ships.some(s => s.route) && me.ships.some(s => !s.route) && G.month >= 1 && !!$('.isle .trend'), say: () => '다음 계약 전에 보거라! 물건 옆 <b>▲</b>는 요즘 오르는 값, <b>▼</b>는 내리는 값이란다. 계약하면 1년 동안 값이 그대로니 <b>▼일 때 사면</b> 이득이지.'},
+    {key: 'lane81', id: null, at: '.lane-mark', when: () => G.month >= 1 && !!$('.lane-mark'), say: () => '바닷길 위 그림은 <b>항로의 특징</b>이란다. 🌊 해류·🐟 어장은 좋은 길이고, 🏴‍☠️ 해적·⛈ 폭풍 바다는 값이 좋은 대신 가끔 손해를 보지. 그림을 눌러 보거라!'},
+    {key: 'sum80', id: null, at: '.forecast', when: () => G.month >= 12, say: () => `점수는 해마다 <b>쌓인단다</b>! 나라가 커지면 정산이 ${E.S.rules79.overFrom}점을 넘을 수도 있지. 허나 <b>${E.S.rules79.overFrom}점 위는 절반만</b> 쌓이니, 한 가지만 잔뜩 모으기보다 고루 채우거라.`},
+    {key: 'aug79', id: null, at: '.home', when: me => me.augments.length === 1, say: () => '고른 발전 카드는 우리 섬을 누르면 <b>🧩 발전 카드</b> 칸에 모인단다. 같은 콘셉트를 <b>2장·3장</b> 모으면 보너스가 켜지지!'}
   ];
   const HINT_GAP = 10; let hintDay = null;
   function nextHint() {
@@ -1038,17 +1041,20 @@
     const me = P(), seen = natSeen(me.id), shared = natSeen('common');
     return HINTS.find(h => (!h.id || h.id === me.id) && !(h.shared ? shared : seen)[h.key] && h.when(me)) || null;
   }
-  // 8.5 첫 판 도움말은 '첫 거래 성공'까지 3단계 + 마무리. 나머지 설명은 처음 필요해질 때 한 번씩(아래 HINTS의 common)
+  // 8.5 첫 판 도움말은 '첫 거래 성공'까지 3단계 + 마무리(8.6 출항 뒤 나라 특성·남은 배 2단계 추가). 나머지 설명은 처음 필요해질 때 한 번씩(아래 HINTS의 common)
   // at·allow는 글자(선택자)나 함수. coach.good = 처음에 가리킬 모자란 물건
   const coachGood = () => coach?.good ?? 0, hasRoute = () => P().ships.some(s => s.route);
   const COACH = [
-    {at: () => `.stock[data-good="${coachGood()}"]`, say: me => `안녕! 나는 항해사 <b>${HELPER.name}</b>야. 창고의 빨간 칸을 봐. ${ico(coachGood())} <b>${gname(coachGood())}</b>, 이게 <b>모자라</b>! 다른 나라에서 사 오자.`},
-    {enter: () => { focusGood = coachGood(); }, allow: '.piece, .isle', at: () => coach?.isle ? `.isle[data-drop="${coach.isle}"]` : $('.isle.match:not(.world):not(.buyer)') ? '.isle.match:not(.world):not(.buyer)' : '.isle.match', say: () => `${josa(gname(coachGood()), '을', '를')} 파는 섬이 <b>빛나요</b>. 빛나는 섬을 눌러 봐! 배를 끌어 섬에 놓아도 돼.`, until: () => !!dock, act: '👉 빛나는 섬을 눌러 보세요'},
+    {at: () => `.stock[data-good="${coachGood()}"]`, say: me => `허허, 반갑구나! 나는 항해사 <b>${HELPER.name}</b>란다. 창고의 빨간 칸을 보거라. ${ico(coachGood())} <b>${gname(coachGood())}</b>, 이게 <b>모자라는구나</b>! 다른 나라에서 사 오자꾸나.`},
+    {enter: () => { focusGood = coachGood(); }, allow: '.piece, .isle', at: () => coach?.isle ? `.isle[data-drop="${coach.isle}"]` : $('.isle.match:not(.world):not(.buyer)') ? '.isle.match:not(.world):not(.buyer)' : '.isle.match', say: () => `${josa(gname(coachGood()), '을', '를')} 파는 섬이 <b>빛나고</b> 있지? 빛나는 섬을 눌러 보거라! 배를 끌어다 섬에 놓아도 된단다.`, until: () => !!dock, act: '👉 빛나는 섬을 눌러 보거라'},
     // 계약서가 열려 있으면 '추천대로 계약하기', 맺은 뒤에는 ▶를 가리킨다(같은 말풍선). 고른 섬과 계약할 짐이 없으면 취소하고 다른 섬으로(8.2c)
     {allow: () => hasRoute() && !dock ? '.speed [data-speed="1"], .speed [data-speed="2"]' : '.dockpanel, .piece, .isle', at: () => dock ? '[data-sign]' : hasRoute() ? '.speed [data-speed="1"]' : '.isle.match',
-      say: () => dock && $('[data-sign]:disabled') ? `이 섬과는 지금 계약할 짐이 없어. <b>취소</b>를 누르고 <b>다른 섬</b>을 눌러 봐.` : !dock && !hasRoute() ? '빛나는 섬을 눌러 계약서를 열어 봐.' : `짐은 내가 골라 뒀어. <b>추천대로 계약하기</b>를 누르고 <b>▶</b>를 눌러 출항!`,
+      say: () => dock && $('[data-sign]:disabled') ? `이 섬과는 지금 계약할 짐이 없구나. <b>취소</b>를 누르고 <b>다른 섬</b>을 눌러 보거라.` : !dock && !hasRoute() ? '빛나는 섬을 눌러 계약서를 열어 보거라.' : `짐은 내가 골라 두었단다. <b>추천대로 계약하기</b>를 누르고 <b>▶</b>를 눌러 출항하거라!`,
       until: () => speed > 0 && hasRoute() && !dock, act: '👉 계약하기 → ▶', avoid: () => dock ? '.dockpanel .effect, .dockpanel .dockactions' : '.speed, .isle'},   // 말풍선이 계약서 가운데 줄은 가려도 기대 효과·단추는 피한다
-    {wait: () => !!$('.arrival'), at: '.arrival button', pause: true, say: me => { const d = me.ships.map(s => s.delivery).find(Boolean); return `🎉 ${d ? gotLine(me, d) : '첫 배가 돌아왔어요!'} 이제 혼자서도 할 수 있어. 모르는 게 생기면 그때 내가 또 알려 줄게!`; }, last: true},
+    // 8.6 출항 뒤: 나라 특성과 고유 수치(위 칸의 숫자), 그다음 남은 배도 계약하라는 말. 둘 다 시간을 멈추고 읽힌다
+    {at: '.nation-slot', intro: true, pause: true, say: me => { const t = E.traitInfo(G, me); return `${INTRO_STEP.say(me)}${t.text && NUM[me.id] ? `<br>칸에 적힌 <b>${esc(t.text)}</b>, 이게 ${NUM[me.id]} 알려 주는 우리 나라만의 수치란다. 자주 들여다보거라.` : ''}`; }},
+    {at: () => $('.piece.idle') ? '.piece.idle' : '.tray', pause: true, say: () => '⛵ 첫 배가 떠났구나! <b>남은 배</b>도 똑같이 해 보거라. 우리에게 <b>모자란 물건은 사 오고</b>, <b>남는 물건은 파는</b> 계약을 섬마다 맺는 게야. 쉬는 배를 누르고 섬을 고르면 된단다.'},
+    {wait: () => !!$('.arrival'), at: '.arrival button', pause: true, say: () => '🎉 첫 배가 무사히 돌아왔구나! 창고를 보거라, 물건이 채워졌지? 이제 혼자서도 잘 해낼 게다. 모르는 게 생기면 그때 또 알려 주마!', last: true},
   ];
   const atOf = c => typeof c.at === 'function' ? c.at() : c.at, allowOf = c => typeof c.allow === 'function' ? c.allow() : c.allow;
   const coachEl = Object.assign(document.createElement('div'), {id: 'coach', hidden: true});
@@ -1065,7 +1071,8 @@
     const c = coach.list[coach.step];
     if (c.last) return coachEnd('done');
     coach.step++; coach.shown = false;
-    if (coach.resumeSpeed && !coach.list[coach.step].pause) { speed = coach.resumeSpeed; coach.resumeSpeed = 0; }
+    const n = coach.list[coach.step];
+    if (coach.resumeSpeed && (!n.pause || n.wait)) { speed = coach.resumeSpeed; coach.resumeSpeed = 0; }   // 8.6 때를 기다리는 단계(도착)는 시간이 흘러야 온다
     render();
   }
   function coachTick() {
