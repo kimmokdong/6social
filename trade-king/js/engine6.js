@@ -694,7 +694,7 @@
     if(id==='festivalPrep')b.cloth+=v.cloth;
     if(id==='students')b.score+=v.score;
     G.small.log.push(item);if(e.action){G.small.actions.push({...item});G.small.lastAction=d;}
-    news(G,`${e.name} · ${item.text}${e.action?` · ${e.action}(7일 안에)` : ''}`,'small');forecasts.delete(G);return item;
+    news(G,`${e.name} · ${item.text}${e.action?` · ${e.action}(${V.actionDays}일 안에)` : ''}`,'small');forecasts.delete(G);return item;
   }
   const smallActions=G=>(G.small?.actions||[]).filter(a=>!a.done&&a.until>=today(G));
   function takeSmallAction(G,day){

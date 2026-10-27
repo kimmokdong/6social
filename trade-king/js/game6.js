@@ -229,7 +229,7 @@
     if(actBtn)return `<div class="note"><p>${SMALL_ICON[action.id]||'📰'} ${E.S.smallEvents.find(e=>e.id===action.id).name} · ${action.text}</p><div><button data-small-action="${action.day}">${action.action} · ${action.until-E.today(G)}일 남음</button></div></div>`;
     return `<div class="note"><p>${message}</p><div>${focusGood !== null ? '<button data-clear-good>전체 보기</button>' : g != null && idle >= 0 ? `<button data-good="${g}">${ico(g)} ${lacking.includes(g) ? '파는 섬 찾기' : '사 줄 섬 찾기'}</button>` : ''}${!speed && !G.pending ? '<button class="primary" data-speed="1">▶ 출항하기</button>' : ''}</div></div>`;
   }
-  // 7.9b 작은 돌발: 시간을 멈추지 않고 6초 동안 카드로 떴다가 소식 줄로 들어간다. 단추가 붙으면 7일 안에 누를 수 있다(안내 줄에도 남음).
+  // 7.9b 작은 돌발: 시간을 멈추지 않고 6초 동안 카드로 떴다가 소식 줄로 들어간다. 단추가 붙으면 actionDays일 안에 누를 수 있다(안내 줄에도 남음).
   const SMALL_ICON = {tailwind: '🌬', headwind: '🌪', fog: '🌫', lost: '🧳', fish: '🐟', mice: '🐭', exchangeTech: '🔧', donation: '🎁', repair: '🛠', merchant: '🧑‍💼', spark: '✨', sale: '🏷', northSale: '🗻', rumor: '📣', match: '⚽', misunderstanding: '💢', request: '🙏', craftsman: '🧑‍🎨', festivalPrep: '🎪', students: '🎒'};
   function watchSmall() {
     const log = G.small?.log || [];
