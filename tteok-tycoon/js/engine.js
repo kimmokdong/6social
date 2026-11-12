@@ -245,7 +245,10 @@
     if (price <= 2000 && served > 40) s.stats.bulk = true;
     const res = { day: s.day, price, portions: plan.portions, upgrade: plan.upgrade, upCost, visitors: V, cap, counts, served, turned,
       leftover, revenue, ingredientCost, ingredient: s.ingredient, rent: T.rent, wage, profit, money: s.money, rep: s.rep, kids, decisions, rivalPrice: s.rivalPrice, truck: s.truck, cartel, youtuber };
-    s.history.push({ day: s.day, price, served, profit, rep: s.rep, visitors: V, rivalPrice: s.rivalPrice, turned, leftover, portions: plan.portions, mineShare: want / V, rivalShare: counts.rival / V });
+    const reasons = choiceSummary(res);
+    const topReason = choice => { const g = reasons.find(x => x.choice === choice); return g ? { reason: g.reason, saving: g.saving, count: g.count } : null; };
+    s.history.push({ day: s.day, price, served, profit, rep: s.rep, visitors: V, rivalPrice: s.rivalPrice, turned, leftover, portions: plan.portions, mineShare: want / V, rivalShare: counts.rival / V,
+      upgrade: plan.upgrade, locked: cartel, taste: s.taste, mood: d.mood, cap, ingredient: s.ingredient, mineReason: topReason('mine'), rivalReason: topReason('rival') });
     s.lastPlan = { price: plan.price, portions: plan.portions, upgrade: null };
     return res;
   }

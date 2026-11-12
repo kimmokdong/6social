@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const T = window.TTEOK, E = window.TteokEngine, A = window.TycoonArt, P = window.SamgwonArt, S = window.TteokSfx;
-  const KEY = 'tteok-tycoon-v1', GAME_KEY = 'tteok-tycoon-v2-game', UP = T.upgrades;
+  const KEY = 'tteok-tycoon-v1', GAME_KEY = 'tteok-tycoon-v2-game', PLAYS_KEY = 'tteok-tycoon-v1-plays', UP = T.upgrades, R = window.TteokResult;
   const app = document.getElementById('app'), layer = document.getElementById('layer');
   const debug = new URLSearchParams(location.search).has('debug');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -47,6 +47,10 @@
 
   let G = null, plan = null, resume = null, screen = '', busy = false, skip = false, toastTimer = 0;
   let layerOpener = null;
+  let resultSession = null;
+  function loadPlays() {
+    try { const xs = JSON.parse(localStorage.getItem(PLAYS_KEY) || '[]'); return Array.isArray(xs) ? xs.filter(p => p && Array.isArray(p.history) && Array.isArray(p.trail) && Array.isArray(p.schedule)).slice(-30) : []; } catch (_) { return []; }
+  }
 
   /* ───── 부품 ───── */
   const icon = (n, cls = '') => A.icon(n, cls);
@@ -300,6 +304,7 @@
   /* ───── 엔딩 ───── */
   function ending() {
     clearGame();
+    resultSession = null;
     const end = T.endings.find(e => e.id === G.ended);
     const isNew = !progress.endings.includes(end.id);
     if (isNew) progress.endings.push(end.id);
@@ -318,8 +323,41 @@
       <div class="note">${icon('bulb')}<p>${end.note}</p></div>
       ${trailMap(newFound)}
       ${got.length ? `<div class="got-badges">${got.map(id => medal(id, fresh.includes(id))).join('')}</div>` : ''}
-      <div class="end-btns">${btn('new', `다시 하기 ${icon('play')}`, 'primary')}${btn('endings', '엔딩 도감', 'secondary')}${btn('title', '처음으로', 'secondary')}</div></article>
+      <div class="end-btns">${btn('results', '결과 보기', 'primary')}${btn('new', `다시 하기 ${icon('play')}`, 'primary')}${btn('endings', '엔딩 도감', 'secondary')}${btn('title', '처음으로', 'secondary')}</div></article>
       ${end.legend ? '<div class="confetti" aria-hidden="true">' + Array.from({ length: 40 }, (_, i) => `<i style="--x:${(i * 37) % 100};--d:${(i % 7) * .35}s;--c:${['#F5C542', '#E0533C', '#2E9E6B', '#3B6FE0', '#F2994A'][i % 5]}"></i>`).join('') + '</div>' : ''}</section>`);
+  }
+  /* 인터뷰는 결과를 알리기 전에 한 문항씩 듣는다. */
+  const richText = text => esc(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  function resultPage(name, heading, body, footer) {
+    setScreen(name, `<section class="result-page"><header><span class="result-kicker">다온일보 · 나팩트 기자</span><h1>${heading}</h1></header>${body}<footer class="result-footer">${footer}</footer></section>`);
+  }
+  function resultInterview() {
+    if (!resultSession) resultSession = { questions: R.interview(G), index: 0, answers: {}, past: loadPlays(), result: null };
+    const s = resultSession, q = s.questions[s.index];
+    if (!q) {
+      if (!s.result) {
+        s.result = R.analyze(G, s.answers, s.past);
+        try { localStorage.setItem(PLAYS_KEY, JSON.stringify([...s.past, R.record(G, s.answers)].slice(-30))); } catch (_) {}
+      }
+      resultType(); return;
+    }
+    resultPage('interview', '사장님 인터뷰', `<div class="interview-layout"><aside>${speaker({ char: 'reporter' })}</aside><div><p class="result-kicker">${s.index + 1} / ${s.questions.length} · ${T.result.labels[['role', 'household', 'freedom', 'responsibility'].indexOf(q.slot)]}</p><h2 class="interview-question">${esc(q.text)}</h2><div class="interview-answers">${q.options.map(o => btn('interview-answer', esc(o.text), 'secondary', `data-question="${q.id}" data-answer="${o.id}"`)).join('')}</div></div></div>`, '');
+  }
+  // 기준값을 막대 가운데에 두고, 왼쪽(min~기준)과 오른쪽(기준~max)을 따로 늘인다.
+  const axisPos = a => { const v = Math.max(a.min, Math.min(a.max, a.value)); return v < a.threshold ? (v - a.min) / (a.threshold - a.min) * 50 : 50 + (a.max === a.threshold ? 50 : (v - a.threshold) / (a.max - a.threshold) * 50); };
+  const axisValue = a => a.id === 'price' ? T.result.axes[1].value.replace('{v}', a.value > 0 ? `${won(a.value)} 비싸게` : a.value < 0 ? `${won(-a.value)} 싸게` : '같은 값') : T.result.axes.find(x => x.id === a.id).value.replace('{v}', Math.round(a.value));
+  function resultType() {
+    const r = resultSession.result;
+    resultPage('result-type', '사장님 유형', `<article class="result-hero"><span class="result-emblem" aria-hidden="true">${icon('bowl')}</span><h2>${esc(r.type.name)}</h2><p>${esc(r.type.description)}</p></article><div class="result-axes">${r.axes.map(a => `<div><h3>${a.label} <span>${esc(axisValue(a))}</span></h3><div class="axis-track" role="meter" aria-label="${a.label}" aria-valuemin="${a.min}" aria-valuemax="${a.max}" aria-valuenow="${Math.max(a.min, Math.min(a.max, a.value))}"><i style="left:50%"></i><b style="left:${axisPos(a)}%"></b></div><p class="axis-labels"><span>${a.left}</span><span>${a.right}</span></p></div>`).join('')}</div><p class="result-note">${esc(T.result.typeNote)}</p>${r.compare ? `<p>지난 판: ${esc(r.compare.type.name)}</p>` : ''}`, btn('result-stars', '다음', 'primary'));
+  }
+  const dots = (n, max) => '●'.repeat(n) + '○'.repeat(max - n);
+  function resultStars() {
+    const r = resultSession.result;
+    resultPage('result-stars', '이번 판 사회 실력', `<div class="achievement-box"><p>${esc(T.result.studentAchievement)}</p><small>${esc(T.result.excluded)}</small></div><p class="result-note">${esc(T.result.starNote)} ${esc(T.result.starHow)}</p><div class="result-star-grid">${r.stars.map(s => `<article class="result-panel"><h2>${s.label}</h2><div class="learning-stars" aria-label="별 ${s.value}개">${'★'.repeat(s.value)}${'☆'.repeat(3 - s.value)}</div><div class="evidence-row"><span class="evidence-tag">해 본 것 <b aria-label="${s.experience}점">${dots(s.experience, s.expMax)}</b></span><p>${esc(s.expLine)}${s.checks ? `<span class="role-checks">${s.checks.map(c => `${c.ok ? '✔' : '✖'} ${c.name}`).join(' · ')}</span>` : ''}${s.slot === 'freedom' && r.lockedLine ? `<span class="role-checks">${esc(r.lockedLine)}</span>` : ''}</p></div><div class="evidence-row"><span class="evidence-tag">까닭 알기 <b aria-label="${s.reason}점">${dots(s.reason, s.reasonMax)}</b></span><p>${richText(s.reasonLine)}</p></div></article>`).join('')}</div>${r.compare?.changes.length ? `<div class="result-panel"><h2>지난 판과 달라진 점</h2>${r.compare.changes.map(c => `<p>${c.arrow} ${c.label} ${'★'.repeat(c.before)} → ${'★'.repeat(c.after)}</p>`).join('')}</div>` : ''}${r.challenge ? `<div class="result-panel"><h2>다음 판 도전</h2><p>${esc(r.challenge)}</p></div>` : ''}`, btn('result-study', '다음', 'primary'));
+  }
+  function resultStudy() {
+    const r = resultSession.result;
+    resultPage('result-study', '내 플레이 속 사회 공부', `<div class="concept-cards">${r.cards.map(c => `<article class="result-panel"><h2>${T.result.labels[['role', 'household', 'freedom', 'responsibility'].indexOf(c.slot)]}</h2><p class="card-action">${esc(c.action)}</p>${c.event ? `<p>${esc(c.event)}</p>` : ''}<p class="card-concept">${richText(c.concept)}</p><p class="card-answer">${esc(c.last)}</p></article>`).join('')}</div><div class="result-panel"><h2>기업의 사회적 책임</h2><div class="responsibility-table">${r.table.map(t => `<article><h3>${esc(t.title)}</h3>${t.branches.map(b => `<p>${b.seen ? '●' : '○'} ${esc(b.label)}${b.consequences.length ? `<span>${esc(b.consequences.join(' → '))}</span>` : ''}</p>`).join('')}</article>`).join('')}</div><p>${esc(r.hygiene)}</p></div>`, btn('new', '다시 하기', 'primary') + btn('title', '처음으로', 'secondary'));
   }
   /* 사건 연결도: 이번 판에 이어진 사건들을 화살표로만 보여 준다(설명 없음) */
   function trailMap(newFound) {
@@ -411,7 +449,15 @@
       case 'menu': menu(); break;
       case 'settings': settings(); break;
       case 'reset-ask': settings(true); break;
-      case 'reset': progress = fresh(); save(); clearGame(); S.setEnabled(false); closeLayer(); title(); break;
+      case 'reset': progress = fresh(); save(); clearGame(); try { localStorage.removeItem(PLAYS_KEY); } catch (_) {} resultSession = null; S.setEnabled(false); closeLayer(); title(); break;
+      case 'results': if (G?.ended) resultInterview(); break;
+      case 'interview-answer': {
+        const s = resultSession, q = s?.questions[s.index];
+        if (screen !== 'interview' || !q || el.dataset.question !== q.id) break;
+        s.answers[q.id] = el.dataset.answer; s.index++; resultInterview(); break;
+      }
+      case 'result-stars': if (resultSession?.result) resultStars(); break;
+      case 'result-study': if (resultSession?.result) resultStudy(); break;
       case 'close': closeLayer(); break;
       case 'sound': progress.sound = !progress.sound; save(); S.setEnabled(progress.sound); S.play('tick'); if (!layer.hidden) settings(); else el.outerHTML = soundBtn(); break;
       case 'price-up': plan.price = T.prices[Math.min(T.prices.length - 1, T.prices.indexOf(plan.price) + 1)]; S.play('tick'); morning(); break;

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>플레이 결과 — 연수용 예시 화면</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .example-page{width:min(1200px,100%);margin:auto;padding:30px 24px 60px;font-size:18px;line-height:1.6;display:grid;gap:26px}
+    #class-summary{display:grid;gap:26px}
+    .example-page h1{font-size:clamp(28px,4vw,40px);line-height:1.3}.example-page h2{font-size:28px;margin-bottom:16px}.example-page h3{font-size:22px;margin:0 0 10px}
+    .example-page p+p{margin-top:10px}.example-page small{font-size:18px;color:var(--soft)}
+    .overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}.overview-grid>.result-panel{box-shadow:none;border:1px solid #D8CDB8}
+    .dist-row{margin:12px 0}.dist-label{display:flex;justify-content:space-between;gap:12px}.dist-track{height:14px;background:var(--paper);border-radius:10px;overflow:hidden;margin-top:5px}.dist-track i{display:block;height:100%;background:var(--role);border-radius:10px}
+    .stat-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:18px}.stat-table th,.stat-table td{padding:12px 10px;border-bottom:1px solid #D8CDB8;text-align:left;vertical-align:top}.stat-table th{background:#F4EEE2}.stat-table td p{margin:0 0 8px}
+    .example-page select{font:inherit;font-size:20px;min-height:48px;border:2px solid #CDBFA6;border-radius:12px;padding:8px 18px;background:var(--white);max-width:100%}.student-head{display:flex;gap:20px;align-items:center;flex-wrap:wrap}.student-head h2{margin:0}
+    #student{display:grid;gap:22px}.answer-distributions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.overview-grid>.result-panel:nth-child(n+3){grid-column:1/-1}.answer-dist{padding:12px 0;border-top:1px solid #D8CDB8}.answer-dist p{margin:6px 0}.answer-dist .dist-track{height:8px}.evidence-table td{width:50%}.history-table{font-size:18px}.history-table th,.history-table td{padding:10px 6px}
+    @media(max-width:700px){.example-page{padding:22px 14px}.overview-grid,.answer-distributions{grid-template-columns:1fr}.stat-table th,.stat-table td{padding:10px 6px}.history-table{table-layout:auto}.history-table th:first-child{width:36px}}
+  </style>
+</head>
+<body>
+  <main class="example-page">
+    <section id="class-summary">
+    <header><h1>예시 화면 — 결과를 모으면 이렇게 볼 수 있어요 (가상 학생 기록)</h1></header>
+    <div class="achievement-box" id="achievement"></div>
+    <section id="class-overview" class="overview-grid" aria-label="반 전체"></section>
+    </section>
+    <section aria-label="학생 상세"><div class="student-head"><h2>학생 한 명 상세</h2><label>가상 학생 <select id="student-select" aria-label="가상 학생"></select></label></div><div id="student"></div></section>
+  </main>
+  <script src="../js/data.js"></script>
+  <script src="../js/engine.js"></script>
+  <script src="../js/result.js"></script>
+  <script src="sample-records.js"></script>
+  <script>
+    'use strict';
+    const T = TTEOK, R = TteokResult, D = T.result, samples = TTEOK_SAMPLES;
+    const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const rich = v => esc(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const results = s => s.plays.map((p, i) => R.analyze(p, p.answers, s.plays.slice(0, i)));
+    const latest = samples.map(s => results(s).at(-1)), plays = samples.flatMap(s => s.plays);
+    const bar = (label, n, total) => `<div class="dist-row"><div class="dist-label"><span>${esc(label)}</span><b>${n} / ${total}</b></div><div class="dist-track"><i style="width:${total ? n / total * 100 : 0}%"></i></div></div>`;
+    document.querySelector('#achievement').innerHTML = `<h2>성취기준</h2><p>${esc(D.achievement)}</p><p><b>볼 수 있는 요소 4개</b>: 기업의 역할, 가계의 역할(선택), 기업의 자유, 기업의 사회적 책임</p><p><b>볼 수 없는 요소</b>: 근로자의 권리</p>`;
+    document.querySelector('#class-overview').innerHTML = `
+      <article class="result-panel"><h2>유형 분포</h2><small>가상 학생 6명 · ${plays.length}판 · 마지막 판</small>${D.types.map(t => bar(t.name, latest.filter(r => r.type.id === t.id).length, samples.length)).join('')}</article>
+      <article class="result-panel"><h2>항목별 별 분포</h2><small>마지막 판 · ★ / ★★ / ★★★</small>${D.labels.map((label, i) => `<h3>${label}</h3>${[1, 2, 3].map(n => bar('★'.repeat(n), latest.filter(r => r.stars[i].value === n).length, samples.length)).join('')}`).join('')}</article>
+      <article class="result-panel"><h2>사건별 선택 통계</h2><small>받아들임 / 거절 판 수 · ${plays.length}판</small><table class="stat-table"><thead><tr><th>사건</th><th>받아들임</th><th>거절</th></tr></thead><tbody>${Object.entries(T.pools.choices).map(([id, d]) => { const counts = d.choice.options.map(o => plays.filter(p => p.trail.some(t => t.start && t.root === id && t.pick === o.label)).length); return `<tr><th>${esc(d.title)}</th><td>${counts[0]}<p>${esc(d.choice.options[0].label)}</p></td><td>${counts[1]}<p>${esc(d.choice.options[1].label)}</p></td></tr>`; }).join('')}</tbody></table></article>
+      <article class="result-panel"><h2>인터뷰 문항별 답 분포</h2><div class="answer-distributions">${D.questions.filter(q => plays.some(p => p.answers[q.id])).map(q => { const ps = plays.filter(p => p.answers[q.id]); return `<div class="answer-dist"><h3>${q.id} · ${D.labels[['role','household','freedom','responsibility'].indexOf(q.slot)]}</h3>${q.options.map(o => bar(`${o.ok ? '✅ ' : ''}${o.text}`, ps.filter(p => p.answers[q.id] === o.id).length, ps.length)).join('')}</div>`; }).join('')}</div></article>`;
+    const select = document.querySelector('#student-select');
+    select.innerHTML = samples.map((s, i) => `<option value="${i}" ${i === 2 ? 'selected' : ''}>${esc(s.student)}</option>`).join('');
+    function renderStudent() {
+      const s = samples[Number(select.value)], rs = results(s), r = rs.at(-1), p = s.plays.at(-1), qs = R.interview(p);
+      const evidence = r.stars.map(st => {
+        const q = qs.find(q => q.slot === st.slot), card = r.cards.find(c => c.slot === st.slot), answer = q?.options.find(o => o.id === p.answers[q.id]);
+        return `<tr><th colspan="2">${st.label}</th></tr><tr><td>${esc(st.line)}${card ? `<p>${esc(card.action)}</p><p>${esc(card.event)}</p>` : r.lockedLine ? `<p>${esc(r.lockedLine)}</p>` : ''}${st.slot === 'responsibility' ? r.table.map(t => `<p>${esc(t.title)}: ${t.branches.map(b => `${b.seen ? '●' : '○'} ${esc(b.label)}`).join(' / ')}${t.branches.flatMap(b => b.consequences).map(x => `<br>${esc(x)}`).join('')}</p>`).join('') + `<p>${esc(r.hygiene)}</p>` : ''}</td><td>${q ? `<p>${q.id} · ${esc(q.text)}</p><p>${answer?.ok ? '✅ ' : ''}${esc(answer?.text || '')}</p>` : ''}</td></tr>`;
+      }).join('');
+      document.querySelector('#student').innerHTML = `<article class="result-hero"><h2>${esc(s.student)} · ${esc(r.type.name)}</h2><p>${esc(r.type.description)}</p></article>
+        <div class="result-axes">${r.axes.map(a => `<div><h3>${a.label} · ${a.id === 'price' ? Math.round(a.value).toLocaleString('ko-KR') + '원' : a.value}</h3><div class="axis-track"><i style="left:${(a.threshold-a.min)/(a.max-a.min)*100}%"></i><b style="left:${Math.max(0, Math.min(100, (a.value-a.min)/(a.max-a.min)*100))}%"></b></div><p class="axis-labels"><span>${a.left}</span><span>${a.right}</span></p></div>`).join('')}</div>
+        <div class="result-star-grid">${r.stars.map(st => `<article class="result-panel"><h3>${st.label}</h3><div class="learning-stars">${'★'.repeat(st.value)}${'☆'.repeat(3-st.value)}</div><div class="evidence-pair"><span>해 봄 ${st.experience}</span><span>까닭을 알아봄 ${st.reason}</span></div><p>${esc(st.line)}</p>${st.slot === 'freedom' ? `<p>${rich(r.freedomLine)}</p><p>${esc(r.lockedLine)}</p>` : ''}</article>`).join('')}</div>
+        <article class="result-panel"><h2>성취기준 요소별 근거</h2><table class="stat-table evidence-table"><thead><tr><th>플레이 기록</th><th>인터뷰 답</th></tr></thead><tbody>${evidence}</tbody></table></article>
+        <div class="concept-cards">${r.cards.map(c => `<article class="result-panel"><h3>${D.labels[['role','household','freedom','responsibility'].indexOf(c.slot)]}</h3><p class="card-action">${esc(c.action)}</p><p>${esc(c.event)}</p><p class="card-concept">${rich(c.concept)}</p><p>${esc(c.last)}</p></article>`).join('')}</div>
+        <article class="result-panel"><h2>판마다의 변화</h2><table class="stat-table history-table"><thead><tr><th>판</th><th>유형</th>${D.labels.map(l => `<th>${l}</th>`).join('')}</tr></thead><tbody>${rs.map((x, i) => `<tr><td>${i+1}</td><td>${esc(x.type.name)}</td>${x.stars.map((st, j) => `<td>${i && st.value !== rs[i-1].stars[j].value ? st.value > rs[i-1].stars[j].value ? '▲' : '▼' : ''}${'★'.repeat(st.value)}</td>`).join('')}</tr>`).join('')}</tbody></table><p>${esc(r.challenge)}</p></article>`;
+    }
+    select.addEventListener('change', renderStudent); renderStudent();
+  </script>
+</body>
+</html>
